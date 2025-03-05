@@ -1,0 +1,79 @@
+.red-section {
+  color: white;
+  background: linear-gradient(90deg, #cd0e12 0%, #770608 100%);
+  margin-bottom: 10rem !important;
+}
+
+.tennis-ball {
+  width: 50%;
+  position: absolute;
+  top: 50%;
+  right: 0%;
+  transform: translate(50%, -50%);
+}
+
+.our-mission {
+  background: linear-gradient(
+      90deg,
+      rgba(47, 78, 158, 0) 0%,
+      rgba(7, 19, 53, 0.8) 100%
+    ),
+    url("/images/FederationImages/Our-Mission-2.jpg") lightgray -52.22px -177.147px /
+      104.926% 190.327% no-repeat;
+
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 32px 0px 0px 32px;
+}
+.federation-overlay {
+  padding: 5%;
+}
+.join-us {
+    background: linear-gradient(
+      90deg,
+      rgba(47, 78, 158, 0) 0%,
+      rgba(7, 19, 53, 0.8) 100%
+    ),
+    url("/images/FederationImages/Our-Mission.jpg") lightgray -52.22px -177.147px /
+      104.926% 190.327% no-repeat;
+
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 0px 32px 32px 0px; 
+}
+
+.federation-title {
+  color: var(--Ink-100, #fff);
+  font-family: Montserrat;
+  font-size: 1.5rem;
+  font-size: clamp(1.5rem, 1rem + 2.5vw, 4rem);
+
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%; /* 76.8px */
+}
+.federation-card-text {
+  color: var(--Ink-200, #ebebeb);
+
+  font-family: Montserrat;
+  font-size: 1rem !important;
+  font-size: clamp(1rem, 0.975rem + 0.125vw, 1.125rem) !important;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 21.6px */
+}
+
+@media (max-width: 768px) {
+  .tennis-ball {
+    display: none;
+  }
+  .tennis-ball-mobile {
+    display: block !important;
+    position: absolute;
+    bottom: 0;
+    right: 1%;
+    transform: translateY(50%);
+  }
+}

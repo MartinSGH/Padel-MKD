@@ -1,0 +1,203 @@
+.orange-card {
+  border-radius: 24px;
+
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(285deg, #111c38 0%, #943e00 75.3%),
+    url("/images/Tournament/first-card.png") center / cover no-repeat, #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(147, 68, 0, 0.32);
+}
+.lblue-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(284deg, #111c38 1%, #05bfbf 84%),
+    url("/images/Tournament/second-img.jpg") 0px -116.799px / 100% 291.75% no-repeat,
+    #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(0, 139, 147, 0.4);
+}
+.purple-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(284deg, #111c38 0.71%, #b300bc 72.98%),
+    url("/images/Tournament/third-img.jpg") 0px -148.465px / 100% 291.75% no-repeat,
+    #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(108, 0, 130, 0.3);
+}
+.green-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(284deg, #111c38 0.71%, #00bf4d 83.71%),
+    url("/images/Tournament/second-img.jpg") 0px -116.799px / 100% 291.75% no-repeat,
+    #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(0, 139, 147, 0.4);
+}
+.yellow-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(284deg, #111c38 0.71%, #aeb700 72.98%),
+    url("/images/Tournament/third-img.jpg") 0px -148.465px / 100% 291.75% no-repeat,
+    #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(108, 0, 130, 0.3);
+}
+.dblue-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(285deg, #111c38 0%, #3900bf 75.3%),
+    url("/images/Tournament/first-card.png") center / cover no-repeat, #e21b0c !important;
+
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(147, 68, 0, 0.32);
+}
+.red-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(284deg, #111c38 0.71%, #b60507 83.71%),
+    url("/images/Tournament/second-img.jpg") 0px -116.799px / 100% 291.75% no-repeat,
+    #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(0, 139, 147, 0.4);
+}
+.pink-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(285deg, #111c38 0%, #72006e 75.3%),
+    url("/images/Tournament/first-card.png") center / cover no-repeat, #e21b0c !important;
+
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(147, 68, 0, 0.32);
+}
+.ddblue-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(284deg, #111c38 0.71%, #051ebf 83.71%),
+    url("/images/Tournament/second-img.jpg") 0px -116.799px / 100% 291.75% no-repeat,
+    #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(0, 139, 147, 0.4);
+}
+.lgreen-card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  background: linear-gradient(284deg, #111c38 0.71%, #00bca9 72.98%),
+    url("/images/Tournament/third-img.jpg") 0px -148.465px / 100% 291.75% no-repeat,
+    #e21b0c !important;
+  background-blend-mode: hard-light, normal, normal;
+  box-shadow: 0px 29px 31.7px -8px rgba(108, 0, 130, 0.3);
+}
+
+.component-title-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.component-title {
+  border-left: 5px solid red;
+  padding-left: 2px;
+}
+.scroll-container {
+  height: 200px !important;
+}
+.card {
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+}
+
+.card-row {
+  height: 100%;
+}
+.card-container {
+  height: 100%;
+}
+.card-container .ant-col {
+  height: 100%;
+}
+
+.scroll-container {
+  overflow-x: scroll;
+  white-space: nowrap;
+  cursor: grab;
+}
+
+.scroll-container:active {
+  cursor: grabbing;
+}
+
+.card-row {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.red-line {
+  background-color: rgba(248, 36, 40, 1);
+  height: 10px;
+}
+
+.card-content {
+  color: white;
+}
+
+.t-card-title {
+  color: #fff;
+
+  /* Desktop/Heading 3/Bold */
+  font-family: Montserrat;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%; /* 28.8px */
+}
+.t-card-date {
+  display: flex !important;
+  color: #fff;
+
+  font-family: Montserrat;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 21.6px */
+}
+.t-card-location {
+  color: #fff;
+
+  font-family: Montserrat;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+}
+.t-card-cat {
+  color: #fff;
+
+  text-align: right;
+  /* Desktop/Body text/200/Regular */
+  font-family: Montserrat;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+.t-card-category {
+  color: #fff;
+
+  text-align: right;
+  /* Desktop/Body text/300/SemiBold */
+  font-family: Montserrat;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 21.6px */
+}
+
+.blur-background {
+  align-self: baseline;
+  display: inline-block !important;
+  padding: 6px 12px !important;
+  border-radius: 41px;
+  background: rgba(0, 17, 17, 0.4);
+  backdrop-filter: blur(4.550000190734863px);
+}

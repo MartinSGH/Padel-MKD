@@ -1,0 +1,175 @@
+.training-container {
+  margin-top: 5% !important;
+  border-radius: 46px;
+  background: linear-gradient(270deg, #fff 0%, rgba(255, 255, 255, 0) 82.76%);
+}
+.desktop-version {
+  display: flex !important;
+}
+.mobile-version {
+  display: none !important;
+}
+.gallery-h1 {
+  color: var(--Ink-100, #fff);
+  font-family: Montserrat;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 120%;
+  padding: 0px 24px;
+  border-left: 10px solid #fde834;
+}
+
+.image-1 {
+  width: 100%;
+  height: 90vh;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      349deg,
+      rgba(255, 255, 255, 0.3) 70.88%,
+      rgba(0, 0, 0, 0.3) 87.54%
+    ),
+    url("/images/TrainingImages/TrainingImage-1.jpg") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-2 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-2.png") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-3 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-3.png") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-4 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-4.png") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-5 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-6.jpg") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-6 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-5.jpg") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-7 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-7.jpg") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-8 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-8.jpg") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-9 {
+  width: 100%;
+
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-9.jpg") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+.image-10 {
+  width: 100%;
+  height: 90vh;
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  background: linear-gradient(
+      124deg,
+      rgba(0, 0, 0, 0.3) 6.77%,
+      rgba(255, 255, 255, 0.3) 36.79%
+    ),
+    url("/images/TrainingImages/TrainingImage-10.png") 50% / cover no-repeat;
+  background-blend-mode: multiply, normal;
+}
+
+.training-carousel {
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  width: 100%;
+  height: 50vh;
+  padding: 24px;
+}
+
+@media (max-width: 992px) {
+
+  .training-container {
+    margin-top: 10% !important;
+    border-radius: 46px;
+    background: unset !important;
+  }
+  .desktop-version {
+    display: none !important;
+  }
+  .mobile-version {
+    display: flex !important;
+  }
+}

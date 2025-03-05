@@ -1,0 +1,42 @@
+.bg-gradient {
+  background: linear-gradient(
+    180deg,
+    rgba(5, 18, 52, 0.77) 0%,
+    rgba(67, 96, 174, 0.1232) 100%
+  );
+  mix-blend-mode: hard-light; /* Optional: Adjust blend mode */
+  opacity: 0.8; /* Optional: Adjust visibility */
+  z-index: 1;
+  position: absolute;
+  inset: 0;
+}
+.programs-text {
+  color: var(--Ink-700, #343435);
+  /* Desktop/Body text/300/Regular */
+  font-family: Montserrat;
+  font-size: 1rem;
+  font-size: clamp(1rem, 0.975rem + 0.125vw, 1.125rem);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%; /* 21.6px */
+}
+.programs-details {
+  color: var(--Ink-700, #343435);
+
+  font-family: Montserrat;
+  font-size: 1rem;
+  font-size: clamp(1rem, 0.9952681388012619rem + 0.4206098843322818vw, 1.5rem);
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%;
+}
+.programs-titles {
+  color: #fff;
+
+  font-family: Montserrat;
+  font-size: 1.125rem;
+  font-size: clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem);
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%; /* 21.6px */
+}

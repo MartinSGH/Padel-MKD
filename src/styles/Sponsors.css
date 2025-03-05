@@ -1,0 +1,23 @@
+.sponsor-image {
+  
+  width: 100%;
+  height: 100%;
+}
+.desktop-image {
+  width: 100%;
+  display: block !important;
+}
+.mobile-image {
+  display: none !important;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .desktop-image {
+    display: none !important;
+  }
+  .mobile-image {
+    display: block !important;
+    width: 100%;
+  }
+}

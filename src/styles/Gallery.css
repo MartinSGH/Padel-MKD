@@ -1,0 +1,188 @@
+.gallery-container {
+  border-radius: 46px;
+  background: linear-gradient(270deg, #fff 0%, rgba(255, 255, 255, 0) 82.76%);
+}
+.gallery-h1 {
+  color: var(--Ink-100, #fff);
+  font-family: Montserrat;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 120%;
+  padding: 0px 24px;
+  border-left: 10px solid #fde834;
+}
+.gallery-training {
+  width: 100%;
+  height: 90vh;
+  padding: 2rem;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+
+  background: linear-gradient(
+      349deg,
+      rgba(255, 255, 255, 0.3) 70.88%,
+      rgba(0, 0, 0, 0.3) 87.54%
+    ),
+    url("/images/NewsImages/Training.jpg") 50% / cover no-repeat;
+
+  background-blend-mode: multiply, normal;
+}
+.gallery-players {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+
+  background: linear-gradient(
+      349deg,
+      rgba(255, 255, 255, 0.3) 70.88%,
+      rgba(0, 0, 0, 0.3) 87.54%
+    ),
+    url("/images/NewsImages/Players.jpg") 50% / cover no-repeat;
+  background-position: 75% 75%;
+  background-blend-mode: multiply, normal;
+}
+.gallery-woman {
+  width: 100%;
+
+  padding: 2rem;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+
+  background: linear-gradient(
+      349deg,
+      rgba(255, 255, 255, 0.3) 70.88%,
+      rgba(0, 0, 0, 0.3) 87.54%
+    ),
+    url("/images/NewsImages/WomenPad.jpg") 50% / cover no-repeat;
+  background-position: 75% 75%;
+  background-blend-mode: multiply, normal;
+}
+.gallery-competition {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+
+  background: linear-gradient(
+      349deg,
+      rgba(255, 255, 255, 0.3) 70.88%,
+      rgba(0, 0, 0, 0.3) 87.54%
+    ),
+    url("/images/NewsImages/Tournament.jpg") 50% / cover no-repeat;
+  background-position: 75% 75%;
+  background-blend-mode: multiply, normal;
+}
+.gallery-tournament {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+
+  background: linear-gradient(
+      349deg,
+      rgba(255, 255, 255, 0.3) 70.88%,
+      rgba(0, 0, 0, 0.3) 87.54%
+    ),
+    url("/images/NewsImages/Competition.jpg") 50% / cover no-repeat;
+  background-position: 75% 75%;
+  background-blend-mode: multiply, normal;
+}
+.gallery-courts {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+
+  background: linear-gradient(
+      349deg,
+      rgba(255, 255, 255, 0.3) 70.88%,
+      rgba(0, 0, 0, 0.3) 87.54%
+    ),
+    url("/images/NewsImages/Courts.jpg") 50% / cover no-repeat;
+  background-position: 75% 75%;
+  background-blend-mode: multiply, normal;
+}
+.gallery-title {
+  color: #fff;
+
+  /* Desktop/Heading 3/Bold */
+  font-family: Montserrat;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%; /* 28.8px */
+}
+
+.gallery-carousel {
+  border-radius: 32px;
+  border: 0.944px solid var(--Gradients-Cards-stroke, #fde834);
+  width: 100%;
+  height: 50vh;
+  padding: 24px;
+}
+.gallery-carousel-title {
+  color: #fff;
+
+  font-family: Montserrat;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%;
+}
+
+.training {
+  width: 100%;
+  background-image: url("/images/NewsImages/Training.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.players {
+  width: 100%;
+  background-image: url("/images/NewsImages/Players.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.women-pad {
+  width: 100%;
+  background-image: url("/images/NewsImages/WomenPad.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.courts {
+  width: 100%;
+  background-image: url("/images/NewsImages/Courts.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.tournament {
+  width: 100%;
+  background-image: url("/images/NewsImages/Tournament.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.competition {
+  width: 100%;
+  background-image: url("/images/NewsImages/Competition.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+@media (max-width: 992px) {
+  .gallery-container {
+    background: none !important;
+  }
+  .desktop-version {
+    display: none !important;
+  }
+  .mobile-version {
+    display: flex !important;
+  }
+}

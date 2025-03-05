@@ -1,0 +1,62 @@
+.slider-container {
+  .swiper-slide img {
+    width: 100%;
+    object-fit: cover;
+  }
+  .swiper-clubs {
+    width: auto !important;
+  }
+
+  .slider-controler {
+    position: relative;
+    bottom: 0rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    div {
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-radius: 50%;
+      padding: 2.5px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s ease;
+
+      &:hover {
+        border: 1px solid currentColor;
+        transition: 0.3s ease;
+      }
+    }
+  }
+}
+
+.club-card-title {
+  color: var(--Ink-700, #343435);
+  text-align: center;
+  font-family: Montserrat;
+  font-size: 0.9600625rem;
+  font-size: clamp(
+    0.9600625rem,
+    0.7731250000000001rem + 0.9346874999999999vw,
+    1.89475rem
+  );
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 36.379px */
+}
+.club-card-text {
+  color: var(--Ink-700, #343435);
+  font-family: Montserrat;
+  font-size: 0.7200625rem;
+  font-size: clamp(
+    0.7200625rem,
+    0.5798625000000001rem + 0.7009999999999998vw,
+    1.4210625rem
+  );
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+}

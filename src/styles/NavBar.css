@@ -1,0 +1,148 @@
+/* Header Styling */
+
+header {
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index: 999;
+  background: linear-gradient(0deg, rgba(17, 28, 56, 0) 0%, #111c38 69.34%);
+  color: white;
+}
+
+/* Navbar Container */
+.navbar {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo Styling */
+.navbar img {
+  height: 10%;
+}
+
+.nav-menu-logo.hidden {
+  display: none;
+}
+
+/* Navigation Links */
+.nav-link {
+  color: var(--Ink-100, #fff);
+
+  /* Desktop/Body text/100/Regular */
+  font-family: Montserrat;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  text-align: center;
+  margin: 0 1rem;
+  padding: 8px 12px;
+  text-decoration: none;
+  border-radius: 23px;
+  background: transparent;
+  color: white;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-link:hover {
+  background: rgba(205, 14, 18, 0.53);
+  color: white;
+}
+
+/* Active Link Styling */
+.active-link {
+  background: rgba(205, 14, 18, 0.53);
+}
+
+/* Navbar Button */
+header .nav-btn {
+  padding: 5px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  display: none;
+  opacity: 0;
+  font-size: 1.8rem;
+}
+
+/* Navbar Items */
+header div,
+nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+/* Language Toggle */
+.flex.items-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: white;
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 1024px) {
+  header .nav-btn {
+    display: flex;
+    opacity: 1;
+  }
+  .navbar img {
+    height: unset;
+  }
+
+  .logo-menu {
+    display: block !important;
+    width: 30%;
+  }
+
+  header nav {
+    position: fixed;
+    top: -100vh;
+    left: 0;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    opacity: 1;
+    background: rgba(8, 15, 34, 0.8);
+    backdrop-filter: blur(7.849999904632568px);
+    z-index: 999;
+    transition: 1s;
+  }
+
+  header nav a {
+    text-align: center;
+    width: 90%;
+    font-size: 1.5rem;
+  }
+
+  header .responsive_nav {
+    transform: translateY(100vh);
+  }
+
+  .nav-menu-logo {
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  nav .nav-close-btn {
+    position: absolute;
+    top: 2rem;
+    width: 90%;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-link {
+    font-size: 1.2rem;
+  }
+}
