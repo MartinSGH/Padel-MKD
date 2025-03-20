@@ -91,7 +91,7 @@ const Footer = () => {
             <Col xs={20} lg={8} className="footer-columns">
               <ul className="footer-list">
                 <li className="footer-title">Documentations</li>
-                <li className="footer-link">Programs</li>
+                <li className="footer-link">Program</li>
                 <li className="footer-link">Contact us</li>
                 <li className="footer-link">Status of Federation</li>
                 <li className="footer-link">License of Federation</li>
