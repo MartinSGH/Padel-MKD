@@ -2,17 +2,18 @@ import LandingImage from "../components/FederationPage/LandingImage.jsx";
 import "../styles/Federation.css";
 import { IoArrowUpCircleOutline } from "react-icons/io5";
 import Sponsors from "../components/LandingPage/Sponsors";
+import { Link } from "react-router-dom";
 const Federation = () => {
   return (
     <div className="d-flex flex-col">
       <LandingImage />
       <div className="red-section md:w-9/12 w-12/12 relative">
         <p className="p-5 md:w-10/12 xs:w-12/12 federation-text ">
-          The Padel Federation of Macedonia (PFM) is the official governing body
-          for the sport of padel in Macedonia. Established to promote, develop,
-          and regulate padel across the country, the PFM is dedicated to
-          fostering a vibrant and inclusive community for players of all ages
-          and skill levels.
+          The Padel Federation of Macedonia is the official governing body for
+          the sport of padel in Macedonia. Established to promote, develop, and
+          regulate padel across the country, the PFM is dedicated to fostering a
+          vibrant and inclusive community for players of all ages and skill
+          levels.
         </p>
         <img
           className="tennis-ball"
@@ -44,7 +45,10 @@ const Federation = () => {
         <div className="federation-overlay md:w-3/6 w-6/6 h-full flex flex-col justify-between">
           <h1 className="federation-title flex items-center justify-between mb-5">
             Join Us{" "}
-            <IoArrowUpCircleOutline className="federation-title arrow" />
+            <Link to="https://docs.google.com/forms/d/e/1FAIpQLScZ6YbsLCENnAxMlWQ3nzIdbg7Bly7oL2oo0VDMWcBXONJ4MA/viewform">
+              {" "}
+              <IoArrowUpCircleOutline className="federation-title arrow" />{" "}
+            </Link>
           </h1>
           <p className="federation-card-text">
             Become part of the vibrant and growing padel community! Whether

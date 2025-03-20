@@ -37,7 +37,6 @@ const routes = createBrowserRouter([
         path: "/wip",
         element: <Wip />,
       },
-      
     ],
   },
 ]);

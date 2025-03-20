@@ -201,3 +201,17 @@
   background: rgba(0, 17, 17, 0.4);
   backdrop-filter: blur(4.550000190734863px);
 }
+.ant-modal-title {
+  color: #fff !important;
+  background: #111c38 !important;
+}
+.ant-modal-content{
+  background: #111c38 !important;
+  color: #fff !important;
+}
+.tournament-modal {
+  background: #111c38;
+  border-radius: 24px;
+  border: 1px solid #ffbfc0;
+  box-shadow: 0px 29px 31.7px -8px rgba(147, 68, 0, 0.32);
+}

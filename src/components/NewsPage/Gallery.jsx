@@ -21,11 +21,11 @@ const slides = [
     imageMobile: "courts",
   },
   {
-    subHeading: "Padel Tournaments 2024",
+    subHeading: "Padel Tournaments ",
     imageMobile: "tournament",
   },
   {
-    subHeading: "Padel Competition Skopje 2024",
+    subHeading: "Padel Competition Skopje ",
     imageMobile: "competition",
   },
 ];
