@@ -28,7 +28,8 @@ const Programs = () => {
                     love for the game!
                   </Paragraph>
                 </div>
-                <Link to={"/program"}>
+                
+                <Link to={"/Програма.pdf"} target="_blank">
                   <button className="programs-details d-flex items-center justify-between gap-2 mt-4 hover:gap-4 transition-all">
                     Read more details
                     <IoArrowUpCircleOutline className="arrow" />
