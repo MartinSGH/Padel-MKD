@@ -93,7 +93,11 @@ const Footer = () => {
               <ul className="footer-list">
                 <li className="footer-title">Documentations</li>
                 <li className="footer-link">
-                  <Link className="footer-link" to={"/Програма.pdf"} target="_blank">
+                  <Link
+                    className="footer-link"
+                    to={"/Програма.pdf"}
+                    target="_blank"
+                  >
                     Program
                   </Link>
                 </li>
@@ -104,18 +108,26 @@ const Footer = () => {
                       "https://docs.google.com/forms/d/e/1FAIpQLScZ6YbsLCENnAxMlWQ3nzIdbg7Bly7oL2oo0VDMWcBXONJ4MA/viewform"
                     }
                     target="`_blank"
-                    className="footer-link"
+                    className="footer-link"s
                   >
                     Contact us
                   </Link>
                 </li>
                 <li className="footer-link">
-                  <Link className="footer-link" to={"/Status.pdf"} target="_blank">
+                  <Link
+                    className="footer-link"
+                    to={"/Status.pdf"}
+                    target="_blank"
+                  >
                     Status of Federation
                   </Link>
                 </li>
                 <li className="footer-link">
-                  <Link className="footer-link" to={"/Licence.jpg"} target="_blank">
+                  <Link
+                    className="footer-link"
+                    to={"/Licence.jpg"}
+                    target="_blank"
+                  >
                     License of Federation
                   </Link>
                 </li>
