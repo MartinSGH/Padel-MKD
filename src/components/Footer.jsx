@@ -26,8 +26,8 @@ const Footer = () => {
                   Luj Paster
                   <br />1 Skopje 1000,
                 </li>
-                <li className="  footer-link">mob:077 123 456</li>
-                <li className="footer-link">contact@padelfederation.mk</li>
+
+                <li className="footer-link">padelmkd@gmail.com</li>
               </ul>
             </Col>
             <Col xs={20} lg={8} className="footer-columns">
@@ -93,19 +93,29 @@ const Footer = () => {
               <ul className="footer-list">
                 <li className="footer-title">Documentations</li>
                 <li className="footer-link">
-                  <Link to={"/Програма.pdf"} target="_blank">
+                  <Link className="footer-link" to={"/Програма.pdf"} target="_blank">
                     Program
                   </Link>
                 </li>
 
-                <li className="footer-link">Contact us</li>
                 <li className="footer-link">
-                  <Link to={"/Status.pdf"} target="_blank">
+                  <Link
+                    to={
+                      "https://docs.google.com/forms/d/e/1FAIpQLScZ6YbsLCENnAxMlWQ3nzIdbg7Bly7oL2oo0VDMWcBXONJ4MA/viewform"
+                    }
+                    target="`_blank"
+                    className="footer-link"
+                  >
+                    Contact us
+                  </Link>
+                </li>
+                <li className="footer-link">
+                  <Link className="footer-link" to={"/Status.pdf"} target="_blank">
                     Status of Federation
                   </Link>
                 </li>
                 <li className="footer-link">
-                  <Link to={"/Licence.jpg"} target="_blank">
+                  <Link className="footer-link" to={"/Licence.jpg"} target="_blank">
                     License of Federation
                   </Link>
                 </li>

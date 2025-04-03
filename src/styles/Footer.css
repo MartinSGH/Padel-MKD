@@ -67,7 +67,7 @@
   text-underline-position: from-font;
 }
 .footer-active-link:hover {
-  color: var(--Solid-Primary-Original, #f82428);
+  color: var(--Solid-Primary-Original, #f82428) !important;
 }
 .footer-link:active {
   color: var(--Solid-Primary-Original, #f82428) !important;

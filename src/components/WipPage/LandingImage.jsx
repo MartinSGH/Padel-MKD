@@ -5,13 +5,13 @@ const LandingImage = () => {
       <img
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
         className="landing-image-desktop"
-        src="/images/WIP/Wip-Landing.jpg"
+        src="/images/WIP/Wip-Landing.png"
         alt="Landing Image"
       />
       <img
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
         className="landing-image-mobile"
-        src="/images/WIP/Wip-Landing-mobile.svg"
+        src="/images/WIP/Wip-Landing.png"
         alt=""
       />
     </div>

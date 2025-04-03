@@ -5,7 +5,7 @@ import Card from "react-bootstrap/Card";
 import { Link } from "react-router-dom";
 const joinCards = [
   {
-    image: "/images/JoinUsImages/JoinUs-First.svg",
+    image: "/images/JoinUsImages/JoinUs-First.png",
     button: "Apply as a Player",
     class: "card-button button-yellow",
   },
@@ -15,7 +15,7 @@ const joinCards = [
     class: "card-button button-transparent",
   },
   {
-    image: "/images/JoinUsImages/JoinUs-Third.svg",
+    image: "/images/JoinUsImages/JoinUs-Third.png",
     button: "Get a coach Certification",
     class: "card-button button-white",
   },
@@ -32,12 +32,12 @@ const JoinUs = () => {
         <Card className="card">
           <img
             className="card-img desktop-img"
-            src="/images/JoinUsImages/JoinUsBig.svg"
+            src="/images/JoinUsImages/JoinUsBig.png"
             alt="Desktop version"
           />
           <img
             className="card-img mobile-img"
-            src="/images/JoinUsImages/JoinUsMobile.svg"
+            src="/images/JoinUsImages/JoinUsMobile.png"
             alt="Mobile version"
           />
           <div className="card-text">
@@ -54,7 +54,7 @@ const JoinUs = () => {
       <Col className="join-cards" span={18}>
         <Row justify={"center"}>
           {joinCards.map((card, index) => (
-            <Col key={index} lg={8} md={20}>
+            <Col key={index} lg={8} md={8} sm={20}>
               <Card>
                 <Card.Img
                   className="join-card-image"

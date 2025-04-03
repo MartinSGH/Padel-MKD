@@ -53,10 +53,10 @@ const Gallery = () => {
               <h1 className="gallery-title">Women in Padel</h1>
             </div>
             <div className="row-span-3 col-start-4 row-start-1 gallery-competition">
-              <h1 className="gallery-title">Padel Competitions Skopje 2024</h1>
+              <h1 className="gallery-title">Padel Competitions Skopje 2025</h1>
             </div>
             <div className="row-span-3 col-start-4 row-start-4 gallery-tournament">
-              <h1 className="gallery-title">Padel Tournaments 2024</h1>
+              <h1 className="gallery-title">Padel Tournaments 2025</h1>
             </div>
             <div className="col-span-3 row-span-2 row-start-5 gallery-courts">
               <h1 className="gallery-title">Courts</h1>

@@ -11,14 +11,14 @@ const slides = [
     imageDesktop: "/images/JumboCarouselImage/Carousel1-image.png", // Desktop image
     imageMobile: "/images/JumboCarouselImage/Carousel1-image-mb.png", // Mobile image
   },
-  // {
-  //   heading: "ENJOY",
-  //   subHeading: "Padel in Macedonia",
-  //   text: "Just Play, Have Fun, Enjoy the Game!",
-  //   buttonText: "Join now",
-  //   imageDesktop: "/images/JumboCarouselImage/Carousel1-image.svg", // Desktop image
-  //   imageMobile: "/images/JumboCarouselImage/Carousel1-image-mb.svg", // Mobile image
-  // },
+  {
+    heading: "ENJOY",
+    subHeading: "Padel in Macedonia",
+    text: "Just Play, Have Fun, Enjoy the Game!",
+    buttonText: "Join now",
+    imageDesktop: "/images/JumboCarouselImage/Carousel2-image.png", // Desktop image
+    imageMobile: "/images/JumboCarouselImage/Carousel2-image-mb.png", // Mobile image
+  },
 ];
 
 const JumboCarousel = () => (
@@ -37,7 +37,7 @@ const JumboCarousel = () => (
               <p className="jumbo-carousel-text">{slide.text}</p>
               <Link to={"/wip"}>
                 <Button
-                  className="jumbo-button"
+                  className="jumbo-button p-3"
                   color="danger"
                   shape="round"
                   variant="outlined"
