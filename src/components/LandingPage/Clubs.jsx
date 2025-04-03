@@ -97,7 +97,7 @@ const Clubs = () => {
                   centeredSlides: true,
                 },
                 1440: {
-                  slidesPerView: 5,
+                  slidesPerView: 3,
                   spaceBetween: -100,
                   centeredSlides: true,
                 },
