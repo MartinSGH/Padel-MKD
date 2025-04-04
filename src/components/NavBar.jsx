@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
-import { MdLanguage } from "react-icons/md";
+
 import { Row, Col } from "antd";
 import { NavLink, useLocation } from "react-router-dom";
 import "../styles/NavBar.css";
@@ -75,10 +75,10 @@ function Navbar() {
             >
               {t("navbar.newsMedia")}
             </NavLink>
-            <div className="language-section">
-              <MdLanguage className="language-icon" />
+            
+             
               <LanguageSwitcher />
-            </div>
+            
 
             <button
               className="nav-btn nav-close-btn flex ms-auto"
