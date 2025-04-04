@@ -3,24 +3,28 @@ import "../../styles/JoinUs.css";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { Link } from "react-router-dom";
-const joinCards = [
-  {
-    image: "/images/JoinUsImages/JoinUs-First.png",
-    button: "Apply as a Player",
-    class: "card-button button-yellow",
-  },
-  {
-    image: "/images/JoinUsImages/JoinUs-Second.svg",
-    button: "Register a Club",
-    class: "card-button button-transparent",
-  },
-  {
-    image: "/images/JoinUsImages/JoinUs-Third.png",
-    button: "Get a coach Certification",
-    class: "card-button button-white",
-  },
-];
+import {useTranslation} from "react-i18next";
+
 const JoinUs = () => {
+  const { t } = useTranslation();
+
+  const joinCards = [
+    {
+      image: "/images/JoinUsImages/JoinUs-First.png",
+      button: t("joinUsComponent.card1.buttonText"),
+      class: "card-button button-yellow",
+    },
+    {
+      image: "/images/JoinUsImages/JoinUs-Second.svg",
+      button: t("joinUsComponent.card2.buttonText"),
+      class: "card-button button-transparent",
+    },
+    {
+      image: "/images/JoinUsImages/JoinUs-Third.png",
+      button: t("joinUsComponent.card3.buttonText"),
+      class: "card-button button-white",
+    },
+  ];
   return (
     <Row
       data-aos="fade-up"
@@ -41,12 +45,9 @@ const JoinUs = () => {
             alt="Mobile version"
           />
           <div className="card-text">
-            <h1 className="page-titles  yellow-border text-white">Join Us</h1>
+            <h1 className="page-titles  yellow-border text-white">{t("joinUsComponent.componentTitle")}</h1>
             <p className="join-card-text">
-              Join the Padel Federation of Macedonia and be part of an
-              energetic, welcoming community that’s passionate about padel. Dive
-              in, play, and connect with others who share your love for the
-              game!
+              {t("joinUsComponent.paragraph")}
             </p>
           </div>
         </Card>

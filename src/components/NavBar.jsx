@@ -4,8 +4,11 @@ import { MdLanguage } from "react-icons/md";
 import { Row, Col } from "antd";
 import { NavLink, useLocation } from "react-router-dom";
 import "../styles/NavBar.css";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 function Navbar() {
+  const { t } = useTranslation();
   const navRef = useRef();
   const location = useLocation();
   const scrollToTop = () => {
@@ -46,7 +49,7 @@ function Navbar() {
               }
               to="/wip"
             >
-              What is Padel?
+              {t("navbar.whatIsPadel")}
             </NavLink>
             <NavLink
               onClick={handleClick}
@@ -58,7 +61,7 @@ function Navbar() {
               }
               to="/federation"
             >
-              Federation
+              {t("navbar.federation")}
             </NavLink>
             <NavLink
               onClick={handleClick}
@@ -70,12 +73,12 @@ function Navbar() {
               }
               to="/news"
             >
-              News and Media
+              {t("navbar.newsMedia")}
             </NavLink>
-            <h1 className="flex items-center">
-              <MdLanguage />
-              <span>EN/MK</span>
-            </h1>
+            <div className="language-section">
+              <MdLanguage className="language-icon" />
+              <LanguageSwitcher />
+            </div>
 
             <button
               className="nav-btn nav-close-btn flex ms-auto"

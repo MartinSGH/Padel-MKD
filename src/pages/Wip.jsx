@@ -6,8 +6,9 @@ import Gameplay from "../components/WipPage/Gameplay";
 import JoinUs from "../components/LandingPage/JoinUs";
 import Sponsors from "../components/LandingPage/Sponsors";
 import ReactPlayer from "react-player";
-
+import { useTranslation } from "react-i18next";
 const Main = () => {
+  const { t } = useTranslation();
   return (
     <div>
       <LandingImage />
@@ -20,13 +21,9 @@ const Main = () => {
             alt=""
           />
           <div className="what-is-padel absolute text-white md:w-5/12 xs:w-12/12 p-4  ">
-            <h1 className="what-title">What is PADEL?</h1>
+            <h1 className="what-title">{t("wip.title")}</h1>
             <div className="what-text">
-              Padel also sometimes called padel tennis, is a racket sport of
-              Mexican origin, typically played in doubles on an enclosed court
-              slightly smaller than a doubles tennis court. Although padel
-              shares the same scoring system as tennis, the rules, strokes, and
-              technique are different.
+              {t("wip.paragraph")}
             </div>
           </div>
         </Col>
@@ -41,7 +38,7 @@ const Main = () => {
       <Row className="video-section" justify={"center"}>
         
         <Col span={20}>
-          <h1 className="page-title text-black my-5">How to Play Padel</h1>
+          <h1 className="page-title text-black my-5">{t("wip.title2")}</h1>
           <div className="video-frame flex justify-center items-center">
             <ReactPlayer
               className="video-player"

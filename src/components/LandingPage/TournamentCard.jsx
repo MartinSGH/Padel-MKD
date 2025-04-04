@@ -2,168 +2,145 @@ import { Card, Col, Row, Modal } from "antd";
 
 import { useState, useRef } from "react";
 import { IoArrowUpCircleOutline } from "react-icons/io5";
-
-const cards = [
-  {
-    class: "orange-card",
-    title: "National Padel ",
-    type: "Championship",
-    date: "Yearly, middle of August",
-    location: "Skopje",
-    category: "All",
-    format:
-      "Man and Woman mix matches,Man and Woman 2v2 matches, Veteran and Junior Competition",
-    duration: "7-10 Days",
-    prize:
-      "Trophy, Money, Points used for ranking system for national team selection",
-    qualifications: "Based on ranking of regional matches and league matches",
-    competitors:
-      "Best 32 man and women players, top 16 junior players (U16, U18)",
-    description:
-      "The main event to determine the national champions in the men's and women's categories, as well as in the junior and veteran categories. The championship will include the top ranked players and clubs from across the country.",
-  },
-  {
-    class: "lblue-card",
-    title: "National Club ",
-    type: "League",
-    date: " Whole year season(March-November)",
-    competitors: "Registered Padel clubs from whole country",
-    category: "All",
-    divisions:
-      "Premier Division: Top 8 clubs, Division 1: Next 12 clubs, Division 2: New and lower ranked clubs",
-    format:
-      " Home&Away matches, Teams of 4-6 players by club, Mix and doubles matches by duel",
-    description:
-      "An annual, multi-division league in which registered padel clubs participate, competing in a structured format for the title of the best club in North Macedonia.",
-    final:
-      "Top 4 teams of Premier Division will play play-off for champion title",
-    prize:
-      "National Club Champion title, promotion to higher division, prizes for most successfull clubs",
-  },
-  {
-    class: "purple-card",
-    title: "National Junior ",
-    type: "League",
-    date: "March-November",
-    category: "All",
-    competitors: "Junior players from padel academies and schools",
-    age: "U12, U14, U16, U18",
-    format:
-      "Mix and doubles matches for every age group. MAtches organized in regional centers, for decreasing travel costs. The best competitors will continue to national finals",
-    final: " National final in October",
-    prize: "Trophies,medals, points for selection in Youth National Team",
-    qualifications: "Based on performance in regional league matches",
-    description:
-      "Youth league for players from 12-18 years old, separated by age group, with a focus on developing young talents and making posibilities for them to compete on a national level.",
-  },
-  {
-    class: "green-card",
-    title: "Regional Open ",
-    type: "Tournaments",
-    date: "Every two months",
-    location: "Skopje",
-    category: "All",
-    competitors: "Opwn for all registered players",
-    format:
-      "Cup system matches, 2v2 matches, mix matches. Open for amateurs, semi-pro and pro players",
-    prizes: "Trophies, medals, points for ranking",
-    registration: "Open registration with registration fee",
-    description:
-      "Open tournaments organized in capital cities, in order to encourage participation of players of all skill levels and to provide additional opportunities for competition.",
-  },
-  {
-    class: "yellow-card",
-    title: "National Veteran ",
-    type: "Championship",
-    date: "Yearly, beginning of July",
-    location: "Different locations",
-    category: "Senior",
-    competitors: "Players 40+ years old",
-    duration: "3-5 days",
-    format: "Man and Woman mix,Man and Women doubles",
-    prizes: "Trophies, medals, points for ranking",
-    description:
-      "A special competition for veterans, players aged 40 and over, with the aim of encouraging the further participation of older athletes in padel.",
-  },
-  {
-    class: "dblue-card",
-    title: "National Festival and ",
-    type: "Exhibition Competitions",
-    date: "Yearly, end of May",
-    location: "Skopje",
-    category: "All",
-    events:
-      "Exhibition matches between the best players, Clinics for beginners and children, Social matches for amateur players",
-    prizes: "Medals for participation, promotional gifts",
-    description:
-      " An annual event that combines friendly competitions, exhibitions and demonstrations, with the aim of promoting padel to the general public and encouraging social participation.",
-  },
-  {
-    class: "red-card",
-    title: "International ",
-    type: "Invitational Tournament",
-    date: "Yearly, middle of September",
-    location: "Skopje",
-    category: "Top 8 and guests",
-    competitors: "Top 8 national players, invited international players",
-    format: "Cup system matches, 2v2 matches, mix matches",
-    prizes: "Trophies, money prizes, points for ranking",
-    description:
-      "An invitational tournament with top players from neighboring countries and international padel federations, aiming to raise the competitive level in North Macedonia.",
-  },
-
-  {
-    class: "pink-card",
-    title: "Women's National ",
-    type: "Padel Cup",
-    date: "Yearly, April",
-    location: "Skopje",
-    category: "Women",
-    competitors: "All registered woman players",
-    format:
-      "Doubles, group stage with match system-'everyone with everyone', and finals",
-    prizes: "Trophies, points for ranking, promotion posibilities",
-    description:
-      "A tournament exclusively for women, with the aim of increasing women's participation in the sport and creating a platform for competitive padel for women.",
-  },
-  {
-    class: "ddblue-card",
-    title: "Mixed Doubles ",
-    type: "Championship",
-    date: "Yearly, end of June",
-    location: "Skopje",
-    category: "Doubles-Male and Female",
-    format: "Cup system matches",
-    competitors: "Teams of mixed doubles from registered clubs",
-    prizes: "Trophies,ponts for ranking",
-    description:
-      "National Mixed Doubles Championship, aiming to encourage inclusivity and teamwork between male and female players.",
-  },
-  {
-    class: "lgreen-card",
-    title: "Regional youth ",
-    type: "development camps",
-    date: "June-August",
-    location: "Skopje",
-    category: "Junior",
-    format:
-      "Training sessions, matches, social activities guided by national and international coaches",
-    competitors:
-      "Top junior players selected based on performance in junior leagues",
-    result:
-      "Improvement of skills and identification of talents for national team",
-    description:
-      "A series of training camps focused on developing young talent, identifying potential players and educating elite athletes, integrated into the competition calendar.",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 const TournamentCard = () => {
+  const { t } = useTranslation();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const scrollContainerRef = useRef(null);
   let isDragging = false;
   let startX = 0;
   let scrollLeft = 0;
+
+  const cards = [
+    {
+      class: "orange-card",
+      title: t("tournaments.card1.title"),
+      type: t("tournaments.card1.type"),
+      date: t("tournaments.card1.date"),
+      location: t("tournaments.card1.location"),
+      category: t("tournaments.card1.category"),
+      format: t("tournaments.card1.format"),
+      duration: t("tournaments.card1.duration"),
+      prizes: t("tournaments.card1.prizes"),
+      qualifications: t("tournaments.card1.qualifications"),
+      competitors: t("tournaments.card1.competitors"),
+      description: t("tournaments.card1.description"),
+    },
+    {
+      class: "lblue-card",
+      title: t("tournaments.card2.title"),
+      type: t("tournaments.card2.type"),
+      date: t("tournaments.card2.date"),
+      competitors: t("tournaments.card2.competitors"),
+      category: t("tournaments.card2.category"),
+      divisions: t("tournaments.card2.divisions"),
+      format: t("tournaments.card2.format"),
+      description: t("tournaments.card2.description"),
+      final: t("tournaments.card2.final"),
+      prizes: t("tournaments.card2.prizes"),
+    },
+    {
+      class: "purple-card",
+      title: t("tournaments.card3.title"),
+      type: t("tournaments.card3.type"),
+      date: t("tournaments.card3.date"),
+      category: t("tournaments.card3.category"),
+      competitors: t("tournaments.card3.competitors"),
+      age: t("tournaments.card3.age"),
+      format: t("tournaments.card3.format"),
+      final: t("tournaments.card3.final"),
+      prizes: t("tournaments.card3.prizes"),
+      qualifications: t("tournaments.card3.qualifications"),
+      description: t("tournaments.card3.description"),
+    },
+    {
+      class: "green-card",
+      title: t("tournaments.card4.title"),
+      type: t("tournaments.card4.type"),
+      date: t("tournaments.card4.date"),
+      location: t("tournaments.card4.location"),
+      category: t("tournaments.card4.category"),
+      competitors: t("tournaments.card4.competitors"),
+      format: t("tournaments.card4.format"),
+      prizes: t("tournaments.card4.prizes"),
+      registration: t("tournaments.card4.registration"),
+      description: t("tournaments.card4.description"),
+    },
+    {
+      class: "yellow-card",
+      title: t("tournaments.card5.title"),
+      type: t("tournaments.card5.type"),
+      date: t("tournaments.card5.date"),
+      location: t("tournaments.card5.location"),
+      category: t("tournaments.card5.category"),
+      competitors: t("tournaments.card5.competitors"),
+      duration: t("tournaments.card5.duration"),
+      format: t("tournaments.card5.format"),
+      prizes: t("tournaments.card5.prizes"),
+      description: t("tournaments.card5.description"),
+    },
+    {
+      class: "dblue-card",
+      title: t("tournaments.card6.title"),
+      type: t("tournaments.card6.type"),
+      date: t("tournaments.card6.date"),
+      location: t("tournaments.card6.location"),
+      category: t("tournaments.card6.category"),
+      events: t("tournaments.card6.events"),
+      prizes: t("tournaments.card6.prizes"),
+      description: t("tournaments.card6.description"),
+    },
+    {
+      class: "red-card",
+      title: t("tournaments.card7.title"),
+      type: t("tournaments.card7.type"),
+      date: t("tournaments.card7.date"),
+      location: t("tournaments.card7.location"),
+      category: t("tournaments.card7.category"),
+      competitors: t("tournaments.card7.competitors"),
+      format: t("tournaments.card7.format"),
+      prizes: t("tournaments.card7.prizes"),
+      description: t("tournaments.card7.description"),
+    },
+    {
+      class: "pink-card",
+      title: t("tournaments.card8.title"),
+      type: t("tournaments.card8.type"),
+      date: t("tournaments.card8.date"),
+      location: t("tournaments.card8.location"),
+      category: t("tournaments.card8.category"),
+      competitors: t("tournaments.card8.competitors"),
+      format: t("tournaments.card8.format"),
+      prizes: t("tournaments.card8.prizes"),
+      description: t("tournaments.card8.description"),
+    },
+    {
+      class: "ddblue-card",
+      title: t("tournaments.card9.title"),
+      type: t("tournaments.card9.type"),
+      date: t("tournaments.card9.date"),
+      location: t("tournaments.card9.location"),
+      category: t("tournaments.card9.category"),
+      format: t("tournaments.card9.format"),
+      competitors: t("tournaments.card9.competitors"),
+      prizes: t("tournaments.card9.prizes"),
+      description: t("tournaments.card9.description"),
+    },
+    {
+      class: "lgreen-card",
+      title: t("tournaments.card10.title"),
+      type: t("tournaments.card10.type"),
+      date: t("tournaments.card10.date"),
+      location: t("tournaments.card10.location"),
+      category: t("tournaments.card10.category"),
+      format: t("tournaments.card10.format"),
+      competitors: t("tournaments.card10.competitors"),
+      result: t("tournaments.card10.result"),
+      description: t("tournaments.card10.description"),
+    },
+  ];
 
   const onMouseDown = (e) => {
     isDragging = true;
@@ -188,9 +165,7 @@ const TournamentCard = () => {
     setIsModalVisible(true);
   };
 
-  const handleOk = () => {
-    setIsModalVisible(false);
-  };
+  
 
   const handleCancel = () => {
     setIsModalVisible(false);
@@ -212,7 +187,7 @@ const TournamentCard = () => {
             <Col key={index} lg={7} xs={24}>
               <Card
                 className={`card ${card.class} h-full relative overflow-hidden`}
-                onClick={() => showModal(card)} // Trigger modal on card click
+                onClick={() => showModal(card)}
               >
                 <div className="card-content w-full h-full p-3 m-0">
                   <div className="d-flex flex-col w-full h-full justify-between">
@@ -239,61 +214,36 @@ const TournamentCard = () => {
       {selectedCard && (
         <Modal
           className="tournament-modal"
-          title={selectedCard.title + " " + selectedCard.type}
+          title={`${selectedCard.title} ${selectedCard.type}`}
           open={isModalVisible}
-          onOk={handleOk}
           onCancel={handleCancel}
+          footer={null}
         >
           <div>
             <p>{selectedCard.description}</p>
             <b>Details</b>
-            <ul
-              style={{
-                listStyleType: "none",
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-              }}
-            >
-              <li>
-                <b>Type:</b> {selectedCard.type}
-              </li>
-              <li>
-                <b>Date:</b> {selectedCard.date}
-              </li>
-              <li>
-                <b>Location:</b> {selectedCard.location}
-              </li>
-              <li>
-                <b>Format:</b> {selectedCard.format}
-              </li>
-              <li>
-                <b>Competitors:</b> {selectedCard.competitors}
-              </li>
-              <li>
-                <b>Prize:</b> {selectedCard.prizes}
-              </li>
-              <li>
-                <b>Result:</b> {selectedCard.result}
-              </li>
-              <li>
-                <b>Duration:</b> {selectedCard.duration}
-              </li>
-              <li>
-                <b>Qualification:</b> {selectedCard.qualification}
-              </li>
-              <li>
-                <b>Divisions:</b> {selectedCard.divisions}
-              </li>
-              <li>
-                <b>Final</b> {selectedCard.final}
-              </li>
-              <li>
-                <b>Age:</b> {selectedCard.age}
-              </li>
-              <li>
-                <b>Registration:</b> {selectedCard.registration}
-              </li>
+            <ul className="modal-list">
+              {Object.entries({
+                Type: selectedCard.type,
+                Date: selectedCard.date,
+                Location: selectedCard.location,
+                Format: selectedCard.format,
+                Competitors: selectedCard.competitors,
+                Prize: selectedCard.prizes,
+                Result: selectedCard.result,
+                Duration: selectedCard.duration,
+                Qualifications: selectedCard.qualifications,
+                Divisions: selectedCard.divisions,
+                Final: selectedCard.final,
+                Age: selectedCard.age,
+                Registration: selectedCard.registration,
+              }).map(([key, value]) =>
+                value ? (
+                  <li key={key}>
+                    <b>{key}:</b> {value}
+                  </li>
+                ) : null
+              )}
             </ul>
           </div>
         </Modal>

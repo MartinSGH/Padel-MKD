@@ -47,11 +47,11 @@
 .federation-title {
   color: var(--Ink-100, #fff);
   font-family: Montserrat;
-  font-size: 1.5rem;
+  font-size: 2.0rem !important;
   font-size: clamp(1.5rem, 1rem + 2.5vw, 4rem);
 
   font-style: normal;
-  font-weight: 700;
+  font-weight: 700 !important;
   line-height: 120%; /* 76.8px */
 }
 .federation-card-text {
@@ -61,7 +61,7 @@
   font-size: 1rem !important;
   font-size: clamp(1rem, 0.975rem + 0.125vw, 1.125rem) !important;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 120%; /* 21.6px */
 }
 

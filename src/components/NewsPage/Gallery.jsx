@@ -2,6 +2,7 @@ import "../../styles/Gallery.css";
 import { Row, Col } from "antd";
 import { NavLink } from "react-router-dom";
 import { Carousel } from "antd";
+import {useTranslation} from "react-i18next";
 const slides = [
   {
     subHeading: "Training",
@@ -30,12 +31,13 @@ const slides = [
   },
 ];
 const Gallery = () => {
+  const { t } = useTranslation();
   return (
     <div className="gallery-container py-5">
       <Row justify={"center"} className="mb-4">
         <Col  span={20}>
           <h2 className="text-white gallery-h1" id="gallery">
-            Gallery
+            {t("news.galleryTitle")}
           </h2>
         </Col>
       </Row>

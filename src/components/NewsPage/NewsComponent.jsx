@@ -1,13 +1,15 @@
 import { Row, Col } from "antd";
 import "../../styles/NewsComponent.css";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 const NewsComponent = () => {
+  const { t } = useTranslation();
   return (
     <div className="newsComponent-container py-5  mb-5 text-white">
       <Row justify={"center"} className="mb-4">
         <Col span={20}>
           <h2 className="text-white gallery-h1" id="gallery">
-            News
+            {t("news.newsTitle")}
           </h2>
         </Col>
       </Row>

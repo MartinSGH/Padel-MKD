@@ -7,8 +7,9 @@ import { EffectCoverflow, Navigation } from "swiper/modules";
 import { ArrowLeft, ArrowRight } from "phosphor-react";
 import "../../styles/Clubs.css";
 import { Row, Col } from "antd";
-
+import { useTranslation } from "react-i18next";
 const Clubs = () => {
+  const { t } = useTranslation();
   const clubs = [
     {
       name: "Mondo Padel",
@@ -56,8 +57,7 @@ const Clubs = () => {
     <>
       <Row data-aos="fade-up" justify={"center"}>
         <Col span={20}>
-      
-          <h1 className="page-titles text-white">Clubs</h1>
+          <h1 className="page-titles text-white">{t("clubs.title")}</h1>
         </Col>
         <Col xs={24} lg={20}>
           <div style={{ padding: "2rem" }}>
