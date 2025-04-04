@@ -1,0 +1,236 @@
+{
+  "navbar": {
+    "whatIsPadel": "What is Padel?",
+    "federation": "Federation",
+    "newsMedia": "News and Media"
+  },
+  "jumbo": {
+    "slide1": {
+      "subHeading": "What is PADEL?",
+      "text": "Padel is a dynamic racket sport combining elements of tennis and squash, typically played in doubles on an enclosed court. The game is fast-paced, with walls in play, allowing for unique angles and strategic gameplay.",
+      "buttonText": "Learn more"
+    },
+    "slide2": {
+      "subHeading": "Padel in Macedonia",
+      "text": "Just Play, Have Fun, Enjoy the Game!",
+      "buttonText": "Join now"
+    }
+  },
+  "tournamentComponent": {
+    "componentTitle": "Tournaments",
+    "buttonText": "See all"
+  },
+  "tournaments": {
+    "category": "Category",
+    "detailsLabel": "Details",
+    "details": {
+      "type": "Type",
+      "date": "Date",
+      "location": "Location",
+      "format": "Format",
+      "competitors": "Competitors",
+      "prizes": "Prizes",
+      "result": "Result",
+      "duration": "Duration",
+      "qualifications": "Qualifications",
+      "divisions": "Divisions",
+      "final": "Final",
+      "age": "Age",
+      "registration": "Registration",
+      "events": "Events"
+    },
+    "card1": {
+      "title": "National Padel",
+      "type": "Championship",
+      "date": "Yearly, middle of August",
+      "location": "Skopje",
+      "category": "All",
+      "format": "Man and Woman mix matches, Man and Woman 2v2 matches, Veteran and Junior Competition",
+      "duration": "7-10 Days",
+      "prizes": "Trophy, Money, Points for national team selection",
+      "qualifications": "Based on regional and league match rankings",
+      "competitors": "Top 32 players, top 16 junior players (U16, U18)",
+      "description": "The main event to determine national champions across categories."
+    },
+    "card2": {
+      "title": "National Club",
+      "type": "League",
+      "date": "Whole year season (March-November)",
+      "competitors": "Registered clubs nationwide",
+      "category": "All",
+      "divisions": "Premier Division, Division 1, Division 2",
+      "format": "Home/Away matches, Teams of 4-6 players",
+      "description": "Annual multi-division league for club supremacy.",
+      "final": "Top 4 Premier teams playoff",
+      "prizes": "Champion title, division promotion"
+    },
+    "card3": {
+      "title": "National Junior",
+      "type": "League",
+      "date": "March-November",
+      "category": "Junior",
+      "competitors": "Academy/school junior players",
+      "age": "U12, U14, U16, U18",
+      "format": "Regional matches leading to national finals",
+      "final": "National final in October",
+      "prizes": "Trophies, Youth Team selection points",
+      "qualifications": "Regional league performance",
+      "description": "Youth development league for ages 12-18."
+    },
+    "card4": {
+      "title": "Regional Open",
+      "type": "Tournaments",
+      "date": "Every two months",
+      "location": "Skopje",
+      "category": "All",
+      "competitors": "All registered players",
+      "format": "Cup system, 2v2 matches",
+      "prizes": "Trophies, ranking points",
+      "registration": "Open with fee",
+      "description": "Open tournaments for all skill levels."
+    },
+    "card5": {
+      "title": "National Veteran",
+      "type": "Championship",
+      "date": "Early July",
+      "location": "Various",
+      "category": "Senior",
+      "competitors": "Players 40+",
+      "duration": "3-5 days",
+      "format": "Mix and doubles matches",
+      "prizes": "Trophies, ranking points",
+      "description": "Competition for veteran players 40+."
+    },
+    "card6": {
+      "title": "National Festival and",
+      "type": "Exhibitions",
+      "date": "End of May",
+      "location": "Skopje",
+      "category": "All",
+      "events": "Exhibitions, clinics, social matches",
+      "prizes": "Participation medals",
+      "description": "Annual padel promotion festival."
+    },
+    "card7": {
+      "title": "International",
+      "type": "Invitational",
+      "date": "Mid September",
+      "location": "Skopje",
+      "category": "Elite",
+      "competitors": "Top 8 + internationals",
+      "format": "Cup system matches",
+      "prizes": "Trophies, prize money",
+      "description": "International invitational tournament."
+    },
+    "card8": {
+      "title": "Women's National",
+      "type": "Padel Cup",
+      "date": "April",
+      "location": "Skopje",
+      "category": "Women",
+      "competitors": "All registered women",
+      "format": "Group stage + finals",
+      "prizes": "Trophies, promotion points",
+      "description": "Exclusive women's tournament."
+    },
+    "card9": {
+      "title": "Mixed Doubles",
+      "type": "Championship",
+      "date": "End of June",
+      "location": "Skopje",
+      "category": "Mixed",
+      "format": "Cup system",
+      "competitors": "Club mixed teams",
+      "prizes": "Trophies, ranking points",
+      "description": "National Mixed Doubles Championship."
+    },
+    "card10": {
+      "title": "Regional Youth",
+      "type": "Development Camps",
+      "date": "June-August",
+      "location": "Skopje",
+      "category": "Junior",
+      "format": "Training sessions, matches",
+      "competitors": "Top juniors",
+      "result": "Skill development, talent ID",
+      "description": "Youth training camps with elite coaches."
+    }
+  },
+  "clubs": {
+    "title": "Clubs",
+    "ourPrograms": "Our Programs",
+    "paragraph": " Join the Padel Federation of Macedonia and be part of an energetic, welcoming community that&apos;s passionate about padel! Dive in, play, and connect with others who share your love for the game!",
+    "buttonTtext": "Read more details",
+    "card1": {
+      "title": "Coaching and Training Players"
+    },
+    "card2": {
+      "title": "Youth Development Program"
+    },
+    "card3": {
+      "title": "Coach Certification"
+    },
+    "card4": {
+      "title": "Club Support Program"
+    }
+  },
+  "joinUsComponent": {
+    "componentTitle": "Join Us",
+    "paragraph": "Join the Padel Federation of Macedonia and be part of an energetic, welcoming community that&apos;s passionate about padel! Dive in, play, and connect with others who share your love for the game!",
+    "card1": {
+      "buttonText": "Apply as a Player"
+    },
+    "card2": {
+      "buttonText": "Register a Club"
+    },
+    "card3": {
+      "buttonText": "Get a coach Certification"
+    }
+  },
+  "footer": {
+    "links": {
+      "title": "Menu",
+      "wip": "What is Padel?",
+      "federation": "Federation",
+      "clubs": "Clubs",
+      "news": "News and Media"
+    },
+    "docs": {
+      "title": "Documentations",
+      "program": "Program",
+      "contact": "Contact us",
+      "status": "Status of Federation",
+      "license": "License of Federation"
+    }
+  },
+  "wip": {
+    "title": "What is Padel?",
+    "paragraph": "Padel also sometimes called padel tennis, is a racket sport of Mexican origin, typically played in doubles on an enclosed court slightly smaller than a doubles tennis court. Although padel shares the same scoring system as tennis, the rules, strokes, and technique are different.",
+    "title2":"How to play Padel?"
+  },
+  "news":{
+    "newsTitle":"News",
+    "galleryTitle":"Gallery"
+  },
+
+  "history": {
+    "desktopImage": "/images.WIP.History.png",
+    "mobileImage": "/images.WIP.History-mobile.png"
+  },
+  "gameplay": {
+    "desktopImage": "/images.WIP.Gameplay.png",
+    "mobileImage": "/images.WIP.Gameplay-mobile.svg"
+  },
+  "federation": {
+    "landingImage": "/images/FederationImages/FederationLanding.png",
+    "red-text": "The Padel Federation of Macedonia is the official governing body for the sport of padel in Macedonia. Established to promote, develop, and regulate padel across the country, the MPF is dedicated to fostering a vibrant and inclusive community for players of all ages and skill levels.",
+    "our-mission": {
+      "title": "Our Mission",
+      "text": "Our mission is to enhance the growth of padel in Macedonia by providing support and resources to players, coaches, and clubs. We strive to create opportunities for competitive play, develop talent, and ensure the sport is accessible to everyone."
+    },
+    "join-us": {
+      "title": "Join Us",
+      "text": " Become part of the vibrant and growing padel community! Whether you&apos;re an individual player eager to enhance your skills, a team ready to compete, or someone interested in becoming a certified coach, the Padel Federation of Macedonia welcomes you."
+    }
+  }
+}
