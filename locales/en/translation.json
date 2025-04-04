@@ -206,11 +206,11 @@
   "wip": {
     "title": "What is Padel?",
     "paragraph": "Padel also sometimes called padel tennis, is a racket sport of Mexican origin, typically played in doubles on an enclosed court slightly smaller than a doubles tennis court. Although padel shares the same scoring system as tennis, the rules, strokes, and technique are different.",
-    "title2":"How to play Padel?"
+    "title2": "How to play Padel?"
   },
-  "news":{
-    "newsTitle":"News",
-    "galleryTitle":"Gallery"
+  "news": {
+    "newsTitle": "News",
+    "galleryTitle": "Gallery"
   },
 
   "history": {
@@ -232,5 +232,13 @@
       "title": "Join Us",
       "text": " Become part of the vibrant and growing padel community! Whether you&apos;re an individual player eager to enhance your skills, a team ready to compete, or someone interested in becoming a certified coach, the Padel Federation of Macedonia welcomes you."
     }
+  },
+  "galleryComponent": {
+    "title1": "Training",
+    "title2": "Players",
+    "title3": "Women in Padel",
+    "title4": "Padel Competitions Skopje 2025",
+    "title5": "Padel Tournaments 2025",
+    "title6": "Courts"
   }
 }
