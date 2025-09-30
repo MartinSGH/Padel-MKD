@@ -51,6 +51,14 @@ const Clubs = () => {
       email: "smashmastersclub@yahoo.com",
       logo: "/images/ClubsCardsImages/smash.png",
     },
+    {
+      name: "Padel Klub Kumanovo",
+      address: "Sport Event Centar-Kumanovo bb",
+
+      phone: "072 317 704",
+
+      logo: "/images/ClubsCardsImages/kumanovo.png",
+    },
   ];
 
   return (
