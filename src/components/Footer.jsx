@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router";
 import { SiFacebook, SiLinkedin, SiTiktok, SiYoutube } from "react-icons/si";
 import { AiFillInstagram } from "react-icons/ai";
 import { FaTwitter } from "react-icons/fa6";
-import {useTranslation} from "react-i18next";
+import { useTranslation } from "react-i18next";
 const Footer = () => {
   const { t } = useTranslation();
   const scrollToTop = () => {
@@ -27,7 +27,7 @@ const Footer = () => {
                   Luj Paster
                   <br />1 Skopje 1000,
                 </li>
-             
+
                 <li className="footer-link">padelmkd@gmail.com</li>
               </ul>
             </Col>
@@ -94,20 +94,41 @@ const Footer = () => {
               <ul className="footer-list">
                 <li className="footer-title">{t("footer.docs.title")}</li>
                 <li className="footer-link">
-                  <Link className="footer-link" to={"/Програма.pdf"} target="_blank">
+                  <Link
+                    className="footer-link"
+                    to={"/Програма.pdf"}
+                    target="_blank"
+                  >
                     {t("footer.docs.program")}
                   </Link>
                 </li>
 
                 <li className="footer-link">{t("footer.docs.contact")}</li>
                 <li className="footer-link">
-                  <Link className="footer-link" to={"/Status.pdf"} target="_blank">
-                  {t("footer.docs.status")}
+                  <Link
+                    className="footer-link"
+                    to={"/Status.pdf"}
+                    target="_blank"
+                  >
+                    {t("footer.docs.status")}
                   </Link>
                 </li>
                 <li className="footer-link">
-                  <Link className="footer-link" to={"/Licence.jpg"} target="_blank">
-                  {t("footer.docs.license")}
+                  <Link
+                    className="footer-link"
+                    to={"/Licence.jpg"}
+                    target="_blank"
+                  >
+                    {t("footer.docs.license")}
+                  </Link>
+                </li>
+                <li className="footer-link">
+                  <Link
+                    className="footer-link"
+                    to={"/RuleBook.pdf"}
+                    target="_blank"
+                  >
+                    {t("footer.docs.rulebook")}
                   </Link>
                 </li>
               </ul>

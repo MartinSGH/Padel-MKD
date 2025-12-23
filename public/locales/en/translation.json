@@ -200,7 +200,8 @@
       "program": "Program",
       "contact": "Contact us",
       "status": "Statute of Federation",
-      "license": "License of Federation"
+      "license": "License of Federation",
+      "rulebook": "Rulebook"
     }
   },
   "wip": {
