@@ -1,0 +1,147 @@
+.submit-points-page {
+  min-height: 100vh;
+  background: #081738;
+  padding: 140px 20px 60px;
+  color: #fff;
+}
+
+.submit-points-shell {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.submit-points-card {
+  border-radius: 30px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.16);
+}
+
+.submit-points-header {
+  margin-bottom: 28px;
+}
+
+.submit-points-eyebrow {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.submit-points-header h1 {
+  margin: 16px 0 10px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.submit-points-header p {
+  margin: 0;
+  max-width: 720px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.8;
+}
+
+.submit-points-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.submit-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.submit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.submit-form-group label {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.submit-form-group input {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 14px 16px;
+  color: #fff;
+  outline: none;
+  transition: 0.25s ease;
+}
+
+.submit-form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.submit-form-group input:focus {
+  border-color: #d4a63d;
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.submit-points-btn {
+  margin-top: 6px;
+  border: none;
+  border-radius: 18px;
+  background: #d4a63d;
+  color: #081738;
+  padding: 14px 18px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.submit-points-btn:hover {
+  filter: brightness(1.06);
+}
+
+.submit-points-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.submit-message {
+  margin: 0;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 14px;
+}
+
+.submit-message.success {
+  background: rgba(52, 211, 153, 0.14);
+  color: #81f0c7;
+  border: 1px solid rgba(52, 211, 153, 0.16);
+}
+
+.submit-message.error {
+  background: rgba(248, 113, 113, 0.14);
+  color: #ffadad;
+  border: 1px solid rgba(248, 113, 113, 0.16);
+}
+
+@media (max-width: 768px) {
+  .submit-points-page {
+    padding: 120px 14px 40px;
+  }
+
+  .submit-points-card {
+    padding: 20px;
+  }
+
+  .submit-form-row {
+    grid-template-columns: 1fr;
+  }
+}

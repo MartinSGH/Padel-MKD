@@ -1,0 +1,191 @@
+.submissions-page {
+  min-height: 100vh;
+  background: #081738;
+  padding: 140px 20px 60px;
+  color: #fff;
+}
+
+.submissions-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.submissions-header {
+  margin-bottom: 28px;
+}
+
+.submissions-eyebrow {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.submissions-header h1 {
+  margin: 16px 0 10px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.submissions-header p {
+  margin: 0;
+  max-width: 720px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.8;
+}
+
+.submissions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.submission-card,
+.submissions-empty-card {
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.16);
+}
+
+.submission-card {
+  padding: 22px;
+}
+
+.submissions-empty-card {
+  padding: 28px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.submission-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.submission-card-top h2 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.submission-date {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.submission-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.submission-status.pending {
+  background: rgba(255, 193, 7, 0.16);
+  color: #ffd76a;
+}
+
+.submission-status.approved {
+  background: rgba(52, 211, 153, 0.16);
+  color: #7bf2c5;
+}
+
+.submission-status.declined {
+  background: rgba(248, 113, 113, 0.16);
+  color: #ff9b9b;
+}
+
+.submission-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.submission-meta-item,
+.submission-link-box,
+.submission-note-box {
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.submission-meta-item span,
+.submission-link-box span,
+.submission-note-box span {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.submission-meta-item p,
+.submission-note-box p {
+  margin: 0;
+  color: #fff;
+}
+
+.submission-link-box {
+  margin-bottom: 16px;
+}
+
+.submission-link-box a {
+  color: #f0c666;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.submission-link-box a:hover {
+  text-decoration: underline;
+}
+
+.submissions-loading,
+.submissions-error {
+  min-height: 100vh;
+  background: #081738;
+  padding: 140px 20px 60px;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 900px) {
+  .submissions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .submissions-page {
+    padding: 120px 14px 40px;
+  }
+
+  .submission-card-top,
+  .submission-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .submission-card-top {
+    flex-direction: column;
+  }
+
+  .submission-meta-grid {
+    display: grid;
+  }
+}

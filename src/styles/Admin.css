@@ -1,0 +1,368 @@
+.admin-page {
+  min-height: 100vh;
+  background: #081738;
+  padding: 140px 20px 60px;
+  color: #fff;
+}
+
+.admin-shell {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-heading {
+  margin-bottom: 28px;
+}
+
+.admin-eyebrow {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-heading h1 {
+  margin: 16px 0 10px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  color: #fff;
+}
+
+.admin-heading p {
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.8;
+  margin: 0;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: 1.05fr 1.4fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.admin-card {
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-card-header h2 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.admin-card-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.admin-count-pill {
+  white-space: nowrap;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(212, 166, 61, 0.15);
+  color: #f0c666;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-players-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-players-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-players-table th,
+.admin-players-table td {
+  padding: 18px 24px;
+  text-align: left;
+}
+
+.admin-players-table th {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.62);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-players-table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.admin-empty-cell {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.admin-player-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-player-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.admin-player-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-player-name {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.admin-player-role {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.admin-player-email {
+  color: rgba(255, 255, 255, 0.76);
+  word-break: break-word;
+}
+
+.admin-points-pill {
+  display: inline-flex;
+  min-width: 58px;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(212, 166, 61, 0.16);
+  color: #f0c666;
+  font-weight: 700;
+}
+
+.admin-submissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.admin-submission-item {
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px;
+}
+
+.admin-submission-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-submission-top h3 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.admin-submission-top p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.admin-submission-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.admin-label {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-submission-grid p,
+.admin-note-box p {
+  margin: 0;
+  color: #fff;
+}
+
+.admin-link {
+  color: #f0c666;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.admin-link:hover {
+  text-decoration: underline;
+}
+
+.admin-note-box {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.admin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-btn.approve {
+  background: #d4a63d;
+  color: #081738;
+}
+
+.admin-btn.approve:hover {
+  filter: brightness(1.06);
+}
+
+.admin-btn.decline {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffb0b0;
+  border: 1px solid rgba(255, 176, 176, 0.2);
+}
+
+.admin-btn.decline:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.status-badge.pending {
+  background: rgba(255, 193, 7, 0.16);
+  color: #ffd76a;
+}
+
+.status-badge.approved {
+  background: rgba(52, 211, 153, 0.16);
+  color: #7bf2c5;
+}
+
+.status-badge.declined {
+  background: rgba(248, 113, 113, 0.16);
+  color: #ff9b9b;
+}
+
+.admin-loading,
+.admin-error {
+  min-height: 100vh;
+  background: #081738;
+  padding: 140px 20px 60px;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-size: 1.1rem;
+}
+
+.admin-empty-state {
+  color: rgba(255, 255, 255, 0.66);
+  text-align: center;
+  padding: 12px 0 4px;
+}
+
+@media (max-width: 1180px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 120px 14px 40px;
+  }
+
+  .admin-card-header,
+  .admin-submissions-list {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .admin-players-table th,
+  .admin-players-table td {
+    padding: 14px 16px;
+  }
+
+  .admin-submission-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-submission-top {
+    flex-direction: column;
+  }
+
+  .admin-count-pill {
+    align-self: flex-start;
+  }
+}
