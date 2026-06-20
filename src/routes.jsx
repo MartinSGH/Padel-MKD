@@ -13,7 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import MySubmissions from "./pages/MySubmissions";
 import SubmitPoints from "./pages/SubmitPoints";
 import Admin from "./pages/Admin";
-
+import Schedule2026 from "./pages/Schedule2026";
 const routes = createBrowserRouter([
   {
     path: "/",
@@ -40,12 +40,16 @@ const routes = createBrowserRouter([
         element: <Federation />,
       },
       {
+        path: "/schedule-2026",
+        element: <Schedule2026 />,
+      },
+      {
         path: "/wip",
         element: <Wip />,
       },
       {
-       path: "/login",
-       element: <Login />,
+        path: "/login",
+        element: <Login />,
       },
       {
         path: "/register",
@@ -57,36 +61,32 @@ const routes = createBrowserRouter([
           <ProtectedRoute>
             <Profile />
           </ProtectedRoute>
-  ),
-},
-{
-  path: "/submit-points",
-  element: (
-    <ProtectedRoute>
-      <SubmitPoints />
-    </ProtectedRoute>
-  ),
-},
-{
-  path: "/my-submissions",
-  element: (
-    <ProtectedRoute>
-      <MySubmissions />
-    </ProtectedRoute>
-  ),
-},
-{
-  path: "/admin",
-  element: (
-    <ProtectedRoute requireAdmin={true}>
-      <Admin />
-    </ProtectedRoute>
-  ),
-}
-
-
-
-
+        ),
+      },
+      {
+        path: "/submit-points",
+        element: (
+          <ProtectedRoute>
+            <SubmitPoints />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/my-submissions",
+        element: (
+          <ProtectedRoute>
+            <MySubmissions />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin",
+        element: (
+          <ProtectedRoute requireAdmin={true}>
+            <Admin />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);

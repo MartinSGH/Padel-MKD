@@ -241,5 +241,53 @@
     "title4": "Padel Competitions Skopje 2025",
     "title5": "Padel Tournaments 2025",
     "title6": "Courts"
+  },
+  "schedule2026": {
+    "eyebrow": "Padel Federation of North Macedonia",
+    "title": "Yearly Schedule 2026",
+    "subtitle": "Annual program of activities — January to December 2026",
+    "intro": "The 2026 annual program sets out the Federation's roadmap for the year: education and licensing, a structured national competition system, international integration, youth development and infrastructure across the country.",
+    "viewButton": "Open the program",
+    "downloadButton": "Download PDF",
+    "highlightsTitle": "What's inside",
+    "highlights": {
+      "education": {
+        "title": "Education & Licensing",
+        "text": "Certified programs for national coaches, referees and technical officials, delivered together with FIP and FEPA."
+      },
+      "competitions": {
+        "title": "Competition System",
+        "text": "The national MPF Tour — five tournaments with a Masters final — the State Championship and international representation."
+      },
+      "development": {
+        "title": "Development Projects",
+        "text": "Junior pathways, the \"Padel for All\" gender-equality initiative and coordinated promotional and media campaigns."
+      },
+      "infrastructure": {
+        "title": "Infrastructure",
+        "text": "\"Padel Macedonia 2026\" — regional padel centers in Skopje, Veles, Ohrid, Kavadarci and Kumanovo."
+      }
+    },
+    "phasesTitle": "Implementation framework",
+    "phases": {
+      "one": {
+        "label": "Phase I",
+        "period": "Jan – Mar 2026",
+        "text": "Planning, preparation of educational programs and procurement of equipment."
+      },
+      "two": {
+        "label": "Phase II",
+        "period": "Apr – Aug 2026",
+        "text": "National tournaments, training camps and promotional activities."
+      },
+      "three": {
+        "label": "Phase III",
+        "period": "Sep – Dec 2026",
+        "text": "International competitions, infrastructure development and evaluation."
+      }
+    },
+    "documentTitle": "Full document",
+    "documentNote": "Read the complete annual program below, or open it in a new tab.",
+    "fallback": "Your browser can't display the embedded PDF."
   }
 }
