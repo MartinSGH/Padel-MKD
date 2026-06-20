@@ -41,8 +41,8 @@ const Footer = () => {
                       isLandingPage
                         ? "footer-link "
                         : location.pathname === "/wip"
-                        ? "footer-active-link"
-                        : "footer-link"
+                          ? "footer-active-link"
+                          : "footer-link"
                     }
                     to="/wip"
                   >
@@ -56,8 +56,8 @@ const Footer = () => {
                       isLandingPage
                         ? "footer-link"
                         : location.pathname === "/federation"
-                        ? "footer-active-link"
-                        : "footer-link"
+                          ? "footer-active-link"
+                          : "footer-link"
                     }
                     to="/federation"
                   >
@@ -80,8 +80,8 @@ const Footer = () => {
                       isLandingPage
                         ? "footer-link "
                         : location.pathname === "/news"
-                        ? "footer-active-link"
-                        : "footer-link"
+                          ? "footer-active-link"
+                          : "footer-link"
                     }
                     to="/news"
                   >
@@ -100,9 +100,17 @@ const Footer = () => {
                     target="_blank"
                   >
                     {t("footer.docs.program")}
+                  </Link>{" "}
+                </li>
+                <li className="footer-link">
+                  <Link
+                    className="footer-link"
+                    to={"/Schedule-2026.pdf"}
+                    target="_blank"
+                  >
+                    {t("footer.docs.program2026")}
                   </Link>
                 </li>
-
                 <li className="footer-link">{t("footer.docs.contact")}</li>
                 <li className="footer-link">
                   <Link

@@ -22,14 +22,10 @@ const NewsComponent = () => {
                 <Col className="p-3 news-first-card" span={12}>
                   <Link
                     className="full-size-link"
-                    to={
-                      "https://www.redbull.com/int-en/best-padel-players-of-all-time"
-                    }
+                    to="/schedule-2026"
                     target="_blank"
                   >
-                    <h1 className="news-card-text">
-                      9 padel pros that all fans should know about
-                    </h1>
+                    <h1 className="news-card-text">Schedule 2026</h1>
                   </Link>
                 </Col>
                 <Col className="p-3 news-second-card" span={12}>
