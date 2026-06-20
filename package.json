@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "set PUBLIC_URL=/padel-mkd && vite build",
+    "build": "set PUBLIC_URL=/padel-mkd && vite build && node scripts/postbuild.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
