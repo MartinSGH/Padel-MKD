@@ -263,6 +263,12 @@ function Navbar() {
               {t("navbar.newsMedia")}
             </NavLink>
 
+            {isMobileView && (
+              <div className="mobile-language-switcher">
+                <LanguageSwitcher />
+              </div>
+            )}
+
             {!isMobileView && (
               <div className="navbar-actions">
                 <LanguageSwitcher />
