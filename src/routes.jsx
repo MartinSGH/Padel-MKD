@@ -14,6 +14,7 @@ import MySubmissions from "./pages/MySubmissions";
 import SubmitPoints from "./pages/SubmitPoints";
 import Admin from "./pages/Admin";
 import Schedule2026 from "./pages/Schedule2026";
+import NationalChampionship2026 from "./pages/NationalChampionship2026";
 const routes = createBrowserRouter([
   {
     path: "/",
@@ -42,6 +43,10 @@ const routes = createBrowserRouter([
       {
         path: "/schedule-2026",
         element: <Schedule2026 />,
+      },
+      {
+        path: "/national-championship-2026",
+        element: <NationalChampionship2026 />,
       },
       {
         path: "/wip",

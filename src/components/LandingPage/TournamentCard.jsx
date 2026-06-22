@@ -3,6 +3,7 @@ import { Card, Col, Row, Modal } from "antd";
 import { useState, useRef } from "react";
 import { IoArrowUpCircleOutline } from "react-icons/io5";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 const TournamentCard = () => {
   const { t } = useTranslation();
@@ -27,6 +28,7 @@ const TournamentCard = () => {
       qualifications: t("tournaments.card1.qualifications"),
       competitors: t("tournaments.card1.competitors"),
       description: t("tournaments.card1.description"),
+      link: "/national-championship-2026",
     },
     {
       class: "lblue-card",
@@ -171,6 +173,11 @@ const TournamentCard = () => {
     setIsModalVisible(false);
   };
 
+  const handleLinkClick = () => {
+    setIsModalVisible(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <>
       <div
@@ -245,6 +252,17 @@ const TournamentCard = () => {
                 ) : null
               )}
             </ul>
+
+            {selectedCard.link && (
+              <Link
+                to={selectedCard.link}
+                onClick={handleLinkClick}
+                className="modal-cta-button"
+              >
+                {t("tournaments.viewPage")}
+                <IoArrowUpCircleOutline />
+              </Link>
+            )}
           </div>
         </Modal>
       )}

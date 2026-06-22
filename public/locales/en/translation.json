@@ -23,6 +23,7 @@
   "tournaments": {
     "category": "Category",
     "detailsLabel": "Details",
+    "viewPage": "Open championship page",
     "details": {
       "type": "Type",
       "date": "Date",
@@ -214,7 +215,6 @@
     "newsTitle": "News",
     "galleryTitle": "Gallery"
   },
-
   "history": {
     "desktopImage": "/images.WIP.History.png",
     "mobileImage": "/images.WIP.History-mobile.png"
@@ -290,5 +290,494 @@
     "documentTitle": "Full document",
     "documentNote": "Read the complete annual program below, or open it in a new tab.",
     "fallback": "Your browser can't display the embedded PDF."
+  },
+  "championship2026": {
+    "eyebrow": "Padel Federation of Macedonia",
+    "title": "Open National Padel Championship 2026",
+    "subtitle": "Kumanovo · 04–05 July 2026",
+    "intro": "The Padel Federation of Macedonia proudly announces the first Open National Padel Championship, to be held on 04–05 July 2026 in Kumanovo, with technical organization by Padel Club Kumanovo.",
+    "registerButton": "Register now",
+    "deadlineChip": "Registration closes 28 June 2026, 23:59",
+    "posterAlt": "Open National Padel Championship of Macedonia 2026 poster",
+    "facts": {
+      "title": "Key information",
+      "date": {
+        "label": "Date",
+        "value": "04–05 July 2026"
+      },
+      "location": {
+        "label": "Location",
+        "value": "Kumanovo, Macedonia"
+      },
+      "organizer": {
+        "label": "Technical organizer",
+        "value": "Padel Club Kumanovo"
+      },
+      "deadline": {
+        "label": "Registration deadline",
+        "value": "28 June 2026, 23:59"
+      }
+    },
+    "aboutTitle": "About the championship",
+    "about": {
+      "p1": "This event marks a significant step in the development of padel in Macedonia and aims to bring together all lovers of the sport in one place.",
+      "p2": "The championship is open to all interested players, while member clubs of the Federation will additionally compete for the club standings and the title of most successful club of the championship.",
+      "p3": "With this, the Federation aims to enable maximum involvement of the padel community while also recognizing the clubs that actively contribute to the development of the sport."
+    },
+    "highlightsTitle": "Why take part",
+    "highlights": {
+      "recognition": {
+        "title": "Officially recognized federation",
+        "text": "The Padel Federation of Macedonia is the only officially recognized national padel federation in the country, a member of the International Padel Federation (FIP) and the European Padel Association (FEPA)."
+      },
+      "ranking": {
+        "title": "Official national ranking",
+        "text": "Participation in tournaments held under the Federation is the sole basis for official national player ranking. Results achieved at these competitions count toward the national ranking system."
+      },
+      "international": {
+        "title": "Pathway to international play",
+        "text": "Rankings are relevant for selecting players for international competitions, European and World championships, and other official tournaments organized by FIP and FEPA."
+      },
+      "status": {
+        "title": "Build your sporting status",
+        "text": "By taking part, players become part of the Federation's official competition system and can build their sporting status through recognized national and international competitions."
+      }
+    },
+    "registerTitle": "Registration",
+    "registerText": "The registration deadline is 28 June 2026, 23:59.",
+    "registerNote": "Fill out the official registration form to secure your place at the championship.",
+    "registerCta": "Open registration form",
+    "closing": "We invite all players, clubs and padel enthusiasts to be part of this historic championship and together write a new page in the development of Macedonian padel. 🇲🇰🎾",
+    "regulations": {
+      "title": "Regulations for the National Padel Championship",
+      "intro": "The official propositions of the Padel Federation of Macedonia (MPF) governing the National Padel Championship.",
+      "metaTitle": "Key details",
+      "meta": [
+        {
+          "label": "Organizer",
+          "value": "Padel Federation of Macedonia (MPF)"
+        },
+        {
+          "label": "Technical organizer",
+          "value": "Padel Club Kumanovo"
+        },
+        {
+          "label": "Venue",
+          "value": "MM Sport, Kumanovo"
+        },
+        {
+          "label": "Date",
+          "value": "04–05 July 2026"
+        },
+        {
+          "label": "Categories",
+          "value": "Men's pairs / Women's pairs / Mixed pairs"
+        }
+      ],
+      "articlesTitle": "Regulations",
+      "signature": "Padel Federation of Macedonia",
+      "articles": [
+        {
+          "title": "Article 1 – General provisions",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "The National Padel Championship (hereinafter: the Championship) is an official competition organized by the Padel Federation of Macedonia (MPF) in accordance with the Program for the Development of Padel in Macedonia."
+            },
+            {
+              "type": "p",
+              "text": "The competition is open — all pairs (men's, women's, mixed) registered in accordance with these regulations are entitled to take part, with no limit on the number of registered participants."
+            },
+            {
+              "type": "p",
+              "text": "The competition is held with a dual classification:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "General winner — regardless of club membership (open to all participants)",
+                "Club ranking — exclusively for players who are members of clubs registered with the MPF"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Article 2 – Technical organizer",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "The technical organizer of the First National Padel Championship is Padel Club Kumanovo, which provides:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "The courts for holding the competition",
+                "Referees and technical staff",
+                "The required equipment (balls, nets, scoreboard)",
+                "Administrative support for registration and the draw",
+                "Medical personnel — defibrillator and first aid"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "The technical organizer is obliged to provide a minimum of 2 courts for matches to be held simultaneously."
+            }
+          ]
+        },
+        {
+          "title": "Article 3 – Right to participate",
+          "blocks": [
+            {
+              "type": "subhead",
+              "text": "3.1 General competition"
+            },
+            {
+              "type": "p",
+              "text": "All players (minimum 16 years old) are entitled to take part in the general competition, provided they:"
+            },
+            {
+              "type": "ol",
+              "items": [
+                "Complete the registration form by the registration deadline at the latest",
+                "Pay the entry fee",
+                "Sign a statement accepting the competition rules"
+              ]
+            },
+            {
+              "type": "subhead",
+              "text": "3.2 Club competition"
+            },
+            {
+              "type": "p",
+              "text": "All pairs in which BOTH players are members of the same club registered with the MPF automatically take part in the club ranking. The club must have paid its membership fee for the current year."
+            },
+            {
+              "type": "p",
+              "text": "A club may register an unlimited number of pairs. The results of all of the club's pairs count toward the club standings (points system — see Article 7)."
+            }
+          ]
+        },
+        {
+          "title": "Article 4 – Categories",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Category",
+                "Composition",
+                "Note"
+              ],
+              "rows": [
+                [
+                  "Men's pairs (MP)",
+                  "2 male players",
+                  "Open category — all ages"
+                ],
+                [
+                  "Women's pairs (ZP)",
+                  "2 female players",
+                  "Open category — all ages"
+                ],
+                [
+                  "Mixed pairs (MIX)",
+                  "1 male + 1 female",
+                  "Open category — all ages"
+                ],
+                [
+                  "Juniors (U18)",
+                  "male/female",
+                  "Under 18 years"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "If the number of registered pairs in a given category is fewer than 4 (four), the organizing committee reserves the right to merge it with another category or to cancel it, in which case participants will have their entry fees refunded."
+            }
+          ]
+        },
+        {
+          "title": "Article 5 – Registration and entry fee",
+          "blocks": [
+            {
+              "type": "subhead",
+              "text": "5.1 Registration deadline"
+            },
+            {
+              "type": "p",
+              "text": "Entries are submitted exclusively via the official MPF online form or by e-mail to: padelmkd@gmail.com"
+            },
+            {
+              "type": "p",
+              "text": "Final registration deadline: 7 (seven) days before the competition is held."
+            },
+            {
+              "type": "p",
+              "text": "Entries received after the deadline will not be accepted unless the organizing committee decides otherwise."
+            },
+            {
+              "type": "subhead",
+              "text": "5.2 Entry fee"
+            },
+            {
+              "type": "table",
+              "head": [
+                "Category",
+                "Fee per pair",
+                "Payment deadline"
+              ],
+              "rows": [
+                [
+                  "Men's / Women's / Mixed pairs",
+                  "3,000 MKD",
+                  "By the registration deadline"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Payment is made to the account of the technical organizer. After payment, the payment confirmation is submitted together with the entry."
+            },
+            {
+              "type": "p",
+              "text": "The entry fee is non-refundable after the registration deadline, except in the case of an injury confirmed by medical documentation."
+            }
+          ]
+        },
+        {
+          "title": "Article 6 – Competition system",
+          "blocks": [
+            {
+              "type": "subhead",
+              "text": "6.1 Format"
+            },
+            {
+              "type": "p",
+              "text": "The competition format depends on the number of registered pairs per category and is determined after registration closes:"
+            },
+            {
+              "type": "table",
+              "head": [
+                "No. of pairs",
+                "Format"
+              ],
+              "rows": [
+                [
+                  "4 – 8",
+                  "Group stage (1 or 2 groups) + direct elimination (semifinal + final)"
+                ],
+                [
+                  "9 – 16",
+                  "2–4 groups with a group stage + round of 16 / quarterfinal / final"
+                ],
+                [
+                  "17+",
+                  "Main draw with direct elimination"
+                ]
+              ]
+            },
+            {
+              "type": "subhead",
+              "text": "6.2 Rules of play"
+            },
+            {
+              "type": "p",
+              "text": "The competition is played according to the official rules of the International Padel Federation (FIP), with the following local provisions:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Matches up to the semifinal are played to 2 winning sets, with a tie-break in the third set (10 points)",
+                "Semifinal and final: 2 winning sets; at 1:1, the third set is played to 10 points with no advantage",
+                "Balls: official FIP-approved balls — provided by the technical organizer",
+                "Warm-up: 5 minutes on court before the match",
+                "Lateness: a pair more than 10 minutes late loses 1 set; more than 20 minutes — the match"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Article 7 – Ranking",
+          "blocks": [
+            {
+              "type": "subhead",
+              "text": "7.1 General winner"
+            },
+            {
+              "type": "p",
+              "text": "The general winner per category is the pair that wins the final match. The placement is determined as follows:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "1st place: Winner of the final",
+                "2nd place: Finalist",
+                "Further placement: according to the elimination stage reached"
+              ]
+            },
+            {
+              "type": "subhead",
+              "text": "7.2 Club ranking"
+            },
+            {
+              "type": "p",
+              "text": "The club ranking is based on the points won by all of the club's pairs in the general competition:"
+            },
+            {
+              "type": "table",
+              "head": [
+                "Pair's placement",
+                "Points (per pair)",
+                "Club points"
+              ],
+              "rows": [
+                [
+                  "1st place (final)",
+                  "100",
+                  "100"
+                ],
+                [
+                  "2nd place (final)",
+                  "70",
+                  "70"
+                ],
+                [
+                  "3rd place (semifinal)",
+                  "50",
+                  "50"
+                ],
+                [
+                  "Quarterfinal",
+                  "30",
+                  "30"
+                ],
+                [
+                  "Round of 16",
+                  "15",
+                  "15"
+                ],
+                [
+                  "Group stage / first round",
+                  "5",
+                  "5"
+                ]
+              ]
+            },
+            {
+              "type": "p",
+              "text": "The club standing is determined by the total sum of points of all the club's pairs, across all categories. In the event of a tie in points, the club with more pairs in a higher stage takes precedence."
+            },
+            {
+              "type": "p",
+              "text": "The results achieved at the State Championship will be recorded by the Padel Federation of Macedonia and will serve as the basis for forming the official national ranking list of players."
+            },
+            {
+              "type": "p",
+              "text": "The national ranking list will be used for seeding at competitions, the selection of national team line-ups and participation in international competitions and championships organized by FIP and FEPA, in accordance with the Federation's applicable rules and criteria."
+            }
+          ]
+        },
+        {
+          "title": "Article 8 – Prizes and recognition",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "General winner (per category): Trophy + Medals + Official MPF diploma",
+                "2nd place: Medals + Official MPF diploma",
+                "3rd place: Medals + Official MPF diploma",
+                "Club winner: Cup + MPF diploma"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "Cash prizes will be determined if the number of registered pairs exceeds the threshold of 30 pairs in total. The decision is made by the MPF Management Board after registration closes."
+            }
+          ]
+        },
+        {
+          "title": "Article 9 – Officiating and protests",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "The competition is led by a Chief Referee appointed by the MPF. The referees for individual matches are provided by the technical organizer."
+            },
+            {
+              "type": "subhead",
+              "text": "9.1 Protests"
+            },
+            {
+              "type": "ol",
+              "items": [
+                "A protest may be filed by the captain of the pair (one of the two players)",
+                "The protest is submitted in writing to the Chief Referee immediately after the match ends or during the break (not during a point)",
+                "The decision of the Chief Referee is final on the day of the competition",
+                "An appeal to the MPF Disciplinary Committee may be filed within 48 hours after the competition ends — with supporting documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Article 10 – Discipline",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "All participants, coaches and accompanying persons are obliged to respect the MPF Code of Conduct."
+            },
+            {
+              "type": "ul",
+              "items": [
+                "Warning (yellow card): for inappropriate behavior",
+                "Penalty point (orange card): repeated inappropriate behavior",
+                "Disqualification (red card): a serious offense, physical incident or insults"
+              ]
+            },
+            {
+              "type": "p",
+              "text": "A disqualified pair is not entitled to a refund of the entry fee and may be suspended from MPF competitions."
+            }
+          ]
+        },
+        {
+          "title": "Article 11 – Health and safety",
+          "blocks": [
+            {
+              "type": "ul",
+              "items": [
+                "Each participant takes part at their own responsibility and risk",
+                "A medical certificate of fitness for sports competition is recommended",
+                "The technical organizer is obliged to provide medical personnel on site",
+                "The MPF is not responsible for injuries occurring during the competition",
+                "Holding private health insurance is recommended"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Article 12 – Final provisions",
+          "blocks": [
+            {
+              "type": "p",
+              "text": "These regulations were adopted by the Management Board of the Padel Federation of Macedonia and are binding on all participants."
+            },
+            {
+              "type": "p",
+              "text": "All matters not covered by these regulations are decided by the Organizing Committee in accordance with the rules of the MPF and FIP."
+            },
+            {
+              "type": "p",
+              "text": "For all questions and additional information, please contact:"
+            },
+            {
+              "type": "ul",
+              "items": [
+                "E-mail: padelmkd@gmail.com",
+                "Web: www.padelfederation.mk"
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 }
