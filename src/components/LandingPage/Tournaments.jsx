@@ -1,10 +1,14 @@
 import { Row, Col } from "antd";
+import { Link } from "react-router-dom";
 import "../../styles/Tournament.css";
 import TournamentCard from "./TournamentCard";
 import { useTranslation } from "react-i18next";
 
 const Tournaments = () => {
   const { t } = useTranslation();
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   return (
     <>
       <Row
@@ -20,7 +24,9 @@ const Tournaments = () => {
           <h1 className="page-titles">
             {t("tournamentComponent.componentTitle")}
           </h1>
-          <span className="see-all">{t("tournamentComponent.buttonText")}</span>
+          <Link to="/tournaments" className="see-all" onClick={scrollToTop}>
+            {t("tournamentComponent.buttonText")}
+          </Link>
         </Col>
         <Col span={20}>
           <TournamentCard />

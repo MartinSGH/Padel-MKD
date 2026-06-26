@@ -1,0 +1,259 @@
+/* ===== Single tournament detail page ===== */
+.td-page {
+  background-color: #111c38;
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+
+.td-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding-top: 8rem;
+}
+
+.td-status-text {
+  color: #aab4d1;
+  font-family: Montserrat, sans-serif;
+  font-size: 1.1rem;
+}
+
+/* ---- Hero ---- */
+.td-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(3rem, 6vw, 6rem) 0 clamp(2rem, 4vw, 3.5rem);
+  background:
+    radial-gradient(
+      120% 120% at 85% 0%,
+      rgba(255, 215, 0, 0.16) 0%,
+      rgba(255, 192, 0, 0) 55%
+    ),
+    linear-gradient(180deg, #14213f 0%, #0d1730 100%);
+}
+
+.td-back {
+  display: inline-block;
+  color: #c3cbe0;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  margin-bottom: 1.25rem;
+  transition: color 0.18s ease;
+}
+
+.td-back:hover {
+  color: #ffd700;
+}
+
+.td-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.td-eyebrow {
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: clamp(0.72rem, 0.68rem + 0.2vw, 0.9rem);
+}
+
+.td-title {
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  line-height: 112%;
+  font-size: clamp(2rem, 1.5rem + 2.6vw, 3.4rem);
+  margin: 0 0 1rem;
+}
+
+.td-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.td-meta-item {
+  color: #ebebeb;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.td-meta-code {
+  color: #8e9bc0;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+}
+
+/* ---- Status badge ---- */
+.td-badge {
+  display: inline-flex;
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.td-badge-upcoming {
+  background: rgba(255, 215, 0, 0.16);
+  color: #ffd76a;
+}
+
+.td-badge-ongoing {
+  background: rgba(52, 211, 153, 0.18);
+  color: #7bf2c5;
+}
+
+.td-badge-finished {
+  background: rgba(255, 255, 255, 0.1);
+  color: #c3cbe0;
+}
+
+.td-badge-cancelled {
+  background: rgba(248, 113, 113, 0.18);
+  color: #ff9b9b;
+}
+
+.td-badge-postponed {
+  background: rgba(255, 159, 67, 0.18);
+  color: #ffc285;
+}
+
+/* ---- Actions ---- */
+.td-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.td-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.7rem;
+  border-radius: 999px;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 0.86rem + 0.2vw, 1.05rem);
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.td-btn-primary {
+  background: linear-gradient(135deg, #ffd700, #ffc000);
+  color: #1b2440;
+  box-shadow: 0 12px 30px -12px rgba(255, 200, 0, 0.7);
+}
+
+.td-btn-primary:hover {
+  transform: translateY(-2px);
+  color: #1b2440;
+  box-shadow: 0 18px 36px -12px rgba(255, 200, 0, 0.85);
+}
+
+.td-deadline {
+  color: #ffd2d2;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* ---- Sections ---- */
+.td-section {
+  padding-top: clamp(2rem, 4vw, 3rem);
+}
+
+.td-section-title {
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 1.25rem + 1vw, 2rem);
+  border-left: 8px solid #ffd700;
+  padding-left: 1rem;
+  margin: 0 0 1.5rem;
+}
+
+.td-description {
+  color: #c3cbe0;
+  font-family: Montserrat, sans-serif;
+  font-weight: 400;
+  font-size: clamp(0.98rem, 0.94rem + 0.2vw, 1.1rem);
+  line-height: 165%;
+  max-width: 820px;
+  margin: 0;
+}
+
+/* ---- Details grid ---- */
+.td-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.td-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 16px;
+  background: #1b2647;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.td-detail-label {
+  color: #8e9bc0;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.td-detail-value {
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* ---- Responsive ---- */
+@media only screen and (max-width: 1024px) {
+  .td-hero {
+    padding-top: 7rem;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .td-hero {
+    padding-top: 6.5rem;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .td-hero {
+    padding-top: 6rem;
+  }
+
+  .td-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -67,8 +67,14 @@ const Footer = () => {
                 <li>
                   <Link
                     onClick={scrollToTop}
-                    className="footer-link"
-                    to="#clubs"
+                    className={
+                      isLandingPage
+                        ? "footer-link"
+                        : location.pathname === "/clubs"
+                          ? "footer-active-link"
+                          : "footer-link"
+                    }
+                    to="/clubs"
                   >
                     {t("footer.links.clubs")}
                   </Link>

@@ -7,65 +7,33 @@ import { EffectCoverflow, Navigation } from "swiper/modules";
 import { ArrowLeft, ArrowRight } from "phosphor-react";
 import "../../styles/Clubs.css";
 import { Row, Col } from "antd";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { getAllClubs } from "../../services/clubs";
+
 const Clubs = () => {
   const { t } = useTranslation();
-  const clubs = [
-    {
-      name: "Mondo Padel",
-      address: "Ul. Ljubljanska br.4 Veles",
-      hours: "Open from 10-6",
-      phone: "078 436 922",
-      email: "mondopadel1@gmail.com",
-      logo: "/images/ClubsCardsImages/mondo.png",
-    },
-    {
-      name: "Padel Pioneers",
-      address: "Ul. Industriska 1, Skopje",
-      hours: "Open from 10-6",
-      phone: "078 657 744",
-      email: "pioneerspadel@gmail.com",
-      logo: "/images/ClubsCardsImages/pioneer.png",
-    },
-    {
-      name: "Pr1me Padel Club",
-      address: "Viktor Igo 39, Skopje",
-      hours: "Open from 10-6",
-      phone: "071 248 750",
-      email: "pr1mepadel.mk@gmail.com",
-      logo: "/images/ClubsCardsImages/prime.png",
-    },
-    {
-      name: "Tikvesh Padel Club",
-      address: "Ohridska br.49, Kavadarci",
-      hours: "Open from 10-6",
-      phone: "078 650 710",
-      email: "padeltikvesh@gmail.com",
-      logo: "/images/ClubsCardsImages/tikvesh.png",
-    },
-    {
-      name: "Smash Masters Padel Club",
-      address: "Bogomilska, Ohrid",
-      hours: "Open from 10-6",
-      phone: "076 801 829",
-      email: "smashmastersclub@yahoo.com",
-      logo: "/images/ClubsCardsImages/smash.png",
-    },
-    {
-      name: "Padel Klub Kumanovo",
-      address: "Sport Event Centar-Kumanovo bb",
+  const [clubs, setClubs] = useState([]);
 
-      phone: "072 317 704",
+  useEffect(() => {
+    getAllClubs()
+      .then((data) => setClubs(data || []))
+      .catch(() => setClubs([]));
+  }, []);
 
-      logo: "/images/ClubsCardsImages/kumanovo.png",
-    },
-  ];
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <>
       <Row data-aos="fade-up" justify={"center"}>
-        <Col span={20}>
+        <Col className="clubs-title-row" span={20}>
           <h1 className="page-titles text-white">{t("clubs.title")}</h1>
+          <Link to="/clubs" className="see-all" onClick={scrollToTop}>
+            {t("clubs.seeAll")}
+          </Link>
         </Col>
         <Col xs={24} lg={20}>
           <div style={{ padding: "2rem" }}>
@@ -112,8 +80,8 @@ const Clubs = () => {
               }}
               modules={[EffectCoverflow, Navigation]}
             >
-              {clubs.map((club, index) => (
-                <SwiperSlide className="swiper-clubs" key={index}>
+              {clubs.map((club) => (
+                <SwiperSlide className="swiper-clubs" key={club.id}>
                   <div
                     className="club-card w-full h-full"
                     style={{
@@ -131,7 +99,7 @@ const Clubs = () => {
                     }}
                   >
                     <img
-                      src={club.logo}
+                      src={club.logo_url}
                       alt={club.name}
                       style={{ marginBottom: "10px" }}
                     />
@@ -143,10 +111,10 @@ const Clubs = () => {
                         {club.name}
                       </h3>
                       <div className="club-card-text">
-                        <p>{club.address}</p>
-                        <p>{club.hours}</p>
-                        <p>{club.phone}</p>
-                        <p>{club.email}</p>
+                        {club.address && <p>{club.address}</p>}
+                        {club.hours && <p>{club.hours}</p>}
+                        {club.phone && <p>{club.phone}</p>}
+                        {club.email && <p>{club.email}</p>}
                       </div>
                     </div>
                   </div>

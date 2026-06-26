@@ -33,6 +33,23 @@
   }
 }
 
+.clubs-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.clubs-title-row .see-all {
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.clubs-title-row .see-all:hover {
+  text-decoration: underline;
+}
+
 .club-card-title {
   color: var(--Ink-700, #343435);
   text-align: center;

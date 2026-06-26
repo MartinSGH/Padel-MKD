@@ -5,7 +5,48 @@ import {
   approveSubmission,
   declineSubmission,
 } from "../services/admin";
+import {
+  getAllClubs,
+  addClub,
+  deleteClub,
+  uploadClubLogo,
+} from "../services/clubs";
+import {
+  getAllTournaments,
+  addTournament,
+  deleteTournament,
+} from "../services/tournaments";
+import { formatDateRange } from "../lib/tournamentUtils";
 import "../styles/Admin.css";
+
+const emptyClubForm = {
+  name: "",
+  address: "",
+  hours: "",
+  phone: "",
+  email: "",
+  logo_url: "",
+};
+
+const emptyTournamentForm = {
+  name: "",
+  code: "",
+  type: "",
+  category: "",
+  location: "",
+  start_date: "",
+  end_date: "",
+  status: "active",
+  registration_url: "",
+  registration_deadline: "",
+  format: "",
+  competitors: "",
+  prizes: "",
+  qualifications: "",
+  result: "",
+  description: "",
+  detail_url: "",
+};
 
 function getStatusClass(status) {
   if (status === "approved") return "status-badge approved";
@@ -16,9 +57,27 @@ function getStatusClass(status) {
 export default function Admin() {
   const [players, setPlayers] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [error, setError] = useState("");
+
+  // Clubs management state
+  const [showAddClub, setShowAddClub] = useState(false);
+  const [clubForm, setClubForm] = useState(emptyClubForm);
+  const [clubLogoFile, setClubLogoFile] = useState(null);
+  const [clubLogoPreview, setClubLogoPreview] = useState("");
+  const [clubSubmitting, setClubSubmitting] = useState(false);
+  const [clubError, setClubError] = useState("");
+  const [clubActionId, setClubActionId] = useState(null);
+
+  // Tournaments management state
+  const [tournaments, setTournaments] = useState([]);
+  const [showAddTournament, setShowAddTournament] = useState(false);
+  const [tournamentForm, setTournamentForm] = useState(emptyTournamentForm);
+  const [tournamentSubmitting, setTournamentSubmitting] = useState(false);
+  const [tournamentError, setTournamentError] = useState("");
+  const [tournamentActionId, setTournamentActionId] = useState(null);
 
   const loadData = async () => {
     try {
@@ -30,10 +89,186 @@ export default function Admin() {
 
       setPlayers(playersData);
       setSubmissions(submissionsData);
+
+      // Loaded separately and tolerantly so a missing `clubs`/`tournaments`
+      // table (before the SQL migration is run) doesn't break the rest of the
+      // admin panel.
+      try {
+        const clubsData = await getAllClubs();
+        setClubs(clubsData);
+      } catch {
+        setClubs([]);
+      }
+
+      try {
+        const tournamentsData = await getAllTournaments();
+        setTournaments(tournamentsData);
+      } catch {
+        setTournaments([]);
+      }
     } catch (err) {
       setError(err.message || "Failed to load admin panel.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClubFieldChange = (field) => (e) => {
+    setClubForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleClubLogoChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setClubLogoFile(file);
+    setClubLogoPreview(file ? URL.createObjectURL(file) : "");
+  };
+
+  const resetClubForm = () => {
+    setClubForm(emptyClubForm);
+    setClubLogoFile(null);
+    setClubLogoPreview("");
+    setClubError("");
+  };
+
+  const handleAddClub = async (e) => {
+    e.preventDefault();
+
+    if (!clubForm.name.trim()) {
+      setClubError("Club name is required.");
+      return;
+    }
+
+    try {
+      setClubSubmitting(true);
+      setClubError("");
+
+      let logoUrl = clubForm.logo_url.trim();
+      if (clubLogoFile) {
+        logoUrl = await uploadClubLogo(clubLogoFile);
+      }
+
+      const nextOrder =
+        clubs.reduce((max, c) => Math.max(max, c.display_order || 0), 0) + 1;
+
+      await addClub({
+        name: clubForm.name.trim(),
+        address: clubForm.address.trim() || null,
+        hours: clubForm.hours.trim() || null,
+        phone: clubForm.phone.trim() || null,
+        email: clubForm.email.trim() || null,
+        logo_url: logoUrl || null,
+        display_order: nextOrder,
+      });
+
+      resetClubForm();
+      setShowAddClub(false);
+      await loadData();
+    } catch (err) {
+      setClubError(err.message || "Failed to add club.");
+    } finally {
+      setClubSubmitting(false);
+    }
+  };
+
+  const handleDeleteClub = async (club) => {
+    if (
+      !window.confirm(
+        `Delete "${club.name}"? This removes it from the website and cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setClubActionId(club.id);
+      await deleteClub(club.id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to delete club.");
+    } finally {
+      setClubActionId(null);
+    }
+  };
+
+  const handleTournamentFieldChange = (field) => (e) => {
+    setTournamentForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const resetTournamentForm = () => {
+    setTournamentForm(emptyTournamentForm);
+    setTournamentError("");
+  };
+
+  const handleAddTournament = async (e) => {
+    e.preventDefault();
+
+    if (!tournamentForm.name.trim()) {
+      setTournamentError("Tournament name is required.");
+      return;
+    }
+
+    try {
+      setTournamentSubmitting(true);
+      setTournamentError("");
+
+      const nextOrder =
+        tournaments.reduce((max, x) => Math.max(max, x.display_order || 0), 0) +
+        1;
+
+      // Trim text fields; convert empty strings to null.
+      const clean = (v) => {
+        const trimmed = (v || "").trim();
+        return trimmed === "" ? null : trimmed;
+      };
+
+      await addTournament({
+        name: tournamentForm.name.trim(),
+        code: clean(tournamentForm.code),
+        type: clean(tournamentForm.type),
+        category: clean(tournamentForm.category),
+        location: clean(tournamentForm.location),
+        start_date: tournamentForm.start_date || null,
+        end_date: tournamentForm.end_date || null,
+        status: tournamentForm.status || "active",
+        registration_url: clean(tournamentForm.registration_url),
+        registration_deadline: tournamentForm.registration_deadline || null,
+        format: clean(tournamentForm.format),
+        competitors: clean(tournamentForm.competitors),
+        prizes: clean(tournamentForm.prizes),
+        qualifications: clean(tournamentForm.qualifications),
+        result: clean(tournamentForm.result),
+        description: clean(tournamentForm.description),
+        detail_url: clean(tournamentForm.detail_url),
+        display_order: nextOrder,
+      });
+
+      resetTournamentForm();
+      setShowAddTournament(false);
+      await loadData();
+    } catch (err) {
+      setTournamentError(err.message || "Failed to add tournament.");
+    } finally {
+      setTournamentSubmitting(false);
+    }
+  };
+
+  const handleDeleteTournament = async (tournament) => {
+    if (
+      !window.confirm(
+        `Delete "${tournament.name}"? This removes it from the website and cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setTournamentActionId(tournament.id);
+      await deleteTournament(tournament.id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to delete tournament.");
+    } finally {
+      setTournamentActionId(null);
     }
   };
 
@@ -244,6 +479,414 @@ export default function Admin() {
                 ))
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Clubs management */}
+        <div className="admin-card admin-clubs-card">
+          <div className="admin-card-header">
+            <div>
+              <h2>Clubs</h2>
+              <p>
+                Manage the clubs shown in the landing page carousel and on the
+                Clubs page.
+              </p>
+            </div>
+            <div className="admin-clubs-header-actions">
+              <div className="admin-count-pill">{clubs.length} Clubs</div>
+              <button
+                type="button"
+                className="admin-btn approve admin-add-club-btn"
+                onClick={() => {
+                  setShowAddClub((prev) => !prev);
+                  setClubError("");
+                }}
+              >
+                {showAddClub ? "Close" : "+ Add Club"}
+              </button>
+            </div>
+          </div>
+
+          {showAddClub && (
+            <form className="admin-club-form" onSubmit={handleAddClub}>
+              <div className="admin-club-form-grid">
+                <label className="admin-field">
+                  <span>Name *</span>
+                  <input
+                    value={clubForm.name}
+                    onChange={handleClubFieldChange("name")}
+                    placeholder="Club name"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Address</span>
+                  <input
+                    value={clubForm.address}
+                    onChange={handleClubFieldChange("address")}
+                    placeholder="Street, City"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Working hours</span>
+                  <input
+                    value={clubForm.hours}
+                    onChange={handleClubFieldChange("hours")}
+                    placeholder="Open from 10-6"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Phone</span>
+                  <input
+                    value={clubForm.phone}
+                    onChange={handleClubFieldChange("phone")}
+                    placeholder="07x xxx xxx"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Email</span>
+                  <input
+                    value={clubForm.email}
+                    onChange={handleClubFieldChange("email")}
+                    placeholder="club@email.com"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Logo URL</span>
+                  <input
+                    value={clubForm.logo_url}
+                    onChange={handleClubFieldChange("logo_url")}
+                    placeholder="https://… or /images/…"
+                    disabled={!!clubLogoFile}
+                  />
+                </label>
+              </div>
+
+              <div className="admin-club-logo-row">
+                <label className="admin-field admin-club-file-field">
+                  <span>…or upload a logo</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleClubLogoChange}
+                  />
+                </label>
+                {clubLogoPreview && (
+                  <div className="admin-club-logo-preview">
+                    <img src={clubLogoPreview} alt="Logo preview" />
+                  </div>
+                )}
+              </div>
+
+              {clubError && <p className="admin-club-error">{clubError}</p>}
+
+              <div className="admin-actions">
+                <button
+                  type="submit"
+                  className="admin-btn approve"
+                  disabled={clubSubmitting}
+                >
+                  {clubSubmitting ? "Saving…" : "Save Club"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn decline"
+                  onClick={() => {
+                    resetClubForm();
+                    setShowAddClub(false);
+                  }}
+                  disabled={clubSubmitting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="admin-clubs-grid">
+            {clubs.length === 0 ? (
+              <div className="admin-empty-state">
+                No clubs yet. Add the first one.
+              </div>
+            ) : (
+              clubs.map((club) => (
+                <div key={club.id} className="admin-club-item">
+                  <div className="admin-club-logo">
+                    {club.logo_url ? (
+                      <img src={club.logo_url} alt={club.name} />
+                    ) : (
+                      <span>{(club.name || "C").charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="admin-club-info">
+                    <h3>{club.name}</h3>
+                    {club.address && <p>{club.address}</p>}
+                    {club.hours && <p>{club.hours}</p>}
+                    {club.phone && <p>{club.phone}</p>}
+                    {club.email && (
+                      <p className="admin-club-email">{club.email}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="admin-btn decline admin-club-delete"
+                    disabled={clubActionId === club.id}
+                    onClick={() => handleDeleteClub(club)}
+                  >
+                    {clubActionId === club.id ? "Deleting…" : "Delete"}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Tournaments management */}
+        <div className="admin-card admin-tournaments-card">
+          <div className="admin-card-header">
+            <div>
+              <h2>Tournaments</h2>
+              <p>
+                Manage the tournaments shown in the landing section and on the
+                Tournaments page.
+              </p>
+            </div>
+            <div className="admin-clubs-header-actions">
+              <div className="admin-count-pill">
+                {tournaments.length} Tournaments
+              </div>
+              <button
+                type="button"
+                className="admin-btn approve admin-add-club-btn"
+                onClick={() => {
+                  setShowAddTournament((prev) => !prev);
+                  setTournamentError("");
+                }}
+              >
+                {showAddTournament ? "Close" : "+ Add Tournament"}
+              </button>
+            </div>
+          </div>
+
+          {showAddTournament && (
+            <form className="admin-club-form" onSubmit={handleAddTournament}>
+              <div className="admin-club-form-grid">
+                <label className="admin-field">
+                  <span>Name *</span>
+                  <input
+                    value={tournamentForm.name}
+                    onChange={handleTournamentFieldChange("name")}
+                    placeholder="Tournament name"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Code</span>
+                  <input
+                    value={tournamentForm.code}
+                    onChange={handleTournamentFieldChange("code")}
+                    placeholder="e.g. NPC-2026"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Type</span>
+                  <input
+                    value={tournamentForm.type}
+                    onChange={handleTournamentFieldChange("type")}
+                    placeholder="Championship / League / Tournament"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Category</span>
+                  <input
+                    value={tournamentForm.category}
+                    onChange={handleTournamentFieldChange("category")}
+                    placeholder="Open / Juniors / Women / Veterans"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Location</span>
+                  <input
+                    value={tournamentForm.location}
+                    onChange={handleTournamentFieldChange("location")}
+                    placeholder="Venue, City"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Status</span>
+                  <select
+                    className="admin-select"
+                    value={tournamentForm.status}
+                    onChange={handleTournamentFieldChange("status")}
+                  >
+                    <option value="active">Active</option>
+                    <option value="postponed">Postponed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </label>
+                <label className="admin-field">
+                  <span>Start date</span>
+                  <input
+                    type="date"
+                    value={tournamentForm.start_date}
+                    onChange={handleTournamentFieldChange("start_date")}
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>End date</span>
+                  <input
+                    type="date"
+                    value={tournamentForm.end_date}
+                    onChange={handleTournamentFieldChange("end_date")}
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Registration URL</span>
+                  <input
+                    value={tournamentForm.registration_url}
+                    onChange={handleTournamentFieldChange("registration_url")}
+                    placeholder="https://forms.gle/…"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Registration deadline</span>
+                  <input
+                    type="date"
+                    value={tournamentForm.registration_deadline}
+                    onChange={handleTournamentFieldChange(
+                      "registration_deadline"
+                    )}
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Format</span>
+                  <input
+                    value={tournamentForm.format}
+                    onChange={handleTournamentFieldChange("format")}
+                    placeholder="Men's / Women's / Mixed pairs"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Competitors</span>
+                  <input
+                    value={tournamentForm.competitors}
+                    onChange={handleTournamentFieldChange("competitors")}
+                    placeholder="Who can take part"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Prizes</span>
+                  <input
+                    value={tournamentForm.prizes}
+                    onChange={handleTournamentFieldChange("prizes")}
+                    placeholder="Trophies, medals…"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Qualifications</span>
+                  <input
+                    value={tournamentForm.qualifications}
+                    onChange={handleTournamentFieldChange("qualifications")}
+                    placeholder="Qualification criteria"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Result</span>
+                  <input
+                    value={tournamentForm.result}
+                    onChange={handleTournamentFieldChange("result")}
+                    placeholder="Winner / outcome (after the event)"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Custom page URL</span>
+                  <input
+                    value={tournamentForm.detail_url}
+                    onChange={handleTournamentFieldChange("detail_url")}
+                    placeholder="/national-championship-2026 (optional)"
+                  />
+                </label>
+              </div>
+
+              <label className="admin-field admin-field-full">
+                <span>Description</span>
+                <textarea
+                  rows={3}
+                  value={tournamentForm.description}
+                  onChange={handleTournamentFieldChange("description")}
+                  placeholder="Short description shown in the modal and detail page"
+                />
+              </label>
+
+              {tournamentError && (
+                <p className="admin-club-error">{tournamentError}</p>
+              )}
+
+              <div className="admin-actions">
+                <button
+                  type="submit"
+                  className="admin-btn approve"
+                  disabled={tournamentSubmitting}
+                >
+                  {tournamentSubmitting ? "Saving…" : "Save Tournament"}
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn decline"
+                  onClick={() => {
+                    resetTournamentForm();
+                    setShowAddTournament(false);
+                  }}
+                  disabled={tournamentSubmitting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="admin-tournaments-list">
+            {tournaments.length === 0 ? (
+              <div className="admin-empty-state">
+                No tournaments yet. Add the first one.
+              </div>
+            ) : (
+              tournaments.map((tournament) => (
+                <div key={tournament.id} className="admin-tournament-item">
+                  <div className="admin-tournament-info">
+                    <h3>
+                      {tournament.name}
+                      <span
+                        className={`admin-tournament-status admin-tournament-status-${tournament.status}`}
+                      >
+                        {tournament.status}
+                      </span>
+                    </h3>
+                    <p className="admin-tournament-meta">
+                      {[tournament.type, tournament.category]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                    <p className="admin-tournament-sub">
+                      {formatDateRange(
+                        tournament.start_date,
+                        tournament.end_date,
+                        "en"
+                      )}
+                      {tournament.location ? ` — ${tournament.location}` : ""}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="admin-btn decline admin-club-delete"
+                    disabled={tournamentActionId === tournament.id}
+                    onClick={() => handleDeleteTournament(tournament)}
+                  >
+                    {tournamentActionId === tournament.id
+                      ? "Deleting…"
+                      : "Delete"}
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
