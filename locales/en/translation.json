@@ -20,10 +20,43 @@
     "componentTitle": "Tournaments",
     "buttonText": "See all"
   },
+  "tournamentsPage": {
+    "eyebrow": "Padel Federation of Macedonia",
+    "title": "Tournaments",
+    "subtitle": "Official padel tournaments and championships across Macedonia. Filter by status, date or location.",
+    "searchPlaceholder": "Search tournaments…",
+    "yearAll": "All years",
+    "monthAll": "All months",
+    "locationAll": "All locations",
+    "filter": {
+      "all": "All",
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "clear": "Clear filters",
+    "resultsLabel": "tournaments",
+    "loading": "Loading tournaments…",
+    "empty": "No tournaments match your filters.",
+    "details": "View details",
+    "register": "Register",
+    "registrationClosed": "Registration closed",
+    "registrationDeadline": "Registration deadline",
+    "backToList": "Back to all tournaments",
+    "aboutTitle": "About the tournament",
+    "detailsTitle": "Details",
+    "status": {
+      "upcoming": "Upcoming",
+      "ongoing": "Ongoing",
+      "finished": "Finished",
+      "cancelled": "Cancelled",
+      "postponed": "Postponed"
+    }
+  },
   "tournaments": {
     "category": "Category",
     "detailsLabel": "Details",
     "viewPage": "Open championship page",
+    "viewDetails": "View details",
     "details": {
       "type": "Type",
       "date": "Date",
@@ -159,6 +192,11 @@
   },
   "clubs": {
     "title": "Clubs",
+    "seeAll": "See all",
+    "pageEyebrow": "Padel Federation of Macedonia",
+    "pageSubtitle": "Find a padel club near you — locations, working hours and contact details for clubs across Macedonia.",
+    "loading": "Loading clubs…",
+    "empty": "No clubs to show yet.",
     "ourPrograms": "Our Programs",
     "paragraph": " Join the Padel Federation of Macedonia and be part of an energetic, welcoming community that&apos;s passionate about padel! Dive in, play, and connect with others who share your love for the game!",
     "buttonTtext": "Read more details",
