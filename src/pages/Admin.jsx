@@ -14,6 +14,7 @@ import {
 import {
   getAllTournaments,
   addTournament,
+  updateTournament,
   deleteTournament,
 } from "../services/tournaments";
 import { formatDateRange } from "../lib/tournamentUtils";
@@ -78,6 +79,7 @@ export default function Admin() {
   const [tournamentSubmitting, setTournamentSubmitting] = useState(false);
   const [tournamentError, setTournamentError] = useState("");
   const [tournamentActionId, setTournamentActionId] = useState(null);
+  const [editingTournamentId, setEditingTournamentId] = useState(null);
 
   const loadData = async () => {
     try {
@@ -196,10 +198,39 @@ export default function Admin() {
 
   const resetTournamentForm = () => {
     setTournamentForm(emptyTournamentForm);
+    setEditingTournamentId(null);
     setTournamentError("");
   };
 
-  const handleAddTournament = async (e) => {
+  const startEditTournament = (tournament) => {
+    setEditingTournamentId(tournament.id);
+    setTournamentForm({
+      name: tournament.name || "",
+      code: tournament.code || "",
+      type: tournament.type || "",
+      category: tournament.category || "",
+      location: tournament.location || "",
+      start_date: tournament.start_date || "",
+      end_date: tournament.end_date || "",
+      status: tournament.status || "active",
+      registration_url: tournament.registration_url || "",
+      registration_deadline: tournament.registration_deadline || "",
+      format: tournament.format || "",
+      competitors: tournament.competitors || "",
+      prizes: tournament.prizes || "",
+      qualifications: tournament.qualifications || "",
+      result: tournament.result || "",
+      description: tournament.description || "",
+      detail_url: tournament.detail_url || "",
+    });
+    setTournamentError("");
+    setShowAddTournament(true);
+    document
+      .querySelector(".admin-tournaments-card")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSubmitTournament = async (e) => {
     e.preventDefault();
 
     if (!tournamentForm.name.trim()) {
@@ -211,17 +242,13 @@ export default function Admin() {
       setTournamentSubmitting(true);
       setTournamentError("");
 
-      const nextOrder =
-        tournaments.reduce((max, x) => Math.max(max, x.display_order || 0), 0) +
-        1;
-
       // Trim text fields; convert empty strings to null.
       const clean = (v) => {
         const trimmed = (v || "").trim();
         return trimmed === "" ? null : trimmed;
       };
 
-      await addTournament({
+      const payload = {
         name: tournamentForm.name.trim(),
         code: clean(tournamentForm.code),
         type: clean(tournamentForm.type),
@@ -239,14 +266,24 @@ export default function Admin() {
         result: clean(tournamentForm.result),
         description: clean(tournamentForm.description),
         detail_url: clean(tournamentForm.detail_url),
-        display_order: nextOrder,
-      });
+      };
+
+      if (editingTournamentId) {
+        await updateTournament(editingTournamentId, payload);
+      } else {
+        const nextOrder =
+          tournaments.reduce(
+            (max, x) => Math.max(max, x.display_order || 0),
+            0
+          ) + 1;
+        await addTournament({ ...payload, display_order: nextOrder });
+      }
 
       resetTournamentForm();
       setShowAddTournament(false);
       await loadData();
     } catch (err) {
-      setTournamentError(err.message || "Failed to add tournament.");
+      setTournamentError(err.message || "Failed to save tournament.");
     } finally {
       setTournamentSubmitting(false);
     }
@@ -658,8 +695,13 @@ export default function Admin() {
                 type="button"
                 className="admin-btn approve admin-add-club-btn"
                 onClick={() => {
-                  setShowAddTournament((prev) => !prev);
-                  setTournamentError("");
+                  if (showAddTournament) {
+                    setShowAddTournament(false);
+                    resetTournamentForm();
+                  } else {
+                    resetTournamentForm();
+                    setShowAddTournament(true);
+                  }
                 }}
               >
                 {showAddTournament ? "Close" : "+ Add Tournament"}
@@ -668,7 +710,12 @@ export default function Admin() {
           </div>
 
           {showAddTournament && (
-            <form className="admin-club-form" onSubmit={handleAddTournament}>
+            <form className="admin-club-form" onSubmit={handleSubmitTournament}>
+              {editingTournamentId && (
+                <p className="admin-edit-note">
+                  Editing “{tournamentForm.name || "tournament"}”
+                </p>
+              )}
               <div className="admin-club-form-grid">
                 <label className="admin-field">
                   <span>Name *</span>
@@ -826,7 +873,11 @@ export default function Admin() {
                   className="admin-btn approve"
                   disabled={tournamentSubmitting}
                 >
-                  {tournamentSubmitting ? "Saving…" : "Save Tournament"}
+                  {tournamentSubmitting
+                    ? "Saving…"
+                    : editingTournamentId
+                      ? "Update Tournament"
+                      : "Save Tournament"}
                 </button>
                 <button
                   type="button"
@@ -874,16 +925,25 @@ export default function Admin() {
                       {tournament.location ? ` — ${tournament.location}` : ""}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    className="admin-btn decline admin-club-delete"
-                    disabled={tournamentActionId === tournament.id}
-                    onClick={() => handleDeleteTournament(tournament)}
-                  >
-                    {tournamentActionId === tournament.id
-                      ? "Deleting…"
-                      : "Delete"}
-                  </button>
+                  <div className="admin-tournament-actions">
+                    <button
+                      type="button"
+                      className="admin-btn admin-edit-btn"
+                      onClick={() => startEditTournament(tournament)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn decline admin-club-delete"
+                      disabled={tournamentActionId === tournament.id}
+                      onClick={() => handleDeleteTournament(tournament)}
+                    >
+                      {tournamentActionId === tournament.id
+                        ? "Deleting…"
+                        : "Delete"}
+                    </button>
+                  </div>
                 </div>
               ))
             )}

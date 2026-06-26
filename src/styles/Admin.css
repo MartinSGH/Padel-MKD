@@ -621,6 +621,37 @@
   font-size: 0.85rem;
 }
 
+.admin-tournament-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.admin-edit-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f0c666;
+  border: 1px solid rgba(240, 198, 102, 0.35);
+  padding: 9px 16px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.admin-edit-btn:hover {
+  background: rgba(240, 198, 102, 0.14);
+}
+
+.admin-edit-note {
+  margin: 0 0 14px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(240, 198, 102, 0.12);
+  border: 1px solid rgba(240, 198, 102, 0.25);
+  color: #f0c666;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 @media (max-width: 1180px) {
   .admin-layout {
     grid-template-columns: 1fr;

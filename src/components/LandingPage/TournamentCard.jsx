@@ -114,8 +114,9 @@ const TournamentCard = () => {
               >
                 <div className="card-content w-full h-full p-3 m-0">
                   <div className="d-flex flex-col w-full h-full justify-between">
-                    <h3 className="d-flex t-card-title justify-between">
-                      {card.name} <IoArrowUpCircleOutline className="arrow" />
+                    <h3 className="d-flex t-card-title t-card-title-row justify-between">
+                      <span className="t-card-name">{card.name}</span>
+                      <IoArrowUpCircleOutline className="arrow" />
                     </h3>
                     <h3 className="t-card-title">{card.type}</h3>
                     <div className="blur-background">
