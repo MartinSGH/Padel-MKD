@@ -1,5 +1,27 @@
 import { supabase } from "../lib/supabaseClient";
 
+const TOURNAMENT_FILES_BUCKET = "tournament-files";
+
+// Upload a tournament image or PDF to Storage and return its public URL.
+// `folder` is e.g. "images" or "documents". Admin-only at the RLS level.
+export const uploadTournamentFile = async (file, folder = "files") => {
+  const ext = file.name.split(".").pop();
+  const fileName = `${crypto.randomUUID()}.${ext}`;
+  const filePath = `${folder}/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(TOURNAMENT_FILES_BUCKET)
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from(TOURNAMENT_FILES_BUCKET)
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+};
+
 // Public read — used by the landing section, the Tournaments page and detail page.
 export const getAllTournaments = async () => {
   const { data, error } = await supabase

@@ -14,9 +14,13 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    sex: "",
+    birthDate: "",
+    placeOfBirth: "",
     email: "",
     password: "",
-    fullName: "",
   });
 
   const [avatarFile, setAvatarFile] = useState(null);
@@ -81,7 +85,11 @@ export default function Register() {
       await signUp({
         email: form.email,
         password: form.password,
-        fullName: form.fullName,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        sex: form.sex,
+        birthDate: form.birthDate,
+        placeOfBirth: form.placeOfBirth,
         avatarUrl,
       });
 
@@ -149,15 +157,82 @@ export default function Register() {
                 </p>
               </div>
 
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    First Name
+                  </label>
+                  <input
+                    name="firstName"
+                    type="text"
+                    placeholder="Enter your first name"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-[#d4a63d] focus:bg-white/12"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    Last Name
+                  </label>
+                  <input
+                    name="lastName"
+                    type="text"
+                    placeholder="Enter your last name"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-[#d4a63d] focus:bg-white/12"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    Sex
+                  </label>
+                  <select
+                    name="sex"
+                    value={form.sex}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-[#d4a63d] focus:bg-white/12 [&>option]:text-[#081738]"
+                  >
+                    <option value="" disabled>
+                      Select…
+                    </option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    Date of Birth
+                  </label>
+                  <input
+                    name="birthDate"
+                    type="date"
+                    value={form.birthDate}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-[#d4a63d] focus:bg-white/12 [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="mb-2 block text-sm font-medium text-white/80">
-                  Full Name
+                  Place of Birth
                 </label>
                 <input
-                  name="fullName"
+                  name="placeOfBirth"
                   type="text"
-                  placeholder="Enter your full name"
-                  value={form.fullName}
+                  placeholder="City, Country"
+                  value={form.placeOfBirth}
                   onChange={handleChange}
                   required
                   className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-[#d4a63d] focus:bg-white/12"

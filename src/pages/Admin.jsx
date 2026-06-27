@@ -16,6 +16,7 @@ import {
   addTournament,
   updateTournament,
   deleteTournament,
+  uploadTournamentFile,
 } from "../services/tournaments";
 import { formatDateRange } from "../lib/tournamentUtils";
 import "../styles/Admin.css";
@@ -47,6 +48,8 @@ const emptyTournamentForm = {
   result: "",
   description: "",
   detail_url: "",
+  image_url: "",
+  propositions_url: "",
 };
 
 function getStatusClass(status) {
@@ -80,6 +83,8 @@ export default function Admin() {
   const [tournamentError, setTournamentError] = useState("");
   const [tournamentActionId, setTournamentActionId] = useState(null);
   const [editingTournamentId, setEditingTournamentId] = useState(null);
+  const [tournamentImageFile, setTournamentImageFile] = useState(null);
+  const [tournamentPdfFile, setTournamentPdfFile] = useState(null);
 
   const loadData = async () => {
     try {
@@ -199,6 +204,8 @@ export default function Admin() {
   const resetTournamentForm = () => {
     setTournamentForm(emptyTournamentForm);
     setEditingTournamentId(null);
+    setTournamentImageFile(null);
+    setTournamentPdfFile(null);
     setTournamentError("");
   };
 
@@ -222,7 +229,11 @@ export default function Admin() {
       result: tournament.result || "",
       description: tournament.description || "",
       detail_url: tournament.detail_url || "",
+      image_url: tournament.image_url || "",
+      propositions_url: tournament.propositions_url || "",
     });
+    setTournamentImageFile(null);
+    setTournamentPdfFile(null);
     setTournamentError("");
     setShowAddTournament(true);
     document
@@ -248,6 +259,20 @@ export default function Admin() {
         return trimmed === "" ? null : trimmed;
       };
 
+      // Upload a freshly chosen image / PDF (a file overrides the URL field).
+      let imageUrl = clean(tournamentForm.image_url);
+      if (tournamentImageFile) {
+        imageUrl = await uploadTournamentFile(tournamentImageFile, "images");
+      }
+
+      let propositionsUrl = clean(tournamentForm.propositions_url);
+      if (tournamentPdfFile) {
+        propositionsUrl = await uploadTournamentFile(
+          tournamentPdfFile,
+          "documents"
+        );
+      }
+
       const payload = {
         name: tournamentForm.name.trim(),
         code: clean(tournamentForm.code),
@@ -266,6 +291,8 @@ export default function Admin() {
         result: clean(tournamentForm.result),
         description: clean(tournamentForm.description),
         detail_url: clean(tournamentForm.detail_url),
+        image_url: imageUrl,
+        propositions_url: propositionsUrl,
       };
 
       if (editingTournamentId) {
@@ -849,6 +876,47 @@ export default function Admin() {
                     value={tournamentForm.detail_url}
                     onChange={handleTournamentFieldChange("detail_url")}
                     placeholder="/national-championship-2026 (optional)"
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Image URL</span>
+                  <input
+                    value={tournamentForm.image_url}
+                    onChange={handleTournamentFieldChange("image_url")}
+                    placeholder="https://… or upload below"
+                    disabled={!!tournamentImageFile}
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>Propositions PDF URL</span>
+                  <input
+                    value={tournamentForm.propositions_url}
+                    onChange={handleTournamentFieldChange("propositions_url")}
+                    placeholder="https://… or upload below"
+                    disabled={!!tournamentPdfFile}
+                  />
+                </label>
+              </div>
+
+              <div className="admin-club-logo-row">
+                <label className="admin-field admin-club-file-field">
+                  <span>…or upload a cover image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setTournamentImageFile(e.target.files?.[0] || null)
+                    }
+                  />
+                </label>
+                <label className="admin-field admin-club-file-field">
+                  <span>…or upload propositions (PDF)</span>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) =>
+                      setTournamentPdfFile(e.target.files?.[0] || null)
+                    }
                   />
                 </label>
               </div>

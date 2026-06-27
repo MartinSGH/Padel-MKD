@@ -175,6 +175,130 @@
   font-size: 0.85rem;
 }
 
+/* ---- Header (image + info) ---- */
+.td-header {
+  display: flex;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  align-items: stretch;
+}
+
+.td-header-image {
+  flex-shrink: 0;
+  width: clamp(180px, 26vw, 300px);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0d1730;
+}
+
+.td-header-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.td-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- Tabs ---- */
+.td-tabs-section {
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.td-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  overflow-x: auto;
+}
+
+.td-tab {
+  border: none;
+  background: transparent;
+  color: #aab4d1;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 0.98rem;
+  padding: 0.9rem 1.4rem;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.td-tab:hover {
+  color: #fff;
+}
+
+.td-tab-active {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+}
+
+.td-block + .td-block {
+  margin-top: clamp(2rem, 4vw, 3rem);
+}
+
+/* ---- Documents ---- */
+.td-doc-card {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0d1730;
+}
+
+.td-doc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  background: #16224a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+}
+
+.td-doc-name {
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.td-doc-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.td-doc-link {
+  color: #1b2440;
+  background: linear-gradient(135deg, #ffd700, #ffc000);
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  transition: transform 0.18s ease;
+}
+
+.td-doc-link:hover {
+  transform: translateY(-2px);
+  color: #1b2440;
+}
+
+.td-doc-frame {
+  width: 100%;
+  height: clamp(480px, 75vh, 850px);
+  border: 0;
+  display: block;
+  background: #525659;
+}
+
 /* ---- Sections ---- */
 .td-section {
   padding-top: clamp(2rem, 4vw, 3rem);
@@ -234,10 +358,233 @@
   line-height: 1.4;
 }
 
+/* ---- Registration ---- */
+.td-reg-card {
+  border-radius: 18px;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: #1b2647;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.td-reg-login {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.td-reg-login p {
+  margin: 0;
+  color: #c3cbe0;
+  font-family: Montserrat, sans-serif;
+  font-size: 1rem;
+}
+
+.td-reg-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: end;
+}
+
+.td-reg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.td-reg-field span {
+  color: #8e9bc0;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.td-reg-field select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.td-reg-field select:focus {
+  border-color: #ffd700;
+}
+
+.td-reg-field select option {
+  color: #111c38;
+}
+
+.td-reg-submit {
+  grid-column: 1 / -1;
+  justify-self: start;
+  border: none;
+  cursor: pointer;
+}
+
+.td-reg-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.td-reg-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #ff9b9b;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.9rem;
+}
+
+.td-reg-closed {
+  margin: 0;
+  color: #aab4d1;
+  font-family: Montserrat, sans-serif;
+  font-size: 1rem;
+}
+
+.td-reg-done-title {
+  margin: 0 0 0.5rem;
+  color: #7bf2c5;
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.td-reg-done-partner {
+  margin: 0 0 1rem;
+  color: #ebebeb;
+  font-family: Montserrat, sans-serif;
+  font-size: 1rem;
+}
+
+.td-reg-done-partner strong {
+  color: #fff;
+}
+
+.td-reg-withdraw {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.12);
+  color: #ff9b9b;
+  border-radius: 999px;
+  padding: 0.55rem 1.2rem;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.td-reg-withdraw:hover {
+  background: rgba(248, 113, 113, 0.2);
+}
+
+.td-reg-withdraw:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- Participants ---- */
+.td-participants-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.td-participants-count {
+  color: #8e9bc0;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.td-participants {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.td-pair {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: #1b2647;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.td-pair-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 215, 0, 0.14);
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.td-pair-names {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-size: 1rem;
+}
+
+.td-pair-amp {
+  color: #8e9bc0;
+}
+
+.td-pair-cat {
+  flex-shrink: 0;
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.1);
+}
+
 /* ---- Responsive ---- */
 @media only screen and (max-width: 1024px) {
   .td-hero {
     padding-top: 7rem;
+  }
+}
+
+@media only screen and (max-width: 760px) {
+  .td-header {
+    flex-direction: column;
+  }
+
+  .td-header-image {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .td-reg-form {
+    grid-template-columns: 1fr;
   }
 }
 

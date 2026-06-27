@@ -81,6 +81,18 @@ export const isRegistrationOpen = (tournament) => {
   return true;
 };
 
+// Whether in-app registration is currently open (no registration URL needed):
+// the tournament isn't cancelled/finished and the deadline hasn't passed.
+export const isRegistrationWindowOpen = (tournament) => {
+  if (tournament.status === "cancelled") return false;
+  if (isPastTournament(tournament)) return false;
+  if (tournament.registration_deadline) {
+    const dl = parseDate(tournament.registration_deadline);
+    if (dl && dl < startOfToday()) return false;
+  }
+  return true;
+};
+
 export const getTournamentYear = (tournament) => {
   const d = parseDate(tournament.start_date);
   return d ? d.getFullYear() : null;
