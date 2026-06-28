@@ -85,7 +85,13 @@
       "noParticipants": "No registrations yet — be the first to register!",
       "partner": "Partner",
       "you": "You",
-      "noPartnerChosen": "No partner"
+      "noPartnerChosen": "No partner",
+      "spotInfo": "Register now to secure your spot — you can add a partner anytime before registration closes.",
+      "yourPartner": "Your partner",
+      "partnerHint": "You can add or change your partner anytime until registration closes.",
+      "savePartner": "Save partner",
+      "savingPartner": "Saving…",
+      "inPairWith": "You're registered as a partner of"
     }
   },
   "tournaments": {
