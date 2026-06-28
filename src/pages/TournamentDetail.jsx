@@ -8,6 +8,7 @@ import {
   getPlayerDirectory,
   getTournamentRegistrations,
   registerForTournament,
+  updateRegistrationPartner,
   withdrawRegistration,
 } from "../services/registrations";
 import { useAuth } from "../context/AuthContext";
@@ -38,6 +39,7 @@ const TournamentDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [regError, setRegError] = useState("");
   const [withdrawingId, setWithdrawingId] = useState(null);
+  const [savingPartner, setSavingPartner] = useState(false);
 
   // In-app registration is used when the tournament has no external form URL
   // and no custom detail page.
@@ -90,13 +92,18 @@ const TournamentDetail = () => {
   const amPartnerIn = user
     ? registrations.find((reg) => reg.partner_id === user.id)
     : null;
-  const alreadyIn = Boolean(myRegistration || amPartnerIn);
 
   const partnerOptions = useMemo(
     () => directory.filter((p) => p.id !== user?.id && !takenIds.has(p.id)),
     [directory, user?.id, takenIds]
   );
 
+  // Keep the partner picker in sync with the saved partner once registered.
+  useEffect(() => {
+    setPartnerId(myRegistration?.partner_id || "");
+  }, [myRegistration?.id, myRegistration?.partner_id]);
+
+  // Register solo — partner is chosen later, while registration stays open.
   const handleRegister = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -104,16 +111,29 @@ const TournamentDetail = () => {
     try {
       await registerForTournament({
         tournamentId: tournament.id,
-        partnerId: partnerId || null,
+        partnerId: null,
         category: category || null,
       });
-      setPartnerId("");
       setCategory("");
       await loadRegistrations(tournament.id);
     } catch (err) {
       setRegError(err.message || "Failed to register.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSavePartner = async () => {
+    if (!myRegistration) return;
+    setSavingPartner(true);
+    setRegError("");
+    try {
+      await updateRegistrationPartner(myRegistration.id, partnerId || null);
+      await loadRegistrations(tournament.id);
+    } catch (err) {
+      setRegError(err.message || "Failed to update partner.");
+    } finally {
+      setSavingPartner(false);
     }
   };
 
@@ -180,6 +200,19 @@ const TournamentDetail = () => {
   ].filter(([, value]) => value);
 
   const r = (key) => t(`tournamentsPage.registration.${key}`);
+
+  // The current partner shown in the manage dropdown (they're excluded from
+  // partnerOptions because they're already "taken", so add them back here).
+  const currentPartnerOption = myRegistration?.partner_id
+    ? {
+        id: myRegistration.partner_id,
+        full_name:
+          myRegistration.partner_name ||
+          nameById.get(myRegistration.partner_id) ||
+          "Player",
+      }
+    : null;
+  const partnerUnchanged = partnerId === (myRegistration?.partner_id || "");
 
   const tabs = ["info"];
   if (useInApp) tabs.push("registered");
@@ -337,24 +370,68 @@ const TournamentDetail = () => {
                           </Link>
                         </div>
                       </div>
-                    ) : alreadyIn ? (
+                    ) : myRegistration ? (
                       <div className="td-reg-done">
                         <p className="td-reg-done-title">
                           ✓ {r("registeredTitle")}
                         </p>
-                        <p className="td-reg-done-partner">
-                          {r("partner")}:{" "}
-                          <strong>
-                            {myRegistration
-                              ? myRegistration.partner_id
+                        {myRegistration.category && (
+                          <p className="td-reg-done-partner">
+                            {r("category")}:{" "}
+                            <strong>{myRegistration.category}</strong>
+                          </p>
+                        )}
+
+                        {windowOpen ? (
+                          <div className="td-partner-manage">
+                            <label className="td-reg-field">
+                              <span>{r("yourPartner")}</span>
+                              <select
+                                value={partnerId}
+                                onChange={(e) => setPartnerId(e.target.value)}
+                              >
+                                <option value="">{r("noPartnerChosen")}</option>
+                                {currentPartnerOption && (
+                                  <option value={currentPartnerOption.id}>
+                                    {currentPartnerOption.full_name}
+                                  </option>
+                                )}
+                                {partnerOptions.map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.full_name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <button
+                              type="button"
+                              className="td-btn td-btn-primary td-reg-submit"
+                              disabled={savingPartner || partnerUnchanged}
+                              onClick={handleSavePartner}
+                            >
+                              {savingPartner
+                                ? r("savingPartner")
+                                : r("savePartner")}
+                            </button>
+                            <p className="td-reg-hint">{r("partnerHint")}</p>
+                          </div>
+                        ) : (
+                          <p className="td-reg-done-partner">
+                            {r("partner")}:{" "}
+                            <strong>
+                              {myRegistration.partner_id
                                 ? myRegistration.partner_name ||
                                   nameById.get(myRegistration.partner_id)
-                                : r("noPartnerChosen")
-                              : amPartnerIn.player_name ||
-                                nameById.get(amPartnerIn.player_id)}
-                          </strong>
-                        </p>
-                        {myRegistration && (
+                                : r("noPartnerChosen")}
+                            </strong>
+                          </p>
+                        )}
+
+                        {regError && (
+                          <p className="td-reg-error">{regError}</p>
+                        )}
+
+                        {windowOpen && (
                           <button
                             type="button"
                             className="td-reg-withdraw"
@@ -367,27 +444,27 @@ const TournamentDetail = () => {
                           </button>
                         )}
                       </div>
+                    ) : amPartnerIn ? (
+                      <div className="td-reg-done">
+                        <p className="td-reg-done-title">
+                          ✓ {r("registeredTitle")}
+                        </p>
+                        <p className="td-reg-done-partner">
+                          {r("inPairWith")}{" "}
+                          <strong>
+                            {amPartnerIn.player_name ||
+                              nameById.get(amPartnerIn.player_id)}
+                          </strong>
+                        </p>
+                      </div>
                     ) : !windowOpen ? (
                       <p className="td-reg-closed">{r("closed")}</p>
-                    ) : partnerOptions.length === 0 ? (
-                      <p className="td-reg-closed">{r("noPartners")}</p>
                     ) : (
-                      <form className="td-reg-form" onSubmit={handleRegister}>
-                        <label className="td-reg-field">
-                          <span>{r("choosePartner")}</span>
-                          <select
-                            value={partnerId}
-                            onChange={(e) => setPartnerId(e.target.value)}
-                            required
-                          >
-                            <option value="">{r("partnerPlaceholder")}</option>
-                            {partnerOptions.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.full_name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                      <form
+                        className="td-reg-form td-reg-form-solo"
+                        onSubmit={handleRegister}
+                      >
+                        <p className="td-reg-spot-info">{r("spotInfo")}</p>
 
                         <label className="td-reg-field">
                           <span>{r("category")}</span>

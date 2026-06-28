@@ -471,6 +471,53 @@
   font-size: 1rem;
 }
 
+.td-reg-form-solo {
+  display: block;
+}
+
+.td-reg-form-solo .td-reg-field {
+  max-width: 360px;
+}
+
+.td-reg-spot-info {
+  margin: 0 0 1.25rem;
+  color: #c3cbe0;
+  font-family: Montserrat, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 620px;
+}
+
+.td-reg-form-solo .td-reg-submit {
+  margin-top: 1.25rem;
+}
+
+.td-partner-manage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 0.5rem 0 1rem;
+}
+
+.td-partner-manage .td-reg-field {
+  flex: 1;
+  min-width: 240px;
+  margin: 0;
+}
+
+.td-partner-manage .td-reg-submit {
+  margin: 0;
+}
+
+.td-reg-hint {
+  flex-basis: 100%;
+  margin: 0.25rem 0 0;
+  color: #8e9bc0;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.85rem;
+}
+
 .td-reg-done-title {
   margin: 0 0 0.5rem;
   color: #7bf2c5;

@@ -1,15 +1,12 @@
 import { supabase } from "../lib/supabaseClient";
 
-// Safe, names-only list of all players — used to populate the partner picker
-// and to resolve player/partner names in the participant list.
+// Safe, names-only list of all players — used to populate the partner picker.
+// Uses a SECURITY DEFINER RPC so every logged-in user can read it (a plain
+// view respects profiles RLS, which hid the list from non-admin players).
 export const getPlayerDirectory = async () => {
-  const { data, error } = await supabase
-    .from("player_directory")
-    .select("*")
-    .order("full_name", { ascending: true });
-
+  const { data, error } = await supabase.rpc("get_players");
   if (error) throw error;
-  return data;
+  return data || [];
 };
 
 // All registrations (pairs) for a single tournament.
@@ -53,6 +50,16 @@ export const registerForTournament = async ({
 
   if (error) throw error;
   return data;
+};
+
+// Add / change / remove the partner on an existing registration. Passing a
+// falsy partnerId removes the partner. The DB trigger keeps partner_name in sync.
+export const updateRegistrationPartner = async (registrationId, partnerId) => {
+  const { error } = await supabase
+    .from("registrations")
+    .update({ partner_id: partnerId || null })
+    .eq("id", registrationId);
+  if (error) throw error;
 };
 
 export const withdrawRegistration = async (id) => {
