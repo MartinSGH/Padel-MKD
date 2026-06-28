@@ -263,6 +263,14 @@ function Navbar() {
               {t("navbar.newsMedia")}
             </NavLink>
 
+            <NavLink
+              onClick={handleClick}
+              className={linkClassName}
+              to="/tournaments"
+            >
+              {t("navbar.competitions")}
+            </NavLink>
+
             {isMobileView && (
               <div className="mobile-language-switcher">
                 <LanguageSwitcher />

@@ -2,7 +2,8 @@
   "navbar": {
     "whatIsPadel": "Што е Падел?",
     "federation": "Федерација",
-    "newsMedia": "Вести и медиа"
+    "newsMedia": "Вести и медиа",
+    "competitions": "Натпревари"
   },
   "jumbo": {
     "slide1": {
@@ -61,8 +62,9 @@
     },
     "registration": {
       "title": "Пријавување",
-      "loginPrompt": "Најави се за да се пријавиш на овој турнир.",
+      "loginPrompt": "Најави се или креирај профил за да се пријавиш на овој турнир.",
       "login": "Најави се",
+      "register": "Креирај профил",
       "choosePartner": "Избери партнер",
       "partnerPlaceholder": "Избери партнер…",
       "category": "Категорија",

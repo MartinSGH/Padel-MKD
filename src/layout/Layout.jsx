@@ -19,11 +19,14 @@ const Layout = () => {
     });
   }, []);
 
-  // On every route change, recompute element positions and reveal anything
-  // already in view. Without this, persistent chrome like the Footer keeps the
-  // stale position AOS measured on the previous page and stays hidden as an
-  // empty area on pages where it never gets scrolled into view.
+  // On every route change: jump back to the top of the page (so a new page
+  // never opens scrolled down to where the previous page was), then recompute
+  // AOS element positions and reveal anything already in view. Without the
+  // scroll reset, navigating (e.g. "See more") could land you at the footer;
+  // without the refresh, persistent chrome like the Footer keeps the stale
+  // position AOS measured on the previous page and stays hidden.
   useEffect(() => {
+    window.scrollTo(0, 0);
     AOS.refreshHard();
   }, [location.pathname]);
 

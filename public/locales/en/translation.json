@@ -2,7 +2,8 @@
   "navbar": {
     "whatIsPadel": "What is Padel?",
     "federation": "Federation",
-    "newsMedia": "News and Media"
+    "newsMedia": "News and Media",
+    "competitions": "Competitions"
   },
   "jumbo": {
     "slide1": {
@@ -61,8 +62,9 @@
     },
     "registration": {
       "title": "Registration",
-      "loginPrompt": "Log in to register for this tournament.",
+      "loginPrompt": "Log in or create an account to register for this tournament.",
       "login": "Log in",
+      "register": "Create account",
       "choosePartner": "Choose your partner",
       "partnerPlaceholder": "Select a partner…",
       "category": "Category",

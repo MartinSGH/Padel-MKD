@@ -50,8 +50,10 @@ const AdminTournamentDraw = ({ tournaments }) => {
   );
 
   const pairLabel = (reg) => {
-    const a = nameMap.get(reg.player_id) || "Player";
-    const b = reg.partner_id ? nameMap.get(reg.partner_id) || "Player" : "—";
+    const a = reg.player_name || nameMap.get(reg.player_id) || "Player";
+    const b = reg.partner_id
+      ? reg.partner_name || nameMap.get(reg.partner_id) || "Player"
+      : "—";
     return `${a} & ${b}`;
   };
 

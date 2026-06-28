@@ -325,9 +325,17 @@ const TournamentDetail = () => {
                     {!user ? (
                       <div className="td-reg-login">
                         <p>{r("loginPrompt")}</p>
-                        <Link to="/login" className="td-btn td-btn-primary">
-                          {r("login")}
-                        </Link>
+                        <div className="td-reg-login-actions">
+                          <Link to="/login" className="td-btn td-btn-primary">
+                            {r("login")}
+                          </Link>
+                          <Link
+                            to="/register"
+                            className="td-btn td-btn-outline"
+                          >
+                            {r("register")}
+                          </Link>
+                        </div>
                       </div>
                     ) : alreadyIn ? (
                       <div className="td-reg-done">
@@ -339,9 +347,11 @@ const TournamentDetail = () => {
                           <strong>
                             {myRegistration
                               ? myRegistration.partner_id
-                                ? nameById.get(myRegistration.partner_id)
+                                ? myRegistration.partner_name ||
+                                  nameById.get(myRegistration.partner_id)
                                 : r("noPartnerChosen")
-                              : nameById.get(amPartnerIn.player_id)}
+                              : amPartnerIn.player_name ||
+                                nameById.get(amPartnerIn.player_id)}
                           </strong>
                         </p>
                         {myRegistration && (
@@ -426,9 +436,13 @@ const TournamentDetail = () => {
                     <div className="td-participants">
                       {registrations.map((reg, index) => {
                         const playerName =
-                          nameById.get(reg.player_id) || "Player";
+                          reg.player_name ||
+                          nameById.get(reg.player_id) ||
+                          "Player";
                         const partnerName = reg.partner_id
-                          ? nameById.get(reg.partner_id) || "Player"
+                          ? reg.partner_name ||
+                            nameById.get(reg.partner_id) ||
+                            "Player"
                           : r("noPartnerChosen");
                         return (
                           <div className="td-pair" key={reg.id}>

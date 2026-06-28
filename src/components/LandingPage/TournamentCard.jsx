@@ -150,7 +150,11 @@ const TournamentCard = () => {
           footer={null}
         >
           <div>
-            {selectedCard.description && <p>{selectedCard.description}</p>}
+            {selectedCard.description && (
+              <p style={{ whiteSpace: "pre-line" }}>
+                {selectedCard.description}
+              </p>
+            )}
             <b>{t("tournaments.detailsLabel")}</b>
             <ul className="modal-list">
               {detailEntries(selectedCard).map(([key, value]) =>
