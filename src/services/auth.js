@@ -9,6 +9,9 @@ export const signUp = async ({
   sex = "",
   birthDate = "",
   placeOfBirth = "",
+  phone = "",
+  clubId = "",
+  clubName = "",
   avatarUrl = "",
 }) => {
   const fullName = `${firstName} ${lastName}`.trim();
@@ -24,6 +27,9 @@ export const signUp = async ({
         sex,
         birth_date: birthDate,
         place_of_birth: placeOfBirth,
+        phone,
+        club_id: clubId,
+        club_name: clubName,
         avatar_url: avatarUrl,
       },
     },

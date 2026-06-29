@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signUp } from "../services/auth";
+import { getAllClubs } from "../services/clubs";
 import { supabase } from "../lib/supabaseClient";
 
 const defaultAvatars = [
@@ -19,15 +20,24 @@ export default function Register() {
     sex: "",
     birthDate: "",
     placeOfBirth: "",
+    phone: "",
+    clubId: "",
     email: "",
     password: "",
   });
 
   const [avatarFile, setAvatarFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    getAllClubs()
+      .then((data) => setClubs(data || []))
+      .catch(() => setClubs([]));
+  }, []);
 
   const randomDefaultAvatar = useMemo(() => {
     return defaultAvatars[Math.floor(Math.random() * defaultAvatars.length)];
@@ -71,9 +81,24 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
     setSuccess("");
+
+    // Validate the phone number is in international format: +<country><number>.
+    const cleanedPhone = form.phone.replace(/[\s\-()]/g, "");
+    if (!/^\+[1-9]\d{7,14}$/.test(cleanedPhone)) {
+      setError(
+        "Please enter a valid phone number in international format, e.g. +38970123456."
+      );
+      return;
+    }
+
+    if (!form.clubId) {
+      setError("Please choose your club.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       let avatarUrl = randomDefaultAvatar;
@@ -81,6 +106,8 @@ export default function Register() {
       if (avatarFile) {
         avatarUrl = await uploadAvatar(avatarFile);
       }
+
+      const selectedClub = clubs.find((c) => c.id === form.clubId);
 
       await signUp({
         email: form.email,
@@ -90,6 +117,9 @@ export default function Register() {
         sex: form.sex,
         birthDate: form.birthDate,
         placeOfBirth: form.placeOfBirth,
+        phone: cleanedPhone,
+        clubId: form.clubId,
+        clubName: selectedClub?.name || "",
         avatarUrl,
       });
 
@@ -237,6 +267,45 @@ export default function Register() {
                   required
                   className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-[#d4a63d] focus:bg-white/12"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    Phone Number
+                  </label>
+                  <input
+                    name="phone"
+                    type="tel"
+                    placeholder="+38970123456"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-[#d4a63d] focus:bg-white/12"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    Club
+                  </label>
+                  <select
+                    name="clubId"
+                    value={form.clubId}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-[#d4a63d] focus:bg-white/12 [&>option]:text-[#081738]"
+                  >
+                    <option value="" disabled>
+                      Select your club…
+                    </option>
+                    {clubs.map((club) => (
+                      <option key={club.id} value={club.id}>
+                        {club.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>

@@ -6,6 +6,7 @@ import {
   updateMyEmail,
   updateMyPassword,
 } from "../services/profile";
+import { getAllClubs } from "../services/clubs";
 import "../styles/Profile.css";
 
 const emptyForm = {
@@ -14,6 +15,8 @@ const emptyForm = {
   sex: "",
   birth_date: "",
   place_of_birth: "",
+  phone: "",
+  club_id: "",
   email: "",
   newPassword: "",
 };
@@ -30,6 +33,13 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+  const [clubs, setClubs] = useState([]);
+
+  useEffect(() => {
+    getAllClubs()
+      .then((data) => setClubs(data || []))
+      .catch(() => setClubs([]));
+  }, []);
 
   const loadProfile = async () => {
     try {
@@ -53,6 +63,8 @@ export default function Profile() {
       sex: profile.sex || "",
       birth_date: profile.birth_date || "",
       place_of_birth: profile.place_of_birth || "",
+      phone: profile.phone || "",
+      club_id: profile.club_id || "",
       email: profile.email || "",
       newPassword: "",
     });
@@ -82,11 +94,23 @@ export default function Profile() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    setSaving(true);
     setSaveError("");
     setSaveMessage("");
 
+    // Validate phone format if provided.
+    const cleanedPhone = form.phone.replace(/[\s\-()]/g, "");
+    if (cleanedPhone && !/^\+[1-9]\d{7,14}$/.test(cleanedPhone)) {
+      setSaveError(
+        "Please enter a valid phone number in international format, e.g. +38970123456."
+      );
+      return;
+    }
+
+    setSaving(true);
+
     try {
+      const selectedClub = clubs.find((c) => c.id === form.club_id);
+
       const profileFields = {
         first_name: form.first_name.trim() || null,
         last_name: form.last_name.trim() || null,
@@ -94,6 +118,9 @@ export default function Profile() {
         sex: form.sex || null,
         birth_date: form.birth_date || null,
         place_of_birth: form.place_of_birth.trim() || null,
+        phone: cleanedPhone || null,
+        club_id: form.club_id || null,
+        club_name: selectedClub?.name || null,
       };
 
       if (avatarFile) {
@@ -232,6 +259,16 @@ export default function Profile() {
                 </div>
 
                 <div className="profile-detail-item">
+                  <span>Phone</span>
+                  <p>{profile.phone || "—"}</p>
+                </div>
+
+                <div className="profile-detail-item">
+                  <span>Club</span>
+                  <p>{profile.club_name || "—"}</p>
+                </div>
+
+                <div className="profile-detail-item">
                   <span>Email</span>
                   <p>{profile.email}</p>
                 </div>
@@ -323,6 +360,33 @@ export default function Profile() {
                     onChange={handleField}
                     placeholder="City, Country"
                   />
+                </label>
+
+                <label className="profile-field">
+                  <span>Phone</span>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleField}
+                    placeholder="+38970123456"
+                  />
+                </label>
+
+                <label className="profile-field">
+                  <span>Club</span>
+                  <select
+                    name="club_id"
+                    value={form.club_id}
+                    onChange={handleField}
+                  >
+                    <option value="">Select your club…</option>
+                    {clubs.map((club) => (
+                      <option key={club.id} value={club.id}>
+                        {club.name}
+                      </option>
+                    ))}
+                  </select>
                 </label>
 
                 <label className="profile-field">
