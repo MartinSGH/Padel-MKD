@@ -3,7 +3,9 @@ import { supabase } from "../lib/supabaseClient";
 export const getAllPlayers = async () => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, total_points, role, avatar_url, created_at")
+    .select(
+      "id, full_name, email, total_points, role, avatar_url, phone, club_name, created_at"
+    )
     .order("total_points", { ascending: false });
 
   if (error) throw error;

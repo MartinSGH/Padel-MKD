@@ -373,6 +373,13 @@ export default function Admin() {
     return <div className="admin-page admin-error">{error}</div>;
   }
 
+  const pendingSubmissions = submissions.filter(
+    (item) => item.status === "pending"
+  );
+  const resolvedSubmissions = submissions.filter(
+    (item) => item.status !== "pending"
+  );
+
   return (
     <section className="admin-page">
       <div className="admin-shell">
@@ -399,15 +406,17 @@ export default function Admin() {
               <table className="admin-players-table">
                 <thead>
                   <tr>
-                    <th>Full Name</th>
+                    <th>Player</th>
                     <th>Email</th>
+                    <th>Phone</th>
+                    <th>Club</th>
                     <th>Points</th>
                   </tr>
                 </thead>
                 <tbody>
                   {players.length === 0 ? (
                     <tr>
-                      <td colSpan="3" className="admin-empty-cell">
+                      <td colSpan="5" className="admin-empty-cell">
                         No players found.
                       </td>
                     </tr>
@@ -434,6 +443,12 @@ export default function Admin() {
                           </div>
                         </td>
                         <td className="admin-player-email">{player.email}</td>
+                        <td className="admin-player-phone">
+                          {player.phone || "—"}
+                        </td>
+                        <td className="admin-player-club">
+                          {player.club_name || "—"}
+                        </td>
                         <td>
                           <span className="admin-points-pill">
                             {player.total_points}
@@ -459,12 +474,12 @@ export default function Admin() {
             </div>
 
             <div className="admin-submissions-list">
-              {submissions.length === 0 ? (
+              {pendingSubmissions.length === 0 ? (
                 <div className="admin-empty-state">
-                  No point submissions available.
+                  No pending submissions.
                 </div>
               ) : (
-                submissions.map((item) => (
+                pendingSubmissions.map((item) => (
                   <div key={item.id} className="admin-submission-item">
                     <div className="admin-submission-top">
                       <div>
@@ -544,6 +559,90 @@ export default function Admin() {
                 ))
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Submissions history (resolved → accordion) */}
+        <div className="admin-card admin-history-card">
+          <div className="admin-card-header">
+            <div>
+              <h2>Submissions History</h2>
+              <p>Approved and declined submissions. Click to expand details.</p>
+            </div>
+            <div className="admin-count-pill">
+              {resolvedSubmissions.length} Resolved
+            </div>
+          </div>
+
+          <div className="admin-history-list">
+            {resolvedSubmissions.length === 0 ? (
+              <div className="admin-empty-state">
+                No resolved submissions yet.
+              </div>
+            ) : (
+              resolvedSubmissions.map((item) => (
+                <details key={item.id} className="admin-history-item">
+                  <summary className="admin-history-summary">
+                    <div className="admin-history-head">
+                      <span className="admin-history-title">
+                        {item.tournament_name}
+                      </span>
+                      <span className="admin-history-player">
+                        {item.profiles?.full_name || "Unknown Player"}
+                      </span>
+                    </div>
+                    <span className={getStatusClass(item.status)}>
+                      {item.status}
+                    </span>
+                  </summary>
+
+                  <div className="admin-history-body">
+                    <div className="admin-submission-grid">
+                      <div>
+                        <span className="admin-label">Email</span>
+                        <p>{item.profiles?.email || "-"}</p>
+                      </div>
+                      <div>
+                        <span className="admin-label">Requested Points</span>
+                        <p>{item.requested_points}</p>
+                      </div>
+                      <div>
+                        <span className="admin-label">Tournament Link</span>
+                        <a
+                          href={item.tournament_link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="admin-link"
+                        >
+                          Open tournament link
+                        </a>
+                      </div>
+                      <div>
+                        <span className="admin-label">Tournament Date</span>
+                        <p>{item.tournament_date || "-"}</p>
+                      </div>
+                      <div>
+                        <span className="admin-label">Submitted At</span>
+                        <p>{new Date(item.submitted_at).toLocaleString()}</p>
+                      </div>
+                      {item.reviewed_at && (
+                        <div>
+                          <span className="admin-label">Reviewed At</span>
+                          <p>{new Date(item.reviewed_at).toLocaleString()}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {item.admin_note && (
+                      <div className="admin-note-box">
+                        <span className="admin-label">Admin Note</span>
+                        <p>{item.admin_note}</p>
+                      </div>
+                    )}
+                  </div>
+                </details>
+              ))
+            )}
           </div>
         </div>
 
