@@ -580,6 +580,40 @@
   gap: 10px;
 }
 
+/* Count-only box shown to non-admins */
+.td-participants-count-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2rem 1.5rem;
+  border-radius: 18px;
+  background: #1b2647;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.td-participants-big {
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.5rem, 2rem + 3vw, 4rem);
+  line-height: 1;
+}
+
+.td-participants-label {
+  color: #c3cbe0;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+}
+
+.td-participants-count-box .td-reg-hint {
+  margin-top: 0.75rem;
+}
+
 .td-pair {
   display: flex;
   align-items: center;

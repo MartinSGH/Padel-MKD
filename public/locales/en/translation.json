@@ -82,6 +82,7 @@
       "closed": "Registration for this tournament is closed.",
       "participantsTitle": "Registered pairs",
       "participantsCount": "registered",
+      "participantsAdminOnly": "Only the federation can view the full list of participants.",
       "noParticipants": "No registrations yet — be the first to register!",
       "partner": "Partner",
       "you": "You",

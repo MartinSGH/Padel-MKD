@@ -93,6 +93,14 @@ export const isRegistrationWindowOpen = (tournament) => {
   return true;
 };
 
+// True once the registration deadline has passed (registration is closed and
+// the participant list becomes public).
+export const isRegistrationDeadlinePassed = (tournament) => {
+  if (!tournament.registration_deadline) return false;
+  const dl = parseDate(tournament.registration_deadline);
+  return dl ? dl < startOfToday() : false;
+};
+
 export const getTournamentYear = (tournament) => {
   const d = parseDate(tournament.start_date);
   return d ? d.getFullYear() : null;

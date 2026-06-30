@@ -250,6 +250,11 @@ export default function Admin() {
       return;
     }
 
+    if (!tournamentForm.registration_deadline) {
+      setTournamentError("Registration deadline is required.");
+      return;
+    }
+
     try {
       setTournamentSubmitting(true);
       setTournamentError("");
@@ -921,9 +926,10 @@ export default function Admin() {
                   />
                 </label>
                 <label className="admin-field">
-                  <span>Registration deadline</span>
+                  <span>Registration deadline *</span>
                   <input
                     type="date"
+                    required
                     value={tournamentForm.registration_deadline}
                     onChange={handleTournamentFieldChange(
                       "registration_deadline"

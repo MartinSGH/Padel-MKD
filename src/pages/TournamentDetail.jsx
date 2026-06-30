@@ -7,10 +7,13 @@ import { getTournamentById } from "../services/tournaments";
 import {
   getPlayerDirectory,
   getTournamentRegistrations,
+  getRegistrationCount,
+  getTakenPlayerIds,
   registerForTournament,
   updateRegistrationPartner,
   withdrawRegistration,
 } from "../services/registrations";
+import { getMyProfile } from "../services/profile";
 import { useAuth } from "../context/AuthContext";
 import {
   formatDateRange,
@@ -18,6 +21,7 @@ import {
   getTournamentTiming,
   isRegistrationOpen,
   isRegistrationWindowOpen,
+  isRegistrationDeadlinePassed,
 } from "../lib/tournamentUtils";
 
 const TournamentDetail = () => {
@@ -34,6 +38,9 @@ const TournamentDetail = () => {
   // Registration state
   const [directory, setDirectory] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+  const [registrationCount, setRegistrationCount] = useState(0);
+  const [takenIds, setTakenIds] = useState(new Set());
+  const [isAdmin, setIsAdmin] = useState(false);
   const [partnerId, setPartnerId] = useState("");
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -57,34 +64,41 @@ const TournamentDetail = () => {
   }, [id]);
 
   const loadRegistrations = async (tournamentId) => {
-    const [dir, regs] = await Promise.all([
+    const [dir, regs, cnt, taken] = await Promise.all([
       getPlayerDirectory().catch(() => []),
       getTournamentRegistrations(tournamentId).catch(() => []),
+      getRegistrationCount(tournamentId).catch(() => 0),
+      user ? getTakenPlayerIds(tournamentId).catch(() => []) : Promise.resolve([]),
     ]);
     setDirectory(dir);
     setRegistrations(regs);
+    setRegistrationCount(cnt);
+    setTakenIds(new Set(taken));
   };
 
   useEffect(() => {
     if (useInApp && tournament?.id) {
       loadRegistrations(tournament.id);
     }
-  }, [useInApp, tournament?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useInApp, tournament?.id, user]);
+
+  // Determine whether the current user is an admin (only admins see the list).
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    getMyProfile()
+      .then((p) => setIsAdmin(p?.role === "admin"))
+      .catch(() => setIsAdmin(false));
+  }, [user]);
 
   const nameById = useMemo(() => {
     const map = new Map();
     directory.forEach((p) => map.set(p.id, p.full_name || "Player"));
     return map;
   }, [directory]);
-
-  const takenIds = useMemo(() => {
-    const set = new Set();
-    registrations.forEach((reg) => {
-      set.add(reg.player_id);
-      if (reg.partner_id) set.add(reg.partner_id);
-    });
-    return set;
-  }, [registrations]);
 
   const myRegistration = user
     ? registrations.find((reg) => reg.player_id === user.id)
@@ -177,6 +191,10 @@ const TournamentDetail = () => {
   const timing = getTournamentTiming(tournament);
   const regOpen = isRegistrationOpen(tournament); // external form
   const windowOpen = isRegistrationWindowOpen(tournament); // in-app
+  const deadlinePassed = isRegistrationDeadlinePassed(tournament);
+  // The participant list is public once registration has closed (deadline
+  // passed); before that only admins can see it.
+  const showParticipants = isAdmin || deadlinePassed;
 
   const detailRows = [
     [t("tournaments.details.type"), tournament.type],
@@ -503,13 +521,13 @@ const TournamentDetail = () => {
                       {r("participantsTitle")}
                     </h2>
                     <span className="td-participants-count">
-                      {registrations.length} {r("participantsCount")}
+                      {registrationCount} {r("participantsCount")}
                     </span>
                   </div>
 
-                  {registrations.length === 0 ? (
+                  {registrationCount === 0 ? (
                     <p className="td-reg-closed">{r("noParticipants")}</p>
-                  ) : (
+                  ) : showParticipants ? (
                     <div className="td-participants">
                       {registrations.map((reg, index) => {
                         const playerName =
@@ -535,6 +553,16 @@ const TournamentDetail = () => {
                           </div>
                         );
                       })}
+                    </div>
+                  ) : (
+                    <div className="td-participants-count-box">
+                      <span className="td-participants-big">
+                        {registrationCount}
+                      </span>
+                      <span className="td-participants-label">
+                        {r("participantsCount")}
+                      </span>
+                      <p className="td-reg-hint">{r("participantsAdminOnly")}</p>
                     </div>
                   )}
                 </div>

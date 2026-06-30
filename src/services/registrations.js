@@ -9,7 +9,9 @@ export const getPlayerDirectory = async () => {
   return data || [];
 };
 
-// All registrations (pairs) for a single tournament.
+// Registration rows for a tournament. Row-level security limits this to the
+// admin (all rows) or the current user's own entry — non-admins won't get the
+// full list of names.
 export const getTournamentRegistrations = async (tournamentId) => {
   const { data, error } = await supabase
     .from("registrations")
@@ -19,6 +21,25 @@ export const getTournamentRegistrations = async (tournamentId) => {
 
   if (error) throw error;
   return data;
+};
+
+// Public count of registered pairs (no names exposed). Everyone can read this.
+export const getRegistrationCount = async (tournamentId) => {
+  const { data, error } = await supabase.rpc("get_registration_count", {
+    p_tournament_id: tournamentId,
+  });
+  if (error) throw error;
+  return data || 0;
+};
+
+// UUIDs of players already in a pair — used to exclude them from the partner
+// picker. Returns IDs only, no names.
+export const getTakenPlayerIds = async (tournamentId) => {
+  const { data, error } = await supabase.rpc("get_taken_player_ids", {
+    p_tournament_id: tournamentId,
+  });
+  if (error) throw error;
+  return (data || []).map((row) => row.player_id);
 };
 
 // Register the current (logged-in) user with a chosen partner.
