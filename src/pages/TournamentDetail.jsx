@@ -120,13 +120,17 @@ const TournamentDetail = () => {
   // Register solo — partner is chosen later, while registration stays open.
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (!category) {
+      setRegError(t("tournamentsPage.registration.categoryRequired"));
+      return;
+    }
     setSubmitting(true);
     setRegError("");
     try {
       await registerForTournament({
         tournamentId: tournament.id,
         partnerId: null,
-        category: category || null,
+        category,
       });
       setCategory("");
       await loadRegistrations(tournament.id);
@@ -195,6 +199,18 @@ const TournamentDetail = () => {
   // The participant list is public once registration has closed (deadline
   // passed); before that only admins can see it.
   const showParticipants = isAdmin || deadlinePassed;
+
+  // Once the deadline passes, solo registrations (no partner) are disqualified:
+  // they drop off the participant list, and the affected player is shown a
+  // message instead of their registration card.
+  const participantList = deadlinePassed
+    ? registrations.filter((reg) => reg.partner_id)
+    : registrations;
+  const participantCount = deadlinePassed
+    ? participantList.length
+    : registrationCount;
+  const wasDisqualified =
+    deadlinePassed && !!myRegistration && !myRegistration.partner_id;
 
   const detailRows = [
     [t("tournaments.details.type"), tournament.type],
@@ -397,6 +413,12 @@ const TournamentDetail = () => {
                           </Link>
                         </div>
                       </div>
+                    ) : wasDisqualified ? (
+                      <div className="td-reg-disqualified">
+                        <p className="td-reg-disqualified-title">
+                          {r("disqualifiedNoPartner")}
+                        </p>
+                      </div>
                     ) : myRegistration ? (
                       <div className="td-reg-done">
                         <p className="td-reg-done-title">
@@ -417,7 +439,9 @@ const TournamentDetail = () => {
                                 value={partnerId}
                                 onChange={(e) => setPartnerId(e.target.value)}
                               >
-                                <option value="">{r("noPartnerChosen")}</option>
+                                <option value="">
+                                  {r("choosePartnerPlaceholder")}
+                                </option>
                                 {currentPartnerOption && (
                                   <option value={currentPartnerOption.id}>
                                     {currentPartnerOption.full_name}
@@ -497,9 +521,12 @@ const TournamentDetail = () => {
                           <span>{r("category")}</span>
                           <select
                             value={category}
+                            required
                             onChange={(e) => setCategory(e.target.value)}
                           >
-                            <option value="">{r("categoryPlaceholder")}</option>
+                            <option value="" disabled>
+                              {r("categoryPlaceholder")}
+                            </option>
                             <option value="Men's pairs">{r("categoryMen")}</option>
                             <option value="Women's pairs">
                               {r("categoryWomen")}
@@ -515,7 +542,7 @@ const TournamentDetail = () => {
                         <button
                           type="submit"
                           className="td-btn td-btn-primary td-reg-submit"
-                          disabled={submitting}
+                          disabled={submitting || !category}
                         >
                           {submitting ? r("submitting") : r("submit")}
                         </button>
@@ -531,26 +558,28 @@ const TournamentDetail = () => {
                     </h2>
                     {showParticipants && (
                       <span className="td-participants-count">
-                        {registrationCount} {r("participantsCount")}
+                        {participantCount} {r("participantsCount")}
                       </span>
                     )}
                   </div>
 
                   {showParticipants ? (
-                    registrationCount === 0 ? (
+                    participantCount === 0 ? (
                       <p className="td-reg-closed">{r("noParticipants")}</p>
                     ) : (
                       <div className="td-participants">
-                        {registrations.map((reg, index) => {
+                        {participantList.map((reg, index) => {
                           const playerName =
                             reg.player_name ||
                             nameById.get(reg.player_id) ||
                             "Player";
+                          // Before the deadline an admin may see pairs whose
+                          // partner isn't chosen yet — show a blank space there.
                           const partnerName = reg.partner_id
                             ? reg.partner_name ||
                               nameById.get(reg.partner_id) ||
                               "Player"
-                            : r("noPartnerChosen");
+                            : "";
                           return (
                             <div className="td-pair" key={reg.id}>
                               <span className="td-pair-num">{index + 1}</span>

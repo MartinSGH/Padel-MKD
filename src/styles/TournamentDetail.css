@@ -521,6 +521,22 @@
   font-size: 1rem;
 }
 
+.td-reg-disqualified {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.12);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.td-reg-disqualified-title {
+  margin: 0;
+  color: #ff9b9b;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
 .td-reg-form-solo {
   display: block;
 }

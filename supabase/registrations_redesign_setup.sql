@@ -17,6 +17,7 @@ stable
 as $$
   select id, full_name, sex, avatar_url
   from public.profiles
+  where coalesce(role, '') <> 'admin'
   order by full_name nulls last;
 $$;
 
