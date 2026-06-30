@@ -4,6 +4,7 @@ import {
   getTournamentRegistrations,
   getPlayerDirectory,
 } from "../services/registrations";
+import { updateTournament } from "../services/tournaments";
 import { buildBracket, roundName } from "../lib/draw";
 import { formatDateRange } from "../lib/tournamentUtils";
 
@@ -20,6 +21,9 @@ const AdminTournamentDraw = ({ tournaments }) => {
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState("all");
   const [bracket, setBracket] = useState(null);
+  const [published, setPublished] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishMsg, setPublishMsg] = useState("");
 
   const selectedTournament =
     tournaments.find((tn) => tn.id === selectedId) || null;
@@ -28,6 +32,8 @@ const AdminTournamentDraw = ({ tournaments }) => {
     setSelectedId(id);
     setBracket(null);
     setCategory("all");
+    setPublishMsg("");
+    setPublished(!!tournaments.find((tn) => tn.id === id)?.draw);
     if (!id) {
       setRegistrations([]);
       return;
@@ -73,6 +79,53 @@ const AdminTournamentDraw = ({ tournaments }) => {
 
   const handleGenerate = () => {
     setBracket(buildBracket(pairs));
+  };
+
+  // Serialize the bracket down to plain labels for storage / public display.
+  const serializeBracket = (b) => ({
+    generatedAt: new Date().toISOString(),
+    size: b.size,
+    byes: b.byes,
+    count: b.count,
+    category: category !== "all" ? category : null,
+    rounds: b.rounds.map((round) =>
+      round.map((m) => ({
+        a: m.a ? m.a.label : null,
+        b: m.b ? m.b.label : null,
+      }))
+    ),
+  });
+
+  const handlePublish = async () => {
+    if (!bracket || !selectedId) return;
+    setPublishing(true);
+    setPublishMsg("");
+    try {
+      await updateTournament(selectedId, { draw: serializeBracket(bracket) });
+      setPublished(true);
+      setPublishMsg(
+        "Draw published — it's now visible to everyone on the tournament page."
+      );
+    } catch (err) {
+      setPublishMsg(err.message || "Failed to publish draw.");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleRemovePublished = async () => {
+    if (!selectedId) return;
+    setPublishing(true);
+    setPublishMsg("");
+    try {
+      await updateTournament(selectedId, { draw: null });
+      setPublished(false);
+      setPublishMsg("Published draw removed.");
+    } catch (err) {
+      setPublishMsg(err.message || "Failed to remove draw.");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   const handlePrint = () => {
@@ -198,6 +251,11 @@ const AdminTournamentDraw = ({ tournaments }) => {
                 {pairs.length} pairs
                 {category !== "all" ? ` · ${category}` : ""}
               </span>
+              {published && (
+                <span className="admin-tournament-status admin-tournament-status-active">
+                  Published
+                </span>
+              )}
               {pairs.length >= 2 && (
                 <button
                   type="button"
@@ -216,7 +274,35 @@ const AdminTournamentDraw = ({ tournaments }) => {
                   Export PDF
                 </button>
               )}
+              {bracket && (
+                <button
+                  type="button"
+                  className="admin-btn approve"
+                  onClick={handlePublish}
+                  disabled={publishing}
+                >
+                  {publishing
+                    ? "Publishing…"
+                    : published
+                      ? "Re-publish draw"
+                      : "Publish draw"}
+                </button>
+              )}
+              {published && (
+                <button
+                  type="button"
+                  className="admin-btn decline"
+                  onClick={handleRemovePublished}
+                  disabled={publishing}
+                >
+                  Remove published
+                </button>
+              )}
             </div>
+
+            {publishMsg && (
+              <p className="admin-draw-publish-msg">{publishMsg}</p>
+            )}
 
             {loading ? (
               <p className="admin-empty-state">Loading registrations…</p>

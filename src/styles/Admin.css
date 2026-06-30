@@ -590,6 +590,12 @@
   white-space: nowrap;
 }
 
+/* In the narrow club cards, stack Edit / Delete vertically */
+.admin-club-item .admin-tournament-actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+
 /* ---- Tournaments management ---- */
 .admin-tournaments-card {
   margin-top: 24px;
@@ -718,6 +724,16 @@
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 20px;
+}
+
+.admin-draw-publish-msg {
+  margin: -8px 0 18px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: #7bf2c5;
+  font-size: 0.9rem;
 }
 
 .admin-bracket {

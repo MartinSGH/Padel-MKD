@@ -93,11 +93,6 @@ export default function Register() {
       return;
     }
 
-    if (!form.clubId) {
-      setError("Please choose your club.");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -287,18 +282,15 @@ export default function Register() {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-white/80">
-                    Club
+                    Club (optional)
                   </label>
                   <select
                     name="clubId"
                     value={form.clubId}
                     onChange={handleChange}
-                    required
                     className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-[#d4a63d] focus:bg-white/12 [&>option]:text-[#081738]"
                   >
-                    <option value="" disabled>
-                      Select your club…
-                    </option>
+                    <option value="">No club / Independent</option>
                     {clubs.map((club) => (
                       <option key={club.id} value={club.id}>
                         {club.name}

@@ -46,6 +46,18 @@ export const addClub = async (club) => {
   return data;
 };
 
+export const updateClub = async (id, fields) => {
+  const { data, error } = await supabase
+    .from("clubs")
+    .update(fields)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
 export const deleteClub = async (id) => {
   const { error } = await supabase.from("clubs").delete().eq("id", id);
   if (error) throw error;

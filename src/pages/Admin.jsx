@@ -8,6 +8,7 @@ import {
 import {
   getAllClubs,
   addClub,
+  updateClub,
   deleteClub,
   uploadClubLogo,
 } from "../services/clubs";
@@ -75,6 +76,7 @@ export default function Admin() {
   const [clubSubmitting, setClubSubmitting] = useState(false);
   const [clubError, setClubError] = useState("");
   const [clubActionId, setClubActionId] = useState(null);
+  const [editingClubId, setEditingClubId] = useState(null);
 
   // Tournaments management state
   const [tournaments, setTournaments] = useState([]);
@@ -133,12 +135,32 @@ export default function Admin() {
 
   const resetClubForm = () => {
     setClubForm(emptyClubForm);
+    setEditingClubId(null);
     setClubLogoFile(null);
     setClubLogoPreview("");
     setClubError("");
   };
 
-  const handleAddClub = async (e) => {
+  const startEditClub = (club) => {
+    setEditingClubId(club.id);
+    setClubForm({
+      name: club.name || "",
+      address: club.address || "",
+      hours: club.hours || "",
+      phone: club.phone || "",
+      email: club.email || "",
+      logo_url: club.logo_url || "",
+    });
+    setClubLogoFile(null);
+    setClubLogoPreview("");
+    setClubError("");
+    setShowAddClub(true);
+    document
+      .querySelector(".admin-clubs-card")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSubmitClub = async (e) => {
     e.preventDefault();
 
     if (!clubForm.name.trim()) {
@@ -155,24 +177,28 @@ export default function Admin() {
         logoUrl = await uploadClubLogo(clubLogoFile);
       }
 
-      const nextOrder =
-        clubs.reduce((max, c) => Math.max(max, c.display_order || 0), 0) + 1;
-
-      await addClub({
+      const payload = {
         name: clubForm.name.trim(),
         address: clubForm.address.trim() || null,
         hours: clubForm.hours.trim() || null,
         phone: clubForm.phone.trim() || null,
         email: clubForm.email.trim() || null,
         logo_url: logoUrl || null,
-        display_order: nextOrder,
-      });
+      };
+
+      if (editingClubId) {
+        await updateClub(editingClubId, payload);
+      } else {
+        const nextOrder =
+          clubs.reduce((max, c) => Math.max(max, c.display_order || 0), 0) + 1;
+        await addClub({ ...payload, display_order: nextOrder });
+      }
 
       resetClubForm();
       setShowAddClub(false);
       await loadData();
     } catch (err) {
-      setClubError(err.message || "Failed to add club.");
+      setClubError(err.message || "Failed to save club.");
     } finally {
       setClubSubmitting(false);
     }
@@ -667,8 +693,13 @@ export default function Admin() {
                 type="button"
                 className="admin-btn approve admin-add-club-btn"
                 onClick={() => {
-                  setShowAddClub((prev) => !prev);
-                  setClubError("");
+                  if (showAddClub) {
+                    setShowAddClub(false);
+                    resetClubForm();
+                  } else {
+                    resetClubForm();
+                    setShowAddClub(true);
+                  }
                 }}
               >
                 {showAddClub ? "Close" : "+ Add Club"}
@@ -677,7 +708,12 @@ export default function Admin() {
           </div>
 
           {showAddClub && (
-            <form className="admin-club-form" onSubmit={handleAddClub}>
+            <form className="admin-club-form" onSubmit={handleSubmitClub}>
+              {editingClubId && (
+                <p className="admin-edit-note">
+                  Editing “{clubForm.name || "club"}”
+                </p>
+              )}
               <div className="admin-club-form-grid">
                 <label className="admin-field">
                   <span>Name *</span>
@@ -754,7 +790,11 @@ export default function Admin() {
                   className="admin-btn approve"
                   disabled={clubSubmitting}
                 >
-                  {clubSubmitting ? "Saving…" : "Save Club"}
+                  {clubSubmitting
+                    ? "Saving…"
+                    : editingClubId
+                      ? "Update Club"
+                      : "Save Club"}
                 </button>
                 <button
                   type="button"
@@ -795,14 +835,23 @@ export default function Admin() {
                       <p className="admin-club-email">{club.email}</p>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    className="admin-btn decline admin-club-delete"
-                    disabled={clubActionId === club.id}
-                    onClick={() => handleDeleteClub(club)}
-                  >
-                    {clubActionId === club.id ? "Deleting…" : "Delete"}
-                  </button>
+                  <div className="admin-tournament-actions">
+                    <button
+                      type="button"
+                      className="admin-btn admin-edit-btn"
+                      onClick={() => startEditClub(club)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn decline admin-club-delete"
+                      disabled={clubActionId === club.id}
+                      onClick={() => handleDeleteClub(club)}
+                    >
+                      {clubActionId === club.id ? "Deleting…" : "Delete"}
+                    </button>
+                  </div>
                 </div>
               ))
             )}

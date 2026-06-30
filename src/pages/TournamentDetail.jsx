@@ -234,13 +234,22 @@ const TournamentDetail = () => {
 
   const tabs = ["info"];
   if (useInApp) tabs.push("registered");
+  if (tournament.draw) tabs.push("draw");
   if (tournament.propositions_url) tabs.push("documents");
   const tabLabel = {
     info: t("tournamentsPage.tabsInfo"),
     registered: t("tournamentsPage.tabsRegistered"),
+    draw: t("tournamentsPage.draw.tab"),
     documents: t("tournamentsPage.tabsDocuments"),
   };
   const currentTab = tabs.includes(activeTab) ? activeTab : "info";
+
+  const drawRoundLabel = (matchCount) => {
+    if (matchCount === 1) return t("tournamentsPage.draw.final");
+    if (matchCount === 2) return t("tournamentsPage.draw.semifinals");
+    if (matchCount === 4) return t("tournamentsPage.draw.quarterfinals");
+    return t("tournamentsPage.draw.roundOf", { n: matchCount * 2 });
+  };
 
   return (
     <div className="td-page">
@@ -520,51 +529,85 @@ const TournamentDetail = () => {
                     <h2 className="td-section-title">
                       {r("participantsTitle")}
                     </h2>
-                    <span className="td-participants-count">
-                      {registrationCount} {r("participantsCount")}
-                    </span>
+                    {showParticipants && (
+                      <span className="td-participants-count">
+                        {registrationCount} {r("participantsCount")}
+                      </span>
+                    )}
                   </div>
 
-                  {registrationCount === 0 ? (
-                    <p className="td-reg-closed">{r("noParticipants")}</p>
-                  ) : showParticipants ? (
-                    <div className="td-participants">
-                      {registrations.map((reg, index) => {
-                        const playerName =
-                          reg.player_name ||
-                          nameById.get(reg.player_id) ||
-                          "Player";
-                        const partnerName = reg.partner_id
-                          ? reg.partner_name ||
-                            nameById.get(reg.partner_id) ||
-                            "Player"
-                          : r("noPartnerChosen");
-                        return (
-                          <div className="td-pair" key={reg.id}>
-                            <span className="td-pair-num">{index + 1}</span>
-                            <div className="td-pair-names">
-                              <strong>{playerName}</strong>
-                              <span className="td-pair-amp">&amp;</span>
-                              <strong>{partnerName}</strong>
+                  {showParticipants ? (
+                    registrationCount === 0 ? (
+                      <p className="td-reg-closed">{r("noParticipants")}</p>
+                    ) : (
+                      <div className="td-participants">
+                        {registrations.map((reg, index) => {
+                          const playerName =
+                            reg.player_name ||
+                            nameById.get(reg.player_id) ||
+                            "Player";
+                          const partnerName = reg.partner_id
+                            ? reg.partner_name ||
+                              nameById.get(reg.partner_id) ||
+                              "Player"
+                            : r("noPartnerChosen");
+                          return (
+                            <div className="td-pair" key={reg.id}>
+                              <span className="td-pair-num">{index + 1}</span>
+                              <div className="td-pair-names">
+                                <strong>{playerName}</strong>
+                                <span className="td-pair-amp">&amp;</span>
+                                <strong>{partnerName}</strong>
+                              </div>
+                              {reg.category && (
+                                <span className="td-pair-cat">
+                                  {reg.category}
+                                </span>
+                              )}
                             </div>
-                            {reg.category && (
-                              <span className="td-pair-cat">{reg.category}</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )
                   ) : (
-                    <div className="td-participants-count-box">
-                      <span className="td-participants-big">
-                        {registrationCount}
-                      </span>
-                      <span className="td-participants-label">
-                        {r("participantsCount")}
-                      </span>
-                      <p className="td-reg-hint">{r("participantsAdminOnly")}</p>
+                    <div className="td-participants-message">
+                      <p>{r("participantsThankYou")}</p>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Draw tab */}
+            {currentTab === "draw" && tournament.draw && (
+              <div className="td-tab-content">
+                <div className="td-block">
+                  <h2 className="td-section-title">
+                    {t("tournamentsPage.draw.title")}
+                  </h2>
+                  <div className="td-bracket">
+                    {tournament.draw.rounds.map((round, ri) => (
+                      <div className="td-bracket-col" key={ri}>
+                        <div className="td-bracket-round">
+                          {drawRoundLabel(round.length)}
+                        </div>
+                        {round.map((m, i) => (
+                          <div className="td-bracket-match" key={i}>
+                            <span className="td-bracket-slot">
+                              {ri === 0
+                                ? m.a || t("tournamentsPage.draw.bye")
+                                : m.a || "—"}
+                            </span>
+                            <span className="td-bracket-slot">
+                              {ri === 0
+                                ? m.b || t("tournamentsPage.draw.bye")
+                                : m.b || "—"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

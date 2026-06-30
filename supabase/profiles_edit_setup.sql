@@ -25,7 +25,10 @@ security definer
 set search_path = public
 as $$
 begin
-  if not exists (
+  -- Only block role / total_points changes for a logged-in NON-admin user.
+  -- When auth.uid() is null (Supabase dashboard / service role) the change is
+  -- allowed, so admins can promote a player to admin from the Table Editor.
+  if auth.uid() is not null and not exists (
     select 1 from public.profiles p
     where p.id = auth.uid() and p.role = 'admin'
   ) then
