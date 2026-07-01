@@ -41,6 +41,7 @@
     "details": "View details",
     "register": "Register",
     "registrationClosed": "Registration closed",
+    "inviteBadge": "Invite",
     "registrationDeadline": "Registration deadline",
     "backToList": "Back to all tournaments",
     "aboutTitle": "About the tournament",
@@ -104,8 +105,22 @@
       "partnerHint": "You can add or change your partner anytime until registration closes.",
       "savePartner": "Save partner",
       "savingPartner": "Saving…",
-      "inPairWith": "You're registered as a partner of"
+      "inPairWith": "You're registered as a partner of",
+      "partnerFallback": "your partner",
+      "partnerPending": "(invitation pending)",
+      "invitePendingNote": "Invitation sent to {{name}} — waiting for them to accept.",
+      "inviteAcceptedNote": "{{name}} accepted your invitation. You're all set!",
+      "invitePendingForYou": "{{name}} invited you to be their partner. Do you accept?",
+      "inviteAccept": "Accept",
+      "inviteDecline": "Decline",
+      "inviteResponding": "Saving…"
     }
+  },
+  "notifications": {
+    "inviteTitle": "Tournament invitation",
+    "inviteBody": "{{name}} invited you to be their partner for {{tournament}}.",
+    "declinedTitle": "Invitation declined",
+    "declinedBody": "{{name}} declined your partner invitation for {{tournament}}."
   },
   "tournaments": {
     "category": "Category",

@@ -41,6 +41,7 @@
     "details": "Види детали",
     "register": "Пријави се",
     "registrationClosed": "Пријавувањето е затворено",
+    "inviteBadge": "Покана",
     "registrationDeadline": "Рок за пријава",
     "backToList": "Назад до сите турнири",
     "aboutTitle": "За турнирот",
@@ -104,8 +105,22 @@
       "partnerHint": "Можеш да додадеш или смениш партнер во секое време додека е отворено пријавувањето.",
       "savePartner": "Зачувај партнер",
       "savingPartner": "Се зачувува…",
-      "inPairWith": "Пријавен си како партнер на"
+      "inPairWith": "Пријавен си како партнер на",
+      "partnerFallback": "твојот партнер",
+      "partnerPending": "(поканата чека одговор)",
+      "invitePendingNote": "Поканата е испратена до {{name}} — се чека тој да ја прифати.",
+      "inviteAcceptedNote": "{{name}} ја прифати твојата покана. Спремни сте!",
+      "invitePendingForYou": "{{name}} те покани да му бидеш партнер. Прифаќаш?",
+      "inviteAccept": "Прифати",
+      "inviteDecline": "Одбиј",
+      "inviteResponding": "Се зачувува…"
     }
+  },
+  "notifications": {
+    "inviteTitle": "Покана за турнир",
+    "inviteBody": "{{name}} те покани да му бидеш партнер за {{tournament}}.",
+    "declinedTitle": "Поканата е одбиена",
+    "declinedBody": "{{name}} ја одби твојата покана за партнер за {{tournament}}."
   },
   "tournaments": {
     "category": "Категорија",
