@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
-import { Row, Col } from "antd";
+import { Row, Col, Badge } from "antd";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "../styles/NavBar.css";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 import { signOut } from "../services/auth";
 import { getMyProfile } from "../services/profile";
 
 function Navbar() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
   const navRef = useRef(null);
@@ -263,13 +265,19 @@ function Navbar() {
               {t("navbar.newsMedia")}
             </NavLink>
 
-            <NavLink
-              onClick={handleClick}
-              className={linkClassName}
-              to="/tournaments"
+            <Badge
+              count={user ? unreadCount : 0}
+              size="small"
+              offset={[8, 2]}
             >
-              {t("navbar.competitions")}
-            </NavLink>
+              <NavLink
+                onClick={handleClick}
+                className={linkClassName}
+                to="/tournaments"
+              >
+                {t("navbar.competitions")}
+              </NavLink>
+            </Badge>
 
             {isMobileView && (
               <div className="mobile-language-switcher">

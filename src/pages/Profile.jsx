@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { notification } from "antd";
+import { useTranslation } from "react-i18next";
 import {
   getMyProfile,
   updateMyProfile,
@@ -7,6 +9,7 @@ import {
   updateMyPassword,
 } from "../services/profile";
 import { getAllClubs } from "../services/clubs";
+import { useNotifications } from "../context/NotificationsContext";
 import "../styles/Profile.css";
 
 const emptyForm = {
@@ -22,6 +25,10 @@ const emptyForm = {
 };
 
 export default function Profile() {
+  const { t } = useTranslation();
+  const { unread, markRead } = useNotifications();
+  const shownToastIds = useRef(new Set());
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,6 +62,42 @@ export default function Profile() {
   useEffect(() => {
     loadProfile();
   }, []);
+
+  // Toast the user about any invitations / declines when they open their
+  // profile. Each notification is toasted once; "declined" (informational) ones
+  // are marked read, while pending invites stay flagged until they respond.
+  useEffect(() => {
+    const toShow = unread.filter((n) => !shownToastIds.current.has(n.id));
+    if (toShow.length === 0) return;
+
+    toShow.forEach((n) => {
+      shownToastIds.current.add(n.id);
+      if (n.type === "partner_invite") {
+        notification.info({
+          message: t("notifications.inviteTitle"),
+          description: t("notifications.inviteBody", {
+            name: n.actor_name || "A player",
+            tournament: n.tournament_name || "",
+          }),
+          placement: "topRight",
+        });
+      } else if (n.type === "invite_declined") {
+        notification.warning({
+          message: t("notifications.declinedTitle"),
+          description: t("notifications.declinedBody", {
+            name: n.actor_name || "A player",
+            tournament: n.tournament_name || "",
+          }),
+          placement: "topRight",
+        });
+      }
+    });
+
+    const declinedIds = toShow
+      .filter((n) => n.type === "invite_declined")
+      .map((n) => n.id);
+    if (declinedIds.length) markRead(declinedIds);
+  }, [unread, markRead, t]);
 
   const startEdit = () => {
     setForm({

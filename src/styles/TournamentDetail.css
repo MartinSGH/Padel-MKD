@@ -537,6 +537,58 @@
   line-height: 1.5;
 }
 
+.td-reg-invite {
+  border: 1px solid rgba(123, 242, 197, 0.35);
+  background: rgba(123, 242, 197, 0.08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.td-reg-invite-title {
+  margin: 0 0 0.75rem;
+  color: #eaf6ff;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.td-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 0.5rem;
+}
+
+.td-reg-pending-note {
+  margin: 0.5rem 0 0;
+  color: #ffd479;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.9rem;
+}
+
+.td-reg-accepted-note {
+  margin: 0.5rem 0 0;
+  color: #7bf2c5;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.9rem;
+}
+
+.td-reg-pending-tag {
+  color: #ffd479;
+  font-weight: 600;
+}
+
+.td-tab-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  vertical-align: middle;
+}
+
 .td-reg-form-solo {
   display: block;
 }

@@ -11,10 +11,12 @@ import {
   getTakenPlayerIds,
   registerForTournament,
   updateRegistrationPartner,
+  respondToPartnerInvite,
   withdrawRegistration,
 } from "../services/registrations";
 import { getMyProfile } from "../services/profile";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 import {
   formatDateRange,
   formatSingleDate,
@@ -28,6 +30,7 @@ const TournamentDetail = () => {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { refresh: refreshNotifications } = useNotifications();
   const lang = i18n.language?.startsWith("mk") ? "mk" : "en";
 
   const [tournament, setTournament] = useState(null);
@@ -47,6 +50,7 @@ const TournamentDetail = () => {
   const [regError, setRegError] = useState("");
   const [withdrawingId, setWithdrawingId] = useState(null);
   const [savingPartner, setSavingPartner] = useState(false);
+  const [respondingInvite, setRespondingInvite] = useState(false);
 
   // In-app registration is used when the tournament has no external form URL
   // and no custom detail page.
@@ -103,8 +107,16 @@ const TournamentDetail = () => {
   const myRegistration = user
     ? registrations.find((reg) => reg.player_id === user.id)
     : null;
-  const amPartnerIn = user
-    ? registrations.find((reg) => reg.partner_id === user.id)
+  // A pending invitation waiting on the current user, vs. a confirmed pairing.
+  const myPendingInvite = user
+    ? registrations.find(
+        (reg) => reg.partner_id === user.id && reg.partner_status === "pending"
+      )
+    : null;
+  const myAcceptedPartner = user
+    ? registrations.find(
+        (reg) => reg.partner_id === user.id && reg.partner_status === "accepted"
+      )
     : null;
 
   const partnerOptions = useMemo(
@@ -155,6 +167,22 @@ const TournamentDetail = () => {
     }
   };
 
+  // Invited player accepts / declines the pairing.
+  const handleRespondInvite = async (accept) => {
+    if (!myPendingInvite) return;
+    setRespondingInvite(true);
+    setRegError("");
+    try {
+      await respondToPartnerInvite(myPendingInvite.id, accept);
+      await loadRegistrations(tournament.id);
+      await refreshNotifications();
+    } catch (err) {
+      setRegError(err.message || "Failed to respond to the invitation.");
+    } finally {
+      setRespondingInvite(false);
+    }
+  };
+
   const handleWithdraw = async (registrationId) => {
     if (!window.confirm(t("tournamentsPage.registration.withdrawConfirm"))) return;
     setWithdrawingId(registrationId);
@@ -200,17 +228,21 @@ const TournamentDetail = () => {
   // passed); before that only admins can see it.
   const showParticipants = isAdmin || deadlinePassed;
 
-  // Once the deadline passes, solo registrations (no partner) are disqualified:
-  // they drop off the participant list, and the affected player is shown a
-  // message instead of their registration card.
+  // A pair only counts once the invited partner has accepted.
+  const isConfirmedPair = (reg) =>
+    !!reg.partner_id && reg.partner_status === "accepted";
+  // Once the deadline passes, registrations without a confirmed partner (solo,
+  // or a pending invite that was never accepted) are disqualified: they drop
+  // off the participant list, and the affected player sees a message instead of
+  // their registration card.
   const participantList = deadlinePassed
-    ? registrations.filter((reg) => reg.partner_id)
+    ? registrations.filter(isConfirmedPair)
     : registrations;
   const participantCount = deadlinePassed
     ? participantList.length
     : registrationCount;
   const wasDisqualified =
-    deadlinePassed && !!myRegistration && !myRegistration.partner_id;
+    deadlinePassed && !!myRegistration && !isConfirmedPair(myRegistration);
 
   const detailRows = [
     [t("tournaments.details.type"), tournament.type],
@@ -358,6 +390,9 @@ const TournamentDetail = () => {
                   onClick={() => setActiveTab(tab)}
                 >
                   {tabLabel[tab]}
+                  {tab === "registered" && myPendingInvite && windowOpen && (
+                    <span className="td-tab-badge" aria-hidden="true" />
+                  )}
                 </button>
               ))}
             </div>
@@ -465,6 +500,38 @@ const TournamentDetail = () => {
                                 : r("savePartner")}
                             </button>
                             <p className="td-reg-hint">{r("partnerHint")}</p>
+                            {myRegistration.partner_id &&
+                              myRegistration.partner_status === "pending" && (
+                                <p className="td-reg-pending-note">
+                                  {t(
+                                    "tournamentsPage.registration.invitePendingNote",
+                                    {
+                                      name:
+                                        myRegistration.partner_name ||
+                                        nameById.get(
+                                          myRegistration.partner_id
+                                        ) ||
+                                        r("partnerFallback"),
+                                    }
+                                  )}
+                                </p>
+                              )}
+                            {myRegistration.partner_id &&
+                              myRegistration.partner_status === "accepted" && (
+                                <p className="td-reg-accepted-note">
+                                  {t(
+                                    "tournamentsPage.registration.inviteAcceptedNote",
+                                    {
+                                      name:
+                                        myRegistration.partner_name ||
+                                        nameById.get(
+                                          myRegistration.partner_id
+                                        ) ||
+                                        r("partnerFallback"),
+                                    }
+                                  )}
+                                </p>
+                              )}
                           </div>
                         ) : (
                           <p className="td-reg-done-partner">
@@ -475,6 +542,13 @@ const TournamentDetail = () => {
                                   nameById.get(myRegistration.partner_id)
                                 : r("noPartnerChosen")}
                             </strong>
+                            {myRegistration.partner_id &&
+                              myRegistration.partner_status === "pending" && (
+                                <span className="td-reg-pending-tag">
+                                  {" "}
+                                  {r("partnerPending")}
+                                </span>
+                              )}
                           </p>
                         )}
 
@@ -495,7 +569,48 @@ const TournamentDetail = () => {
                           </button>
                         )}
                       </div>
-                    ) : amPartnerIn ? (
+                    ) : myPendingInvite && windowOpen ? (
+                      <div className="td-reg-invite">
+                        <p className="td-reg-invite-title">
+                          {t(
+                            "tournamentsPage.registration.invitePendingForYou",
+                            {
+                              name:
+                                myPendingInvite.player_name ||
+                                nameById.get(myPendingInvite.player_id) ||
+                                r("partnerFallback"),
+                            }
+                          )}
+                        </p>
+                        {myPendingInvite.category && (
+                          <p className="td-reg-done-partner">
+                            {r("category")}:{" "}
+                            <strong>{myPendingInvite.category}</strong>
+                          </p>
+                        )}
+                        {regError && <p className="td-reg-error">{regError}</p>}
+                        <div className="td-invite-actions">
+                          <button
+                            type="button"
+                            className="td-btn td-btn-primary"
+                            disabled={respondingInvite}
+                            onClick={() => handleRespondInvite(true)}
+                          >
+                            {respondingInvite
+                              ? r("inviteResponding")
+                              : r("inviteAccept")}
+                          </button>
+                          <button
+                            type="button"
+                            className="td-btn td-btn-outline"
+                            disabled={respondingInvite}
+                            onClick={() => handleRespondInvite(false)}
+                          >
+                            {r("inviteDecline")}
+                          </button>
+                        </div>
+                      </div>
+                    ) : myAcceptedPartner ? (
                       <div className="td-reg-done">
                         <p className="td-reg-done-title">
                           ✓ {r("registeredTitle")}
@@ -503,8 +618,8 @@ const TournamentDetail = () => {
                         <p className="td-reg-done-partner">
                           {r("inPairWith")}{" "}
                           <strong>
-                            {amPartnerIn.player_name ||
-                              nameById.get(amPartnerIn.player_id)}
+                            {myAcceptedPartner.player_name ||
+                              nameById.get(myAcceptedPartner.player_id)}
                           </strong>
                         </p>
                       </div>

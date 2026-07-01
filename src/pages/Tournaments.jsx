@@ -4,6 +4,7 @@ import { Row, Col } from "antd";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getAllTournaments } from "../services/tournaments";
+import { useNotifications } from "../context/NotificationsContext";
 import {
   formatDateRange,
   getTournamentTiming,
@@ -15,6 +16,7 @@ import {
 
 const TournamentsPage = () => {
   const { t, i18n } = useTranslation();
+  const { pendingInviteTournamentIds } = useNotifications();
   const lang = i18n.language?.startsWith("mk") ? "mk" : "en";
 
   const [tournaments, setTournaments] = useState([]);
@@ -201,7 +203,14 @@ const TournamentsPage = () => {
                       </div>
 
                       <div className="tp-item-main">
-                        <h3 className="tp-item-name">{tn.name}</h3>
+                        <h3 className="tp-item-name">
+                          {tn.name}
+                          {pendingInviteTournamentIds.has(tn.id) && (
+                            <span className="tp-invite-badge">
+                              {t("tournamentsPage.inviteBadge")}
+                            </span>
+                          )}
+                        </h3>
                         <p className="tp-item-meta">
                           {[tn.type, tn.category].filter(Boolean).join(" · ")}
                         </p>

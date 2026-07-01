@@ -6,11 +6,14 @@ import routes from "./routes";
 import "./index.css";
 import "./i18n";
 import { AuthProvider } from "./context/AuthContext";
+import { NotificationsProvider } from "./context/NotificationsContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={routes} />
+      <NotificationsProvider>
+        <RouterProvider router={routes} />
+      </NotificationsProvider>
     </AuthProvider>
   </StrictMode>
 );

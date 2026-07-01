@@ -73,13 +73,23 @@ export const registerForTournament = async ({
   return data;
 };
 
-// Add / change / remove the partner on an existing registration. Passing a
-// falsy partnerId removes the partner. The DB trigger keeps partner_name in sync.
+// Invite / change / remove the partner on an existing registration. Passing a
+// falsy partnerId removes the partner. Goes through the set_partner RPC so the
+// invited player gets a notification and the pairing starts as "pending".
 export const updateRegistrationPartner = async (registrationId, partnerId) => {
-  const { error } = await supabase
-    .from("registrations")
-    .update({ partner_id: partnerId || null })
-    .eq("id", registrationId);
+  const { error } = await supabase.rpc("set_partner", {
+    p_registration_id: registrationId,
+    p_partner_id: partnerId || null,
+  });
+  if (error) throw error;
+};
+
+// The invited player accepts (true) or declines (false) a partner invitation.
+export const respondToPartnerInvite = async (registrationId, accept) => {
+  const { error } = await supabase.rpc("respond_to_partner_invite", {
+    p_registration_id: registrationId,
+    p_accept: accept,
+  });
   if (error) throw error;
 };
 
