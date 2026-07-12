@@ -37,6 +37,7 @@ const emptyTournamentForm = {
   code: "",
   type: "",
   category: "",
+  categories: [],
   location: "",
   start_date: "",
   end_date: "",
@@ -53,6 +54,14 @@ const emptyTournamentForm = {
   image_url: "",
   propositions_url: "",
 };
+
+// Registration categories a tournament can offer. Stored as canonical English
+// strings on the registration rows; the public UI translates them for display.
+const REGISTRATION_CATEGORIES = [
+  { value: "Men's pairs", label: "Men's pairs" },
+  { value: "Women's pairs", label: "Women's pairs" },
+  { value: "Mixed pairs", label: "Mixed pairs" },
+];
 
 function getStatusClass(status) {
   if (status === "approved") return "status-badge approved";
@@ -228,6 +237,20 @@ export default function Admin() {
     setTournamentForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  // Toggle a registration category on/off in the tournament form.
+  const handleCategoryToggle = (value) => (e) => {
+    const checked = e.target.checked;
+    setTournamentForm((prev) => {
+      const current = prev.categories || [];
+      return {
+        ...prev,
+        categories: checked
+          ? [...current, value]
+          : current.filter((c) => c !== value),
+      };
+    });
+  };
+
   const resetTournamentForm = () => {
     setTournamentForm(emptyTournamentForm);
     setEditingTournamentId(null);
@@ -243,6 +266,7 @@ export default function Admin() {
       code: tournament.code || "",
       type: tournament.type || "",
       category: tournament.category || "",
+      categories: tournament.categories || [],
       location: tournament.location || "",
       start_date: tournament.start_date || "",
       end_date: tournament.end_date || "",
@@ -310,6 +334,9 @@ export default function Admin() {
         code: clean(tournamentForm.code),
         type: clean(tournamentForm.type),
         category: clean(tournamentForm.category),
+        categories: tournamentForm.categories?.length
+          ? tournamentForm.categories
+          : null,
         location: clean(tournamentForm.location),
         start_date: tournamentForm.start_date || null,
         end_date: tournamentForm.end_date || null,
@@ -930,6 +957,28 @@ export default function Admin() {
                     placeholder="Open / Juniors / Women / Veterans"
                   />
                 </label>
+                <div className="admin-field">
+                  <span>Registration categories</span>
+                  <div className="admin-checkbox-group">
+                    {REGISTRATION_CATEGORIES.map((cat) => (
+                      <label className="admin-checkbox" key={cat.value}>
+                        <input
+                          type="checkbox"
+                          checked={
+                            tournamentForm.categories?.includes(cat.value) ||
+                            false
+                          }
+                          onChange={handleCategoryToggle(cat.value)}
+                        />
+                        <span>{cat.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <small className="admin-field-hint">
+                    Which pair categories players can register for. Leave all
+                    unchecked to offer all three.
+                  </small>
+                </div>
                 <label className="admin-field">
                   <span>Location</span>
                   <input

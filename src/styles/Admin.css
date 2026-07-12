@@ -473,6 +473,39 @@
   cursor: not-allowed;
 }
 
+.admin-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 4px 0;
+}
+
+.admin-checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.admin-checkbox span {
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #fff;
+}
+
+.admin-checkbox input {
+  width: auto;
+  accent-color: #d4a63d;
+  cursor: pointer;
+}
+
+.admin-field-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
 .admin-club-logo-row {
   display: flex;
   align-items: flex-end;

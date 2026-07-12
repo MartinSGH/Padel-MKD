@@ -32,14 +32,15 @@ export const getRegistrationCount = async (tournamentId) => {
   return data || 0;
 };
 
-// UUIDs of players already in a pair — used to exclude them from the partner
-// picker. Returns IDs only, no names.
+// Players already in a pair, per category — used to exclude them from the
+// partner picker. Returns { player_id, category } rows only, no names, so a
+// player taken in one category can still be picked in another.
 export const getTakenPlayerIds = async (tournamentId) => {
   const { data, error } = await supabase.rpc("get_taken_player_ids", {
     p_tournament_id: tournamentId,
   });
   if (error) throw error;
-  return (data || []).map((row) => row.player_id);
+  return data || [];
 };
 
 // Register the current (logged-in) user with a chosen partner.

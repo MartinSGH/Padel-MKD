@@ -1,5 +1,6 @@
 import "../styles/TournamentDetail.css";
 import { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { Row, Col } from "antd";
 import { useTranslation } from "react-i18next";
@@ -26,6 +27,253 @@ import {
   isRegistrationDeadlinePassed,
 } from "../lib/tournamentUtils";
 
+// Canonical category values (also stored on the registration rows). Used as the
+// fallback when a tournament hasn't been given an explicit category list.
+const CANON_CATEGORIES = ["Men's pairs", "Women's pairs", "Mixed pairs"];
+const CATEGORY_LABEL_KEYS = {
+  "Men's pairs": "categoryMen",
+  "Women's pairs": "categoryWomen",
+  "Mixed pairs": "categoryMixed",
+};
+
+// One of the current user's own registrations (a category they entered). Manages
+// its own partner draft so several categories can be shown at once.
+function OwnRegistrationCard({
+  reg,
+  windowOpen,
+  deadlinePassed,
+  directory,
+  takenSet,
+  nameById,
+  userId,
+  catLabel,
+  onChanged,
+  t,
+}) {
+  const r = (key) => t(`tournamentsPage.registration.${key}`);
+  const [partnerId, setPartnerId] = useState(reg.partner_id || "");
+  const [saving, setSaving] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setPartnerId(reg.partner_id || "");
+  }, [reg.partner_id]);
+
+  const confirmed = !!reg.partner_id && reg.partner_status === "accepted";
+  const disqualified = deadlinePassed && !confirmed;
+
+  // Exclude players already taken in THIS category, but keep the current partner
+  // selectable so they don't vanish from the dropdown.
+  const partnerOptions = directory.filter(
+    (p) => p.id !== userId && (!takenSet.has(p.id) || p.id === reg.partner_id)
+  );
+  const partnerUnchanged = partnerId === (reg.partner_id || "");
+
+  const savePartner = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      await updateRegistrationPartner(reg.id, partnerId || null);
+      await onChanged();
+    } catch (err) {
+      setError(err.message || "Failed to update partner.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const withdraw = async () => {
+    if (!window.confirm(r("withdrawConfirm"))) return;
+    setWithdrawing(true);
+    try {
+      await withdrawRegistration(reg.id);
+      await onChanged();
+    } catch (err) {
+      alert(err.message || "Failed to withdraw.");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  if (disqualified) {
+    return (
+      <div className="td-reg-disqualified">
+        {reg.category && (
+          <p className="td-reg-done-partner">
+            {r("category")}: <strong>{catLabel(reg.category)}</strong>
+          </p>
+        )}
+        <p className="td-reg-disqualified-title">
+          {r("disqualifiedNoPartner")}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="td-reg-done">
+      <p className="td-reg-done-title">✓ {r("registeredTitle")}</p>
+      {reg.category && (
+        <p className="td-reg-done-partner">
+          {r("category")}: <strong>{catLabel(reg.category)}</strong>
+        </p>
+      )}
+
+      {windowOpen ? (
+        <div className="td-partner-manage">
+          <label className="td-reg-field">
+            <span>{r("yourPartner")}</span>
+            <select
+              value={partnerId}
+              onChange={(e) => setPartnerId(e.target.value)}
+            >
+              <option value="">{r("choosePartnerPlaceholder")}</option>
+              {partnerOptions.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.full_name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="td-btn td-btn-primary td-reg-submit"
+            disabled={saving || partnerUnchanged}
+            onClick={savePartner}
+          >
+            {saving ? r("savingPartner") : r("savePartner")}
+          </button>
+          <p className="td-reg-hint">{r("partnerHint")}</p>
+          {reg.partner_id && reg.partner_status === "pending" && (
+            <p className="td-reg-pending-note">
+              {t("tournamentsPage.registration.invitePendingNote", {
+                name:
+                  reg.partner_name ||
+                  nameById.get(reg.partner_id) ||
+                  r("partnerFallback"),
+              })}
+            </p>
+          )}
+          {reg.partner_id && reg.partner_status === "accepted" && (
+            <p className="td-reg-accepted-note">
+              {t("tournamentsPage.registration.inviteAcceptedNote", {
+                name:
+                  reg.partner_name ||
+                  nameById.get(reg.partner_id) ||
+                  r("partnerFallback"),
+              })}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="td-reg-done-partner">
+          {r("partner")}:{" "}
+          <strong>
+            {reg.partner_id
+              ? reg.partner_name || nameById.get(reg.partner_id)
+              : r("noPartnerChosen")}
+          </strong>
+          {reg.partner_id && reg.partner_status === "pending" && (
+            <span className="td-reg-pending-tag"> {r("partnerPending")}</span>
+          )}
+        </p>
+      )}
+
+      {error && <p className="td-reg-error">{error}</p>}
+
+      {windowOpen && (
+        <button
+          type="button"
+          className="td-reg-withdraw"
+          disabled={withdrawing}
+          onClick={withdraw}
+        >
+          {withdrawing ? r("withdrawing") : r("withdraw")}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// A pending partner invitation waiting on the current user, for one category.
+function InviteCard({ invite, nameById, catLabel, onResponded, t }) {
+  const r = (key) => t(`tournamentsPage.registration.${key}`);
+  const [responding, setResponding] = useState(false);
+  const [error, setError] = useState("");
+
+  const respond = async (accept) => {
+    setResponding(true);
+    setError("");
+    try {
+      await respondToPartnerInvite(invite.id, accept);
+      await onResponded();
+    } catch (err) {
+      setError(err.message || "Failed to respond to the invitation.");
+    } finally {
+      setResponding(false);
+    }
+  };
+
+  return (
+    <div className="td-reg-invite">
+      <p className="td-reg-invite-title">
+        {t("tournamentsPage.registration.invitePendingForYou", {
+          name:
+            invite.player_name ||
+            nameById.get(invite.player_id) ||
+            r("partnerFallback"),
+        })}
+      </p>
+      {invite.category && (
+        <p className="td-reg-done-partner">
+          {r("category")}: <strong>{catLabel(invite.category)}</strong>
+        </p>
+      )}
+      {error && <p className="td-reg-error">{error}</p>}
+      <div className="td-invite-actions">
+        <button
+          type="button"
+          className="td-btn td-btn-primary"
+          disabled={responding}
+          onClick={() => respond(true)}
+        >
+          {responding ? r("inviteResponding") : r("inviteAccept")}
+        </button>
+        <button
+          type="button"
+          className="td-btn td-btn-outline"
+          disabled={responding}
+          onClick={() => respond(false)}
+        >
+          {r("inviteDecline")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+OwnRegistrationCard.propTypes = {
+  reg: PropTypes.object.isRequired,
+  windowOpen: PropTypes.bool,
+  deadlinePassed: PropTypes.bool,
+  directory: PropTypes.array.isRequired,
+  takenSet: PropTypes.instanceOf(Set).isRequired,
+  nameById: PropTypes.instanceOf(Map).isRequired,
+  userId: PropTypes.string,
+  catLabel: PropTypes.func.isRequired,
+  onChanged: PropTypes.func.isRequired,
+  t: PropTypes.func.isRequired,
+};
+
+InviteCard.propTypes = {
+  invite: PropTypes.object.isRequired,
+  nameById: PropTypes.instanceOf(Map).isRequired,
+  catLabel: PropTypes.func.isRequired,
+  onResponded: PropTypes.func.isRequired,
+  t: PropTypes.func.isRequired,
+};
+
 const TournamentDetail = () => {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
@@ -42,15 +290,12 @@ const TournamentDetail = () => {
   const [directory, setDirectory] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [registrationCount, setRegistrationCount] = useState(0);
-  const [takenIds, setTakenIds] = useState(new Set());
+  // Players already in a pair, per category: { player_id, category } rows.
+  const [takenRows, setTakenRows] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [partnerId, setPartnerId] = useState("");
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [regError, setRegError] = useState("");
-  const [withdrawingId, setWithdrawingId] = useState(null);
-  const [savingPartner, setSavingPartner] = useState(false);
-  const [respondingInvite, setRespondingInvite] = useState(false);
 
   // In-app registration is used when the tournament has no external form URL
   // and no custom detail page.
@@ -77,7 +322,7 @@ const TournamentDetail = () => {
     setDirectory(dir);
     setRegistrations(regs);
     setRegistrationCount(cnt);
-    setTakenIds(new Set(taken));
+    setTakenRows(taken);
   };
 
   useEffect(() => {
@@ -104,30 +349,34 @@ const TournamentDetail = () => {
     return map;
   }, [directory]);
 
-  const myRegistration = user
-    ? registrations.find((reg) => reg.player_id === user.id)
-    : null;
-  // A pending invitation waiting on the current user, vs. a confirmed pairing.
-  const myPendingInvite = user
-    ? registrations.find(
+  // The current user's own registrations (one per category they entered).
+  const myRegistrations = user
+    ? registrations.filter((reg) => reg.player_id === user.id)
+    : [];
+  // Pending invitations waiting on the current user (one per category).
+  const myPendingInvites = user
+    ? registrations.filter(
         (reg) => reg.partner_id === user.id && reg.partner_status === "pending"
       )
-    : null;
-  const myAcceptedPartner = user
-    ? registrations.find(
+    : [];
+  // Categories where the current user is already the accepted partner.
+  const myAcceptedPartnerRegs = user
+    ? registrations.filter(
         (reg) => reg.partner_id === user.id && reg.partner_status === "accepted"
       )
-    : null;
+    : [];
 
-  const partnerOptions = useMemo(
-    () => directory.filter((p) => p.id !== user?.id && !takenIds.has(p.id)),
-    [directory, user?.id, takenIds]
-  );
-
-  // Keep the partner picker in sync with the saved partner once registered.
-  useEffect(() => {
-    setPartnerId(myRegistration?.partner_id || "");
-  }, [myRegistration?.id, myRegistration?.partner_id]);
+  // player ids already taken, grouped by category, so each partner picker only
+  // excludes people taken in its own category.
+  const takenByCategory = useMemo(() => {
+    const map = new Map();
+    takenRows.forEach(({ player_id, category: cat }) => {
+      const key = cat || "";
+      if (!map.has(key)) map.set(key, new Set());
+      map.get(key).add(player_id);
+    });
+    return map;
+  }, [takenRows]);
 
   // Register solo — partner is chosen later, while registration stays open.
   const handleRegister = async (e) => {
@@ -153,47 +402,13 @@ const TournamentDetail = () => {
     }
   };
 
-  const handleSavePartner = async () => {
-    if (!myRegistration) return;
-    setSavingPartner(true);
-    setRegError("");
-    try {
-      await updateRegistrationPartner(myRegistration.id, partnerId || null);
-      await loadRegistrations(tournament.id);
-    } catch (err) {
-      setRegError(err.message || "Failed to update partner.");
-    } finally {
-      setSavingPartner(false);
-    }
-  };
-
-  // Invited player accepts / declines the pairing.
-  const handleRespondInvite = async (accept) => {
-    if (!myPendingInvite) return;
-    setRespondingInvite(true);
-    setRegError("");
-    try {
-      await respondToPartnerInvite(myPendingInvite.id, accept);
-      await loadRegistrations(tournament.id);
-      await refreshNotifications();
-    } catch (err) {
-      setRegError(err.message || "Failed to respond to the invitation.");
-    } finally {
-      setRespondingInvite(false);
-    }
-  };
-
-  const handleWithdraw = async (registrationId) => {
-    if (!window.confirm(t("tournamentsPage.registration.withdrawConfirm"))) return;
-    setWithdrawingId(registrationId);
-    try {
-      await withdrawRegistration(registrationId);
-      await loadRegistrations(tournament.id);
-    } catch (err) {
-      alert(err.message || "Failed to withdraw.");
-    } finally {
-      setWithdrawingId(null);
-    }
+  // Partner management, invite responses and withdrawals now live in the
+  // per-registration cards (OwnRegistrationCard / InviteCard) so several
+  // categories can be managed independently. They call these to refresh.
+  const reloadRegistrations = () => loadRegistrations(tournament.id);
+  const reloadAfterInvite = async () => {
+    await loadRegistrations(tournament.id);
+    await refreshNotifications();
   };
 
   if (loading) {
@@ -241,8 +456,6 @@ const TournamentDetail = () => {
   const participantCount = deadlinePassed
     ? participantList.length
     : registrationCount;
-  const wasDisqualified =
-    deadlinePassed && !!myRegistration && !isConfirmedPair(myRegistration);
 
   const detailRows = [
     [t("tournaments.details.type"), tournament.type],
@@ -266,19 +479,24 @@ const TournamentDetail = () => {
   ].filter(([, value]) => value);
 
   const r = (key) => t(`tournamentsPage.registration.${key}`);
+  const catLabel = (value) =>
+    CATEGORY_LABEL_KEYS[value] ? r(CATEGORY_LABEL_KEYS[value]) : value;
 
-  // The current partner shown in the manage dropdown (they're excluded from
-  // partnerOptions because they're already "taken", so add them back here).
-  const currentPartnerOption = myRegistration?.partner_id
-    ? {
-        id: myRegistration.partner_id,
-        full_name:
-          myRegistration.partner_name ||
-          nameById.get(myRegistration.partner_id) ||
-          "Player",
-      }
-    : null;
-  const partnerUnchanged = partnerId === (myRegistration?.partner_id || "");
+  // Categories players may register for (admin-chosen, or all three by default).
+  const availableCategories =
+    tournament.categories && tournament.categories.length
+      ? tournament.categories
+      : CANON_CATEGORIES;
+  // Categories the current user is already involved in (as player or partner) —
+  // those are removed from the "register in another category" picker.
+  const myUsedCategories = new Set(
+    registrations
+      .filter((reg) => reg.player_id === user?.id || reg.partner_id === user?.id)
+      .map((reg) => reg.category)
+  );
+  const remainingCategories = availableCategories.filter(
+    (c) => !myUsedCategories.has(c)
+  );
 
   const tabs = ["info"];
   if (useInApp) tabs.push("registered");
@@ -390,9 +608,11 @@ const TournamentDetail = () => {
                   onClick={() => setActiveTab(tab)}
                 >
                   {tabLabel[tab]}
-                  {tab === "registered" && myPendingInvite && windowOpen && (
-                    <span className="td-tab-badge" aria-hidden="true" />
-                  )}
+                  {tab === "registered" &&
+                    myPendingInvites.length > 0 &&
+                    windowOpen && (
+                      <span className="td-tab-badge" aria-hidden="true" />
+                    )}
                 </button>
               ))}
             </div>
@@ -448,220 +668,115 @@ const TournamentDetail = () => {
                           </Link>
                         </div>
                       </div>
-                    ) : wasDisqualified ? (
-                      <div className="td-reg-disqualified">
-                        <p className="td-reg-disqualified-title">
-                          {r("disqualifiedNoPartner")}
-                        </p>
-                      </div>
-                    ) : myRegistration ? (
-                      <div className="td-reg-done">
-                        <p className="td-reg-done-title">
-                          ✓ {r("registeredTitle")}
-                        </p>
-                        {myRegistration.category && (
-                          <p className="td-reg-done-partner">
-                            {r("category")}:{" "}
-                            <strong>{myRegistration.category}</strong>
-                          </p>
-                        )}
+                    ) : (
+                      <>
+                        {/* One card per category the user has entered. */}
+                        {myRegistrations.map((reg) => (
+                          <OwnRegistrationCard
+                            key={reg.id}
+                            reg={reg}
+                            windowOpen={windowOpen}
+                            deadlinePassed={deadlinePassed}
+                            directory={directory}
+                            takenSet={
+                              takenByCategory.get(reg.category || "") ||
+                              new Set()
+                            }
+                            nameById={nameById}
+                            userId={user.id}
+                            catLabel={catLabel}
+                            onChanged={reloadRegistrations}
+                            t={t}
+                          />
+                        ))}
 
-                        {windowOpen ? (
-                          <div className="td-partner-manage">
+                        {/* Pending invitations waiting on the user. */}
+                        {windowOpen &&
+                          myPendingInvites.map((invite) => (
+                            <InviteCard
+                              key={invite.id}
+                              invite={invite}
+                              nameById={nameById}
+                              catLabel={catLabel}
+                              onResponded={reloadAfterInvite}
+                              t={t}
+                            />
+                          ))}
+
+                        {/* Categories where the user is the accepted partner. */}
+                        {myAcceptedPartnerRegs.map((reg) => (
+                          <div className="td-reg-done" key={reg.id}>
+                            <p className="td-reg-done-title">
+                              ✓ {r("registeredTitle")}
+                            </p>
+                            {reg.category && (
+                              <p className="td-reg-done-partner">
+                                {r("category")}:{" "}
+                                <strong>{catLabel(reg.category)}</strong>
+                              </p>
+                            )}
+                            <p className="td-reg-done-partner">
+                              {r("inPairWith")}{" "}
+                              <strong>
+                                {reg.player_name ||
+                                  nameById.get(reg.player_id)}
+                              </strong>
+                            </p>
+                          </div>
+                        ))}
+
+                        {/* Register in another (not-yet-entered) category. */}
+                        {windowOpen && remainingCategories.length > 0 && (
+                          <form
+                            className="td-reg-form td-reg-form-solo"
+                            onSubmit={handleRegister}
+                          >
+                            {myRegistrations.length > 0 && (
+                              <p className="td-reg-add-title">
+                                {r("addCategoryTitle")}
+                              </p>
+                            )}
+                            <p className="td-reg-spot-info">{r("spotInfo")}</p>
+
                             <label className="td-reg-field">
-                              <span>{r("yourPartner")}</span>
+                              <span>{r("category")}</span>
                               <select
-                                value={partnerId}
-                                onChange={(e) => setPartnerId(e.target.value)}
+                                value={category}
+                                required
+                                onChange={(e) => setCategory(e.target.value)}
                               >
-                                <option value="">
-                                  {r("choosePartnerPlaceholder")}
+                                <option value="" disabled>
+                                  {r("categoryPlaceholder")}
                                 </option>
-                                {currentPartnerOption && (
-                                  <option value={currentPartnerOption.id}>
-                                    {currentPartnerOption.full_name}
-                                  </option>
-                                )}
-                                {partnerOptions.map((p) => (
-                                  <option key={p.id} value={p.id}>
-                                    {p.full_name}
+                                {remainingCategories.map((c) => (
+                                  <option key={c} value={c}>
+                                    {catLabel(c)}
                                   </option>
                                 ))}
                               </select>
                             </label>
+
+                            {regError && (
+                              <p className="td-reg-error">{regError}</p>
+                            )}
+
                             <button
-                              type="button"
+                              type="submit"
                               className="td-btn td-btn-primary td-reg-submit"
-                              disabled={savingPartner || partnerUnchanged}
-                              onClick={handleSavePartner}
+                              disabled={submitting || !category}
                             >
-                              {savingPartner
-                                ? r("savingPartner")
-                                : r("savePartner")}
+                              {submitting ? r("submitting") : r("submit")}
                             </button>
-                            <p className="td-reg-hint">{r("partnerHint")}</p>
-                            {myRegistration.partner_id &&
-                              myRegistration.partner_status === "pending" && (
-                                <p className="td-reg-pending-note">
-                                  {t(
-                                    "tournamentsPage.registration.invitePendingNote",
-                                    {
-                                      name:
-                                        myRegistration.partner_name ||
-                                        nameById.get(
-                                          myRegistration.partner_id
-                                        ) ||
-                                        r("partnerFallback"),
-                                    }
-                                  )}
-                                </p>
-                              )}
-                            {myRegistration.partner_id &&
-                              myRegistration.partner_status === "accepted" && (
-                                <p className="td-reg-accepted-note">
-                                  {t(
-                                    "tournamentsPage.registration.inviteAcceptedNote",
-                                    {
-                                      name:
-                                        myRegistration.partner_name ||
-                                        nameById.get(
-                                          myRegistration.partner_id
-                                        ) ||
-                                        r("partnerFallback"),
-                                    }
-                                  )}
-                                </p>
-                              )}
-                          </div>
-                        ) : (
-                          <p className="td-reg-done-partner">
-                            {r("partner")}:{" "}
-                            <strong>
-                              {myRegistration.partner_id
-                                ? myRegistration.partner_name ||
-                                  nameById.get(myRegistration.partner_id)
-                                : r("noPartnerChosen")}
-                            </strong>
-                            {myRegistration.partner_id &&
-                              myRegistration.partner_status === "pending" && (
-                                <span className="td-reg-pending-tag">
-                                  {" "}
-                                  {r("partnerPending")}
-                                </span>
-                              )}
-                          </p>
+                          </form>
                         )}
 
-                        {regError && (
-                          <p className="td-reg-error">{regError}</p>
-                        )}
-
-                        {windowOpen && (
-                          <button
-                            type="button"
-                            className="td-reg-withdraw"
-                            disabled={withdrawingId === myRegistration.id}
-                            onClick={() => handleWithdraw(myRegistration.id)}
-                          >
-                            {withdrawingId === myRegistration.id
-                              ? r("withdrawing")
-                              : r("withdraw")}
-                          </button>
-                        )}
-                      </div>
-                    ) : myPendingInvite && windowOpen ? (
-                      <div className="td-reg-invite">
-                        <p className="td-reg-invite-title">
-                          {t(
-                            "tournamentsPage.registration.invitePendingForYou",
-                            {
-                              name:
-                                myPendingInvite.player_name ||
-                                nameById.get(myPendingInvite.player_id) ||
-                                r("partnerFallback"),
-                            }
+                        {/* Registration closed and the user isn't involved. */}
+                        {!windowOpen &&
+                          myRegistrations.length === 0 &&
+                          myAcceptedPartnerRegs.length === 0 && (
+                            <p className="td-reg-closed">{r("closed")}</p>
                           )}
-                        </p>
-                        {myPendingInvite.category && (
-                          <p className="td-reg-done-partner">
-                            {r("category")}:{" "}
-                            <strong>{myPendingInvite.category}</strong>
-                          </p>
-                        )}
-                        {regError && <p className="td-reg-error">{regError}</p>}
-                        <div className="td-invite-actions">
-                          <button
-                            type="button"
-                            className="td-btn td-btn-primary"
-                            disabled={respondingInvite}
-                            onClick={() => handleRespondInvite(true)}
-                          >
-                            {respondingInvite
-                              ? r("inviteResponding")
-                              : r("inviteAccept")}
-                          </button>
-                          <button
-                            type="button"
-                            className="td-btn td-btn-outline"
-                            disabled={respondingInvite}
-                            onClick={() => handleRespondInvite(false)}
-                          >
-                            {r("inviteDecline")}
-                          </button>
-                        </div>
-                      </div>
-                    ) : myAcceptedPartner ? (
-                      <div className="td-reg-done">
-                        <p className="td-reg-done-title">
-                          ✓ {r("registeredTitle")}
-                        </p>
-                        <p className="td-reg-done-partner">
-                          {r("inPairWith")}{" "}
-                          <strong>
-                            {myAcceptedPartner.player_name ||
-                              nameById.get(myAcceptedPartner.player_id)}
-                          </strong>
-                        </p>
-                      </div>
-                    ) : !windowOpen ? (
-                      <p className="td-reg-closed">{r("closed")}</p>
-                    ) : (
-                      <form
-                        className="td-reg-form td-reg-form-solo"
-                        onSubmit={handleRegister}
-                      >
-                        <p className="td-reg-spot-info">{r("spotInfo")}</p>
-
-                        <label className="td-reg-field">
-                          <span>{r("category")}</span>
-                          <select
-                            value={category}
-                            required
-                            onChange={(e) => setCategory(e.target.value)}
-                          >
-                            <option value="" disabled>
-                              {r("categoryPlaceholder")}
-                            </option>
-                            <option value="Men's pairs">{r("categoryMen")}</option>
-                            <option value="Women's pairs">
-                              {r("categoryWomen")}
-                            </option>
-                            <option value="Mixed pairs">
-                              {r("categoryMixed")}
-                            </option>
-                          </select>
-                        </label>
-
-                        {regError && <p className="td-reg-error">{regError}</p>}
-
-                        <button
-                          type="submit"
-                          className="td-btn td-btn-primary td-reg-submit"
-                          disabled={submitting || !category}
-                        >
-                          {submitting ? r("submitting") : r("submit")}
-                        </button>
-                      </form>
+                      </>
                     )}
                   </div>
                 </div>
@@ -705,7 +820,7 @@ const TournamentDetail = () => {
                               </div>
                               {reg.category && (
                                 <span className="td-pair-cat">
-                                  {reg.category}
+                                  {catLabel(reg.category)}
                                 </span>
                               )}
                             </div>
