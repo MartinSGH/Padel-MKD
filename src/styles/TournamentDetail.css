@@ -713,6 +713,40 @@
   gap: 10px;
 }
 
+/* One list per category (Men's / Women's / Mixed) for readability. */
+.td-participants-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.td-participants-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.9rem;
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.td-participants-group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.14);
+  color: #ffd700;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
 /* Info message shown to non-admins before the deadline (no count) */
 .td-participants-message {
   padding: 1.75rem 1.5rem;
@@ -770,17 +804,6 @@
 
 .td-pair-amp {
   color: #8e9bc0;
-}
-
-.td-pair-cat {
-  flex-shrink: 0;
-  color: #ffd700;
-  font-family: Montserrat, sans-serif;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(255, 215, 0, 0.1);
 }
 
 /* ---- Responsive ---- */

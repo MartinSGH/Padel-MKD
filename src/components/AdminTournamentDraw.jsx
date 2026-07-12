@@ -72,10 +72,24 @@ const AdminTournamentDraw = ({ tournaments }) => {
       ? registrations
       : registrations.filter((reg) => reg.category === category);
 
-  const pairs = filteredRegs.map((reg) => ({
-    id: reg.id,
-    label: pairLabel(reg),
-  }));
+  // Build the competing pairs, making sure NO player appears twice in the draw.
+  // A player can legitimately have several rows (e.g. a separate solo entry left
+  // over from before they paired up), so we keep the most complete row for each
+  // player: accepted pairs first, then pending pairs, then solo entries — and
+  // skip any row whose player or partner was already placed.
+  const rank = (reg) =>
+    reg.partner_status === "accepted" ? 0 : reg.partner_id ? 1 : 2;
+  const usedPlayers = new Set();
+  const pairs = [...filteredRegs]
+    .sort((a, b) => rank(a) - rank(b))
+    .filter((reg) => {
+      if (usedPlayers.has(reg.player_id)) return false;
+      if (reg.partner_id && usedPlayers.has(reg.partner_id)) return false;
+      usedPlayers.add(reg.player_id);
+      if (reg.partner_id) usedPlayers.add(reg.partner_id);
+      return true;
+    })
+    .map((reg) => ({ id: reg.id, label: pairLabel(reg) }));
 
   const handleGenerate = () => {
     setBracket(buildBracket(pairs));

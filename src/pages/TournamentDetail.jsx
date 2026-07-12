@@ -15,9 +15,9 @@ import {
   respondToPartnerInvite,
   withdrawRegistration,
 } from "../services/registrations";
-import { getMyProfile } from "../services/profile";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
+import { getMyProfile } from "../services/profile";
 import {
   formatDateRange,
   formatSingleDate,
@@ -332,7 +332,7 @@ const TournamentDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useInApp, tournament?.id, user]);
 
-  // Determine whether the current user is an admin (only admins see the list).
+  // Only admins can see the full participant list.
   useEffect(() => {
     if (!user) {
       setIsAdmin(false);
@@ -439,9 +439,8 @@ const TournamentDetail = () => {
   const regOpen = isRegistrationOpen(tournament); // external form
   const windowOpen = isRegistrationWindowOpen(tournament); // in-app
   const deadlinePassed = isRegistrationDeadlinePassed(tournament);
-  // The participant list is public once registration has closed (deadline
-  // passed); before that only admins can see it.
-  const showParticipants = isAdmin || deadlinePassed;
+  // The full list of pairings is visible to admins only.
+  const showParticipants = isAdmin;
 
   // A pair only counts once the invited partner has accepted.
   const isConfirmedPair = (reg) =>
@@ -456,6 +455,24 @@ const TournamentDetail = () => {
   const participantCount = deadlinePassed
     ? participantList.length
     : registrationCount;
+
+  // Group the participant list by category (Men's / Women's / Mixed, in that
+  // order, then any others, then uncategorised) so the admin gets one clean
+  // list per category.
+  const participantGroups = (() => {
+    const byCat = new Map();
+    participantList.forEach((reg) => {
+      const key = reg.category || "";
+      if (!byCat.has(key)) byCat.set(key, []);
+      byCat.get(key).push(reg);
+    });
+    const orderedKeys = [
+      ...CANON_CATEGORIES.filter((c) => byCat.has(c)),
+      ...[...byCat.keys()].filter((c) => c && !CANON_CATEGORIES.includes(c)),
+      ...(byCat.has("") ? [""] : []),
+    ];
+    return orderedKeys.map((key) => ({ key, regs: byCat.get(key) }));
+  })();
 
   const detailRows = [
     [t("tournaments.details.type"), tournament.type],
@@ -797,35 +814,47 @@ const TournamentDetail = () => {
                     participantCount === 0 ? (
                       <p className="td-reg-closed">{r("noParticipants")}</p>
                     ) : (
-                      <div className="td-participants">
-                        {participantList.map((reg, index) => {
-                          const playerName =
-                            reg.player_name ||
-                            nameById.get(reg.player_id) ||
-                            "Player";
-                          // Before the deadline an admin may see pairs whose
-                          // partner isn't chosen yet — show a blank space there.
-                          const partnerName = reg.partner_id
-                            ? reg.partner_name ||
-                              nameById.get(reg.partner_id) ||
-                              "Player"
-                            : "";
-                          return (
-                            <div className="td-pair" key={reg.id}>
-                              <span className="td-pair-num">{index + 1}</span>
-                              <div className="td-pair-names">
-                                <strong>{playerName}</strong>
-                                <span className="td-pair-amp">&amp;</span>
-                                <strong>{partnerName}</strong>
-                              </div>
-                              {reg.category && (
-                                <span className="td-pair-cat">
-                                  {catLabel(reg.category)}
-                                </span>
-                              )}
+                      <div className="td-participants-groups">
+                        {participantGroups.map((group) => (
+                          <div
+                            className="td-participants-group"
+                            key={group.key || "other"}
+                          >
+                            <h3 className="td-participants-group-title">
+                              {group.key ? catLabel(group.key) : r("categoryOther")}
+                              <span className="td-participants-group-count">
+                                {group.regs.length}
+                              </span>
+                            </h3>
+                            <div className="td-participants">
+                              {group.regs.map((reg, index) => {
+                                const playerName =
+                                  reg.player_name ||
+                                  nameById.get(reg.player_id) ||
+                                  "Player";
+                                // Before the deadline an admin may see pairs
+                                // whose partner isn't chosen yet — blank there.
+                                const partnerName = reg.partner_id
+                                  ? reg.partner_name ||
+                                    nameById.get(reg.partner_id) ||
+                                    "Player"
+                                  : "";
+                                return (
+                                  <div className="td-pair" key={reg.id}>
+                                    <span className="td-pair-num">
+                                      {index + 1}
+                                    </span>
+                                    <div className="td-pair-names">
+                                      <strong>{playerName}</strong>
+                                      <span className="td-pair-amp">&amp;</span>
+                                      <strong>{partnerName}</strong>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                       </div>
                     )
                   ) : (
