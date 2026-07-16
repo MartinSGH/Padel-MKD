@@ -3,10 +3,14 @@ import PropTypes from "prop-types";
 import {
   getTournamentRegistrations,
   getPlayerDirectory,
+  adminSetPair,
 } from "../services/registrations";
 import { updateTournament } from "../services/tournaments";
 import { buildBracket, roundName } from "../lib/draw";
-import { formatDateRange } from "../lib/tournamentUtils";
+import {
+  formatDateRange,
+  isRegistrationDeadlinePassed,
+} from "../lib/tournamentUtils";
 
 const escapeHtml = (str) =>
   String(str)
@@ -24,15 +28,30 @@ const AdminTournamentDraw = ({ tournaments }) => {
   const [published, setPublished] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState("");
+  // Admin rescue (manual pairing of disqualified players after the deadline).
+  const [rescuePartner, setRescuePartner] = useState({});
+  const [rescueBusyId, setRescueBusyId] = useState(null);
+  const [rescueMsg, setRescueMsg] = useState("");
 
   const selectedTournament =
     tournaments.find((tn) => tn.id === selectedId) || null;
+
+  const loadRegs = async (id) => {
+    const [dir, regs] = await Promise.all([
+      getPlayerDirectory().catch(() => []),
+      getTournamentRegistrations(id).catch(() => []),
+    ]);
+    setDirectory(dir);
+    setRegistrations(regs);
+  };
 
   const handleSelect = async (id) => {
     setSelectedId(id);
     setBracket(null);
     setCategory("all");
     setPublishMsg("");
+    setRescueMsg("");
+    setRescuePartner({});
     setPublished(!!tournaments.find((tn) => tn.id === id)?.draw);
     if (!id) {
       setRegistrations([]);
@@ -40,12 +59,7 @@ const AdminTournamentDraw = ({ tournaments }) => {
     }
     setLoading(true);
     try {
-      const [dir, regs] = await Promise.all([
-        getPlayerDirectory().catch(() => []),
-        getTournamentRegistrations(id).catch(() => []),
-      ]);
-      setDirectory(dir);
-      setRegistrations(regs);
+      await loadRegs(id);
     } finally {
       setLoading(false);
     }
@@ -93,6 +107,44 @@ const AdminTournamentDraw = ({ tournaments }) => {
 
   const handleGenerate = () => {
     setBracket(buildBracket(pairs));
+  };
+
+  // ---- Disqualified players (admin rescue) --------------------------------
+  // After the deadline, any entry that isn't a confirmed pair is disqualified.
+  const deadlinePassed =
+    !!selectedTournament && isRegistrationDeadlinePassed(selectedTournament);
+  const isConfirmed = (reg) =>
+    !!reg.partner_id && reg.partner_status === "accepted";
+  const disqualified = registrations.filter((reg) => !isConfirmed(reg));
+
+  // Players already locked in a confirmed pair (per category) can't be picked
+  // as a rescue partner.
+  const acceptedByCategory = new Map();
+  registrations.forEach((reg) => {
+    if (!isConfirmed(reg)) return;
+    const key = reg.category || "";
+    if (!acceptedByCategory.has(key)) acceptedByCategory.set(key, new Set());
+    acceptedByCategory.get(key).add(reg.player_id);
+    acceptedByCategory.get(key).add(reg.partner_id);
+  });
+  const availablePartners = (reg) => {
+    const taken = acceptedByCategory.get(reg.category || "") || new Set();
+    return directory.filter((p) => p.id !== reg.player_id && !taken.has(p.id));
+  };
+
+  const handleRescue = async (reg, partnerId) => {
+    if (!partnerId) return;
+    setRescueBusyId(reg.id);
+    setRescueMsg("");
+    try {
+      await adminSetPair(reg.id, partnerId);
+      await loadRegs(selectedId);
+      setRescuePartner((m) => ({ ...m, [reg.id]: "" }));
+    } catch (err) {
+      setRescueMsg(err.message || "Failed to add the pair.");
+    } finally {
+      setRescueBusyId(null);
+    }
   };
 
   // Serialize the bracket down to plain labels for storage / public display.
@@ -257,6 +309,108 @@ const AdminTournamentDraw = ({ tournaments }) => {
             </label>
           )}
         </div>
+
+        {selectedId && !loading && deadlinePassed && (
+          <div className="admin-rescue">
+            <div className="admin-rescue-head">
+              <h3>Disqualified players</h3>
+              <p>
+                The deadline has passed. These players are hidden from the public
+                list because they have no confirmed partner. Until the draw is
+                published you can pair them up manually — confirm a pending
+                request, or pick a partner for a solo player.
+              </p>
+            </div>
+
+            {published ? (
+              <p className="admin-empty-state">
+                The draw is published. Remove it first (below) to rescue players,
+                then re-publish.
+              </p>
+            ) : disqualified.length === 0 ? (
+              <p className="admin-empty-state">
+                No disqualified players — everyone has a confirmed partner.
+              </p>
+            ) : (
+              <div className="admin-rescue-list">
+                {disqualified.map((reg) => {
+                  const playerName =
+                    reg.player_name || nameMap.get(reg.player_id) || "Player";
+                  const catTag = reg.category ? ` · ${reg.category}` : "";
+                  const busy = rescueBusyId === reg.id;
+                  // Pending pair: the invited partner never accepted.
+                  if (reg.partner_id) {
+                    const partnerName =
+                      reg.partner_name ||
+                      nameMap.get(reg.partner_id) ||
+                      "Player";
+                    return (
+                      <div className="admin-rescue-row" key={reg.id}>
+                        <div className="admin-rescue-info">
+                          <strong>
+                            {playerName} &amp; {partnerName}
+                          </strong>
+                          <span className="admin-rescue-tag">
+                            partner not accepted{catTag}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="admin-btn approve"
+                          disabled={busy}
+                          onClick={() => handleRescue(reg, reg.partner_id)}
+                        >
+                          {busy ? "Confirming…" : "Confirm pair"}
+                        </button>
+                      </div>
+                    );
+                  }
+                  // Solo: admin assigns a partner.
+                  const options = availablePartners(reg);
+                  const chosen = rescuePartner[reg.id] || "";
+                  return (
+                    <div className="admin-rescue-row" key={reg.id}>
+                      <div className="admin-rescue-info">
+                        <strong>{playerName}</strong>
+                        <span className="admin-rescue-tag">
+                          no partner{catTag}
+                        </span>
+                      </div>
+                      <div className="admin-rescue-actions">
+                        <select
+                          value={chosen}
+                          onChange={(e) =>
+                            setRescuePartner((m) => ({
+                              ...m,
+                              [reg.id]: e.target.value,
+                            }))
+                          }
+                        >
+                          <option value="">Select a partner…</option>
+                          {options.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.full_name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="admin-btn approve"
+                          disabled={busy || !chosen}
+                          onClick={() => handleRescue(reg, chosen)}
+                        >
+                          {busy ? "Adding…" : "Add & confirm"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {rescueMsg && <p className="admin-draw-publish-msg">{rescueMsg}</p>}
+          </div>
+        )}
 
         {selectedId && (
           <>

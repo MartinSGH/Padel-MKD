@@ -27,6 +27,10 @@ import {
   isRegistrationDeadlinePassed,
 } from "../lib/tournamentUtils";
 
+// Federation contact shown to disqualified players so they can ask to be added
+// back before the draw is made.
+const FEDERATION_CONTACT_EMAIL = "padelmkd@gmail.com";
+
 // Canonical category values (also stored on the registration rows). Used as the
 // fallback when a tournament hasn't been given an explicit category list.
 const CANON_CATEGORIES = ["Men's pairs", "Women's pairs", "Mixed pairs"];
@@ -106,6 +110,12 @@ function OwnRegistrationCard({
         )}
         <p className="td-reg-disqualified-title">
           {r("disqualifiedNoPartner")}
+        </p>
+        <p className="td-reg-disqualified-contact">
+          {r("disqualifiedContact")}{" "}
+          <a href={`mailto:${FEDERATION_CONTACT_EMAIL}`}>
+            {FEDERATION_CONTACT_EMAIL}
+          </a>
         </p>
       </div>
     );

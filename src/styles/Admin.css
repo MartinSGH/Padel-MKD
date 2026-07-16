@@ -759,6 +759,81 @@
   margin-bottom: 20px;
 }
 
+/* ---- Admin rescue (disqualified players) ---- */
+.admin-rescue {
+  margin-bottom: 24px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.admin-rescue-head h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #f6c651;
+}
+
+.admin-rescue-head p {
+  margin: 0 0 14px;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.62);
+  max-width: 640px;
+}
+
+.admin-rescue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-rescue-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-rescue-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-rescue-info strong {
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.admin-rescue-tag {
+  font-size: 0.78rem;
+  color: #f6c651;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-rescue-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-rescue-actions select {
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 0.9rem;
+  min-width: 200px;
+}
+
 .admin-draw-publish-msg {
   margin: -8px 0 18px;
   padding: 10px 14px;

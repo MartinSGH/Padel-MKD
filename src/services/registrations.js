@@ -98,3 +98,14 @@ export const withdrawRegistration = async (id) => {
   const { error } = await supabase.from("registrations").delete().eq("id", id);
   if (error) throw error;
 };
+
+// Admin-only rescue: force-confirm a pair after the deadline. Assigns the
+// partner (if solo) and marks the pairing accepted, merging away the partner's
+// own leftover registration. Goes through the admin_set_pair RPC.
+export const adminSetPair = async (registrationId, partnerId) => {
+  const { error } = await supabase.rpc("admin_set_pair", {
+    p_registration_id: registrationId,
+    p_partner_id: partnerId,
+  });
+  if (error) throw error;
+};

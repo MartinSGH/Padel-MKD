@@ -552,6 +552,20 @@
   line-height: 1.5;
 }
 
+.td-reg-disqualified-contact {
+  margin: 0.6rem 0 0;
+  color: #ebebeb;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.td-reg-disqualified-contact a {
+  color: #ffd700;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .td-reg-invite {
   border: 1px solid rgba(123, 242, 197, 0.35);
   background: rgba(123, 242, 197, 0.08);
