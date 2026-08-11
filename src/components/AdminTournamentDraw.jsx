@@ -20,9 +20,14 @@ const escapeHtml = (str) =>
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-// How many first-round matches for n pairs: two-by-two, so an odd count leaves
-// exactly one bye (never a bracket full of empty "/" slots).
-const matchCountFor = (n) => Math.max(1, Math.ceil(n / 2));
+// First-round matches for n pairs in a full power-of-two bracket (round of 32,
+// 16, …). e.g. 19 pairs → bracket of 32 → 16 matches with 13 free slots.
+const nextPow2 = (n) => {
+  let size = 1;
+  while (size < n) size *= 2;
+  return size;
+};
+const matchCountFor = (n) => nextPow2(n) / 2;
 
 const AdminTournamentDraw = ({ tournaments }) => {
   const [selectedId, setSelectedId] = useState("");
@@ -164,14 +169,12 @@ const AdminTournamentDraw = ({ tournaments }) => {
   };
 
   const autoFillManual = () => {
-    const ms = Array.from({ length: matchCountFor(pairs.length) }, () => ({
-      a: null,
-      b: null,
-    }));
-    pairs.forEach((p, i) => {
-      ms[Math.floor(i / 2)][i % 2 === 0 ? "a" : "b"] = p;
-    });
-    setManualMatches(ms);
+    // Seed the manual grid with a proper power-of-two draw (free slots spread
+    // out); the admin can then rearrange by dragging.
+    const b = buildBracket(pairs);
+    setManualMatches(
+      b ? b.rounds[0].map((m) => ({ a: m.a, b: m.b })) : []
+    );
   };
 
   const clearManual = () => {
@@ -988,47 +991,68 @@ const AdminTournamentDraw = ({ tournaments }) => {
                   )}
                 </div>
 
-                <div className="admin-manual-matches">
-                  {manualMatches.map((m, idx) => (
-                    <div className="admin-manual-match" key={idx}>
-                      <span className="admin-manual-match-num">{idx + 1}</span>
-                      {["a", "b"].map((slot) => {
-                        const pair = m[slot];
-                        return (
-                          <div
-                            key={slot}
-                            className={`admin-manual-slot${
-                              pair ? " filled" : ""
-                            }`}
-                            onDragOver={allowDrop}
-                            onDrop={(e) => onSlotDrop(e, idx, slot)}
-                          >
-                            {pair ? (
-                              <div
-                                className="admin-manual-chip"
-                                draggable
-                                onDragStart={(e) =>
-                                  onChipDragStart(e, pair.id)
-                                }
-                              >
-                                <span>{pair.label}</span>
-                                <button
-                                  type="button"
-                                  className="admin-manual-remove"
-                                  onClick={() => removeFromSlots(pair.id)}
-                                  aria-label="Remove"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="admin-manual-empty">/</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
+                <div className="admin-bracket admin-bracket-manual">
+                  {(buildManualBracket()?.rounds || []).map(
+                    (round, roundIdx) => (
+                      <div className="admin-bracket-col" key={roundIdx}>
+                        <div className="admin-bracket-round">
+                          {roundName(round.length)}
+                        </div>
+                        {round.map((m, i) =>
+                          roundIdx === 0 ? (
+                            // Round of 32: editable drop slots.
+                            <div className="admin-bracket-match" key={i}>
+                              {["a", "b"].map((slot) => {
+                                const pair = manualMatches[i][slot];
+                                return (
+                                  <div
+                                    key={slot}
+                                    className={`admin-bracket-slot admin-bracket-slot-drop${
+                                      pair ? " filled" : ""
+                                    }`}
+                                    onDragOver={allowDrop}
+                                    onDrop={(e) => onSlotDrop(e, i, slot)}
+                                  >
+                                    {pair ? (
+                                      <div
+                                        className="admin-manual-chip"
+                                        draggable
+                                        onDragStart={(e) =>
+                                          onChipDragStart(e, pair.id)
+                                        }
+                                      >
+                                        <span>{pair.label}</span>
+                                        <button
+                                          type="button"
+                                          className="admin-manual-remove"
+                                          onClick={() =>
+                                            removeFromSlots(pair.id)
+                                          }
+                                          aria-label="Remove"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span className="admin-manual-empty">
+                                        /
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            // Later rounds: locked placeholders.
+                            <div className="admin-bracket-match" key={i}>
+                              <span className="admin-bracket-slot">—</span>
+                              <span className="admin-bracket-slot">—</span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             ) : !bracket ? (

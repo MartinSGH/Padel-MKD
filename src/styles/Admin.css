@@ -1191,6 +1191,29 @@
   padding-left: 8px;
 }
 
+/* First-round (Round of 32) drop slots inside the bracket layout */
+.admin-bracket-manual .admin-bracket-slot-drop {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 6px;
+}
+
+.admin-bracket-manual .admin-bracket-slot-drop .admin-manual-chip {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.admin-bracket-manual .admin-bracket-slot-drop:not(.filled) {
+  outline: 1px dashed rgba(255, 255, 255, 0.12);
+  outline-offset: -5px;
+}
+
+/* Later, locked rounds read as inactive placeholders */
+.admin-bracket-manual .admin-bracket-slot {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 @media (max-width: 720px) {
   .admin-addpair-side {
     min-width: 100%;

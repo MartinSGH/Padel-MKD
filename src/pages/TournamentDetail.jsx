@@ -4,11 +4,12 @@ import PropTypes from "prop-types";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { Row, Col } from "antd";
 import { useTranslation } from "react-i18next";
-import { getTournamentById } from "../services/tournaments";
+import { getTournamentById, updateTournament } from "../services/tournaments";
 import {
   getPlayerDirectory,
   getTournamentRegistrations,
   getRegistrationCount,
+  getPublishedPairs,
   getTakenPlayerIds,
   registerForTournament,
   updateRegistrationPartner,
@@ -312,6 +313,10 @@ const TournamentDetail = () => {
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [regError, setRegError] = useState("");
+  // Public "list of pairs" publishing (admin toggles it; everyone can then see).
+  const [publishedPairs, setPublishedPairs] = useState([]);
+  const [pairsBusy, setPairsBusy] = useState(false);
+  const [pairsMsg, setPairsMsg] = useState("");
 
   // In-app registration is used when the tournament has no external form URL
   // and no custom detail page.
@@ -358,6 +363,18 @@ const TournamentDetail = () => {
       .then((p) => setIsAdmin(p?.role === "admin"))
       .catch(() => setIsAdmin(false));
   }, [user]);
+
+  // When the list of pairs is published, load it (names only) for non-admins so
+  // they can see it too. Admins already have the full list.
+  useEffect(() => {
+    if (useInApp && tournament?.id && tournament.pairs_published && !isAdmin) {
+      getPublishedPairs(tournament.id)
+        .then(setPublishedPairs)
+        .catch(() => setPublishedPairs([]));
+    } else {
+      setPublishedPairs([]);
+    }
+  }, [useInApp, tournament?.id, tournament?.pairs_published, isAdmin]);
 
   const nameById = useMemo(() => {
     const map = new Map();
@@ -455,8 +472,10 @@ const TournamentDetail = () => {
   const regOpen = isRegistrationOpen(tournament); // external form
   const windowOpen = isRegistrationWindowOpen(tournament); // in-app
   const deadlinePassed = isRegistrationDeadlinePassed(tournament);
-  // The full list of pairings is visible to admins only.
-  const showParticipants = isAdmin;
+  // Admins always see the full list. Everyone else sees it only once the admin
+  // has published it (confirmed pairs only, names + category).
+  const pairsPublished = !!tournament.pairs_published;
+  const showParticipants = isAdmin || pairsPublished;
 
   // A pair only counts once the invited partner has accepted.
   const isConfirmedPair = (reg) =>
@@ -472,12 +491,12 @@ const TournamentDetail = () => {
     ? participantList.length
     : registrationCount;
 
-  // Group the participant list by category (Men's / Women's / Mixed, in that
-  // order, then any others, then uncategorised) so the admin gets one clean
-  // list per category.
-  const participantGroups = (() => {
+  // Group a list of pair-like rows by category (Men's / Women's / Mixed, in that
+  // order, then any others, then uncategorised) so each category gets one clean
+  // list.
+  const groupByCategory = (list) => {
     const byCat = new Map();
-    participantList.forEach((reg) => {
+    list.forEach((reg) => {
       const key = reg.category || "";
       if (!byCat.has(key)) byCat.set(key, []);
       byCat.get(key).push(reg);
@@ -488,7 +507,36 @@ const TournamentDetail = () => {
       ...(byCat.has("") ? [""] : []),
     ];
     return orderedKeys.map((key) => ({ key, regs: byCat.get(key) }));
-  })();
+  };
+
+  const participantGroups = groupByCategory(participantList);
+
+  // Public (published) view: names-only rows normalised to the same shape.
+  const publishedRows = publishedPairs.map((p, i) => ({
+    id: `pub-${i}`,
+    player_name: p.player_name,
+    partner_name: p.partner_name,
+    partner_id: null,
+    category: p.category,
+  }));
+  const publishedGroups = groupByCategory(publishedRows);
+
+  // What the list section actually renders + how many pairs it shows.
+  const listGroups = isAdmin ? participantGroups : publishedGroups;
+  const listCount = isAdmin ? participantCount : publishedPairs.length;
+
+  const handleTogglePairsPublished = async (publish) => {
+    setPairsBusy(true);
+    setPairsMsg("");
+    try {
+      await updateTournament(tournament.id, { pairs_published: publish });
+      setTournament((prev) => ({ ...prev, pairs_published: publish }));
+    } catch (err) {
+      setPairsMsg(err.message || "Failed to update the published list.");
+    } finally {
+      setPairsBusy(false);
+    }
+  };
 
   const detailRows = [
     [t("tournaments.details.type"), tournament.type],
@@ -885,17 +933,47 @@ const TournamentDetail = () => {
                     </h2>
                     {showParticipants && (
                       <span className="td-participants-count">
-                        {participantCount} {r("participantsCount")}
+                        {listCount} {r("participantsCount")}
                       </span>
+                    )}
+                    {isAdmin && (
+                      <div className="td-pairs-publish">
+                        {pairsPublished ? (
+                          <>
+                            <span className="td-pairs-live">
+                              {r("pairsPublishedNote")}
+                            </span>
+                            <button
+                              type="button"
+                              className="td-btn td-btn-outline td-pairs-btn"
+                              disabled={pairsBusy}
+                              onClick={() => handleTogglePairsPublished(false)}
+                            >
+                              {r("pairsHide")}
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            className="td-btn td-btn-primary td-pairs-btn"
+                            disabled={pairsBusy}
+                            onClick={() => handleTogglePairsPublished(true)}
+                          >
+                            {r("pairsPublish")}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 
+                  {pairsMsg && <p className="td-reg-error">{pairsMsg}</p>}
+
                   {showParticipants ? (
-                    participantCount === 0 ? (
+                    listCount === 0 ? (
                       <p className="td-reg-closed">{r("noParticipants")}</p>
                     ) : (
                       <div className="td-participants-groups">
-                        {participantGroups.map((group) => (
+                        {listGroups.map((group) => (
                           <div
                             className="td-participants-group"
                             key={group.key || "other"}
@@ -905,13 +983,15 @@ const TournamentDetail = () => {
                               <span className="td-participants-group-count">
                                 {group.regs.length}
                               </span>
-                              <button
-                                type="button"
-                                className="td-download-btn"
-                                onClick={() => handleDownloadCategory(group)}
-                              >
-                                {r("downloadPdf")}
-                              </button>
+                              {isAdmin && (
+                                <button
+                                  type="button"
+                                  className="td-download-btn"
+                                  onClick={() => handleDownloadCategory(group)}
+                                >
+                                  {r("downloadPdf")}
+                                </button>
+                              )}
                             </h3>
                             <div className="td-participants">
                               {group.regs.map((reg, index) => {
@@ -919,13 +999,15 @@ const TournamentDetail = () => {
                                   reg.player_name ||
                                   nameById.get(reg.player_id) ||
                                   "Player";
-                                // Before the deadline an admin may see pairs
+                                // Use the stored name first (covers guests and
+                                // the published list, which carry names only).
+                                // Before the deadline an admin may see a pair
                                 // whose partner isn't chosen yet — blank there.
-                                const partnerName = reg.partner_id
-                                  ? reg.partner_name ||
-                                    nameById.get(reg.partner_id) ||
-                                    "Player"
-                                  : "";
+                                const partnerName =
+                                  reg.partner_name ||
+                                  (reg.partner_id
+                                    ? nameById.get(reg.partner_id) || "Player"
+                                    : "");
                                 return (
                                   <div className="td-pair" key={reg.id}>
                                     <span className="td-pair-num">

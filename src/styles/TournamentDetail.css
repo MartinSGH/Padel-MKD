@@ -721,6 +721,39 @@
   margin-bottom: 1.5rem;
 }
 
+/* Admin control to publish / hide the list of pairs for everyone. */
+.td-pairs-publish {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.td-pairs-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #4ade80;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.td-pairs-live::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+}
+
+.td-pairs-btn {
+  padding: 0.55rem 1.15rem;
+  font-size: 0.82rem;
+}
+
 .td-participants {
   display: flex;
   flex-direction: column;

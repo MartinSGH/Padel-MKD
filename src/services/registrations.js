@@ -23,6 +23,16 @@ export const getTournamentRegistrations = async (tournamentId) => {
   return data;
 };
 
+// Public list of confirmed pairs (names + category only), returned ONLY when the
+// admin has published the list for this tournament. Empty otherwise.
+export const getPublishedPairs = async (tournamentId) => {
+  const { data, error } = await supabase.rpc("get_published_pairs", {
+    p_tournament_id: tournamentId,
+  });
+  if (error) throw error;
+  return data || [];
+};
+
 // Public count of registered pairs (no names exposed). Everyone can read this.
 export const getRegistrationCount = async (tournamentId) => {
   const { data, error } = await supabase.rpc("get_registration_count", {
