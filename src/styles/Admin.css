@@ -966,3 +966,233 @@
     padding-right: 16px;
   }
 }
+
+/* ---- Segmented mode toggles (draw mode / account vs no-account) ---- */
+.admin-draw-modes,
+.admin-addpair-modes {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-mode-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-mode-btn:hover {
+  color: #fff;
+}
+
+.admin-mode-btn.active {
+  background: rgba(240, 198, 102, 0.16);
+  color: #f0c666;
+}
+
+/* ---- Add a pair form ---- */
+.admin-addpair {
+  border-color: rgba(240, 198, 102, 0.28);
+  background: rgba(240, 198, 102, 0.05);
+}
+
+.admin-addpair .admin-rescue-head h3 {
+  color: #f0c666;
+}
+
+.admin-addpair-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.admin-addpair-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 240px;
+  flex: 1;
+}
+
+.admin-addpair-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-addpair-side-head > span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.admin-addpair-side select,
+.admin-addpair-side input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.admin-addpair-side input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.admin-addpair-side select:focus,
+.admin-addpair-side input:focus {
+  outline: none;
+  border-color: rgba(240, 198, 102, 0.6);
+}
+
+.admin-addpair-list {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-addpair-list-head {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 10px;
+}
+
+/* ---- Manual drag & drop draw ---- */
+.admin-manual-draw {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-manual-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 60px;
+}
+
+.admin-manual-pool-head {
+  width: 100%;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 2px;
+}
+
+.admin-manual-pool-empty {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.88rem;
+}
+
+.admin-manual-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(240, 198, 102, 0.14);
+  border: 1px solid rgba(240, 198, 102, 0.4);
+  color: #fff;
+  font-size: 0.88rem;
+  cursor: grab;
+  user-select: none;
+}
+
+.admin-manual-chip:active {
+  cursor: grabbing;
+}
+
+.admin-manual-remove {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.admin-manual-remove:hover {
+  color: #ff8a8a;
+}
+
+.admin-manual-matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.admin-manual-match {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-manual-match-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.admin-manual-slot {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.admin-manual-slot.filled {
+  border-style: solid;
+  border-color: rgba(240, 198, 102, 0.3);
+}
+
+.admin-manual-slot .admin-manual-chip {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.admin-manual-empty {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 1rem;
+  padding-left: 8px;
+}
+
+@media (max-width: 720px) {
+  .admin-addpair-side {
+    min-width: 100%;
+  }
+}

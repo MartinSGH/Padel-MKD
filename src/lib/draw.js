@@ -10,43 +10,37 @@ export const shuffle = (arr) => {
   return a;
 };
 
-const nextPow2 = (n) => {
-  let size = 1;
-  while (size < n) size *= 2;
-  return size;
-};
-
 // Build a single-elimination bracket from a list of pairs.
 // `pairs` is an array of arbitrary pair objects. Returns:
 //   { size, byes, count, rounds: [ [ {a, b} ... ], ... ] }
-// where round 0 holds the real first-round matches (a/b may be null = BYE),
-// and later rounds are empty slots representing the bracket structure.
+// where round 0 holds the real first-round matches and later rounds are empty
+// slots representing the bracket structure.
+//
+// The pairs are simply matched two-by-two after a shuffle, so the draw stays
+// clean: an even count has NO empty slots, and an odd count leaves exactly one
+// bye (the last pair's second slot is null → shown as "/").
 export const buildBracket = (pairs) => {
   const count = pairs.length;
   if (count < 2) return null;
 
-  const size = nextPow2(count);
-  const byes = size - count;
-
-  // Real pairs first, byes (null) padded at the end, then "first vs last"
-  // pairing so the byes spread out across the bracket.
-  const slots = [...shuffle(pairs)];
-  for (let i = 0; i < byes; i++) slots.push(null);
-
-  const rounds = [];
+  const shuffled = shuffle(pairs);
   const firstRound = [];
-  for (let i = 0; i < size / 2; i++) {
-    firstRound.push({ a: slots[i], b: slots[size - 1 - i] });
+  for (let i = 0; i < shuffled.length; i += 2) {
+    firstRound.push({ a: shuffled[i], b: shuffled[i + 1] || null });
   }
-  rounds.push(firstRound);
 
-  let matches = size / 2;
+  const byes = count % 2; // 0 (even) or 1 (odd)
+  const rounds = [firstRound];
+
+  // Later rounds are placeholders (winners advance): halve the match count,
+  // rounding up so an odd number of winners still terminates at a final.
+  let matches = firstRound.length;
   while (matches > 1) {
-    matches = matches / 2;
+    matches = Math.ceil(matches / 2);
     rounds.push(Array.from({ length: matches }, () => ({ a: null, b: null })));
   }
 
-  return { size, byes, count, rounds };
+  return { size: firstRound.length * 2, byes, count, rounds };
 };
 
 // Human round name based on how many matches the round contains.

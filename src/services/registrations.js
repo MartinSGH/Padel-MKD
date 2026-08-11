@@ -109,3 +109,26 @@ export const adminSetPair = async (registrationId, partnerId) => {
   });
   if (error) throw error;
 };
+
+// Admin-only: add a confirmed pair directly. Each side is either an account
+// player (id set) or a guest with no account (typed name only). Goes through the
+// admin_add_pair RPC.
+export const adminAddPair = async ({
+  tournamentId,
+  category,
+  playerId,
+  playerName,
+  partnerId,
+  partnerName,
+}) => {
+  const { data, error } = await supabase.rpc("admin_add_pair", {
+    p_tournament_id: tournamentId,
+    p_category: category || null,
+    p_player_id: playerId || null,
+    p_player_name: playerName || null,
+    p_partner_id: partnerId || null,
+    p_partner_name: partnerName || null,
+  });
+  if (error) throw error;
+  return data;
+};
