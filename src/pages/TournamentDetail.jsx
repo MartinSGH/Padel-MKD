@@ -40,6 +40,12 @@ const CATEGORY_LABEL_KEYS = {
   "Mixed pairs": "categoryMixed",
 };
 
+const escapeHtml = (str) =>
+  String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
 // One of the current user's own registrations (a category they entered). Manages
 // its own partner draft so several categories can be shown at once.
 function OwnRegistrationCard({
@@ -509,6 +515,70 @@ const TournamentDetail = () => {
   const catLabel = (value) =>
     CATEGORY_LABEL_KEYS[value] ? r(CATEGORY_LABEL_KEYS[value]) : value;
 
+  // Download a printable PDF of one category's registered pairs (admin only).
+  const handleDownloadCategory = (group) => {
+    const title = group.key ? catLabel(group.key) : r("categoryOther");
+    const rows = group.regs
+      .map((reg, i) => {
+        const a =
+          reg.player_name || nameById.get(reg.player_id) || "Player";
+        const hasPartner = reg.partner_id || reg.partner_name;
+        const b = hasPartner
+          ? reg.partner_name || nameById.get(reg.partner_id) || "Player"
+          : "—";
+        return `<tr><td class="num">${i + 1}</td><td>${escapeHtml(
+          a
+        )}</td><td class="amp">&amp;</td><td>${escapeHtml(b)}</td></tr>`;
+      })
+      .join("");
+
+    const dateStr = formatDateRange(
+      tournament.start_date,
+      tournament.end_date,
+      "en"
+    );
+    const meta = [dateStr, tournament.location, title]
+      .filter(Boolean)
+      .map(escapeHtml)
+      .join(" · ");
+
+    const html = `<!doctype html><html><head><meta charset="utf-8" />
+<title>${escapeHtml(tournament.name)} - ${escapeHtml(title)}</title>
+<style>
+  body { font-family: Arial, "Segoe UI", sans-serif; color: #111; padding: 32px; }
+  h1 { font-size: 18px; margin: 0 0 2px; }
+  .sub { color: #b8860b; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; margin: 0 0 18px; }
+  .name { font-size: 16px; font-weight: bold; margin: 0 0 4px; }
+  .meta { color: #555; font-size: 13px; margin: 0 0 22px; }
+  h2 { font-size: 14px; margin: 0 0 8px; border-bottom: 2px solid #111; padding-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 10px 12px; border-bottom: 1px solid #ddd; font-size: 14px; }
+  td.num { width: 42px; color: #999; font-weight: bold; }
+  td.amp { width: 28px; text-align: center; color: #999; }
+  .foot { margin-top: 22px; font-size: 12px; color: #888; }
+  @media print { body { padding: 0; } }
+</style></head>
+<body>
+  <h1>Padel Federation of Macedonia</h1>
+  <p class="sub">Registered pairs · ${escapeHtml(title)}</p>
+  <p class="name">${escapeHtml(tournament.name)}</p>
+  <p class="meta">${meta}</p>
+  <h2>${escapeHtml(title)}</h2>
+  <table>${rows}</table>
+  <p class="foot">${group.regs.length} pair(s)</p>
+</body></html>`;
+
+    const w = window.open("", "_blank", "width=900,height=720");
+    if (!w) {
+      alert("Please allow pop-ups to download the PDF.");
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
+  };
+
   // Categories players may register for (admin-chosen, or all three by default).
   const availableCategories =
     tournament.categories && tournament.categories.length
@@ -835,6 +905,13 @@ const TournamentDetail = () => {
                               <span className="td-participants-group-count">
                                 {group.regs.length}
                               </span>
+                              <button
+                                type="button"
+                                className="td-download-btn"
+                                onClick={() => handleDownloadCategory(group)}
+                              >
+                                {r("downloadPdf")}
+                              </button>
                             </h3>
                             <div className="td-participants">
                               {group.regs.map((reg, index) => {
