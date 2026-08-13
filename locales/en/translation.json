@@ -68,7 +68,8 @@
       "roundOf": "Round of {{n}}"
     },
     "schedule": {
-      "tab": "Schedule"
+      "tab": "Schedule",
+      "empty": "The schedule will appear once the draw has matches to play."
     },
     "live": {
       "live": "LIVE",
@@ -86,7 +87,13 @@
       "winner": "Winner",
       "goldenPoint": "Golden point",
       "goldenPointTag": "Golden point",
-      "superTB": "3rd set super tie-break"
+      "superTB": "3rd set super tie-break",
+      "cards": "Discipline cards",
+      "warning": "Warning (yellow card)",
+      "penaltyPoint": "Penalty point (orange card)",
+      "disqualify": "Disqualification (red card)",
+      "disqualified": "Disqualified",
+      "dqConfirm": "Disqualify this pair? The match ends and the opponent wins."
     },
     "status": {
       "upcoming": "Upcoming",
