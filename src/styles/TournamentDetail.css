@@ -887,9 +887,18 @@
 .td-schedule-table td.cell {
   color: #dfe5f5;
   font-size: 0.9rem;
-  line-height: 1.4;
-  white-space: pre-line;
-  min-width: 150px;
+  line-height: 1.45;
+  min-width: 160px;
+}
+.td-schedule-table td.cell .t {
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 2px;
+}
+.td-schedule-table td.cell .vs {
+  color: #8e9bc0;
+  font-style: italic;
+  font-size: 0.82rem;
 }
 
 .td-participants {

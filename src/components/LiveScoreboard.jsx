@@ -8,6 +8,8 @@ import {
   undo,
   gameLabel,
   isGoldenPoint,
+  applyCard,
+  cardCounts,
 } from "../lib/padelScore";
 import {
   getMatch,
@@ -19,6 +21,8 @@ import {
   subscribeToMatch,
 } from "../services/liveScores";
 import { formatDateRange } from "../lib/tournamentUtils";
+import { matchScheduleInfo, slotTimeLabel } from "../lib/scheduleBuild";
+import { SCHEDULE_LABELS } from "../lib/schedulePrint";
 
 const clockText = (start, end) => {
   if (!start) return "";
@@ -109,6 +113,15 @@ const LiveScoreboard = ({
     setSstate(ns);
     saveState(match.id, ns).catch(() => {});
   };
+  const card = (team, type) => {
+    if (!canScore || !match || !sstate || sstate.winner) return;
+    if (type === "red" && !window.confirm(L("dqConfirm", "Disqualify this pair? The match ends and the opponent wins."))) {
+      return;
+    }
+    const ns = applyCard(sstate, team, type);
+    setSstate(ns);
+    saveState(match.id, ns).catch(() => {});
+  };
 
   const start = async () => {
     setBusy(true);
@@ -193,10 +206,41 @@ const LiveScoreboard = ({
   const nameA = teamA || match?.team_a || "A";
   const nameB = teamB || match?.team_b || "B";
   const winnerSide = sstate?.winner;
+  const counts = sstate ? cardCounts(sstate) : null;
+
+  // Court + time for this match, derived from the published schedule (if any).
+  const sched = tournament.schedule
+    ? matchScheduleInfo(tournament.draw, tournament.schedule, round, matchIndex)
+    : null;
+  const schedText = sched
+    ? `${SCHEDULE_LABELS.courts[sched.court]} · ${slotTimeLabel(
+        sched,
+        SCHEDULE_LABELS
+      )}`
+    : null;
+
+  const cardMarks = (side) => {
+    const c = counts?.[side];
+    if (!c || (!c.yellow && !c.orange && !c.red)) return null;
+    return (
+      <span className="ls-cardmarks">
+        {["yellow", "orange", "red"].map((type) =>
+          c[type] ? (
+            <span className={`ls-cm ${type}`} key={type}>
+              {c[type] > 1 ? c[type] : ""}
+            </span>
+          ) : null
+        )}
+      </span>
+    );
+  };
 
   const teamRow = (side, name, isWinner) => (
     <div className={`ls-row${isWinner ? " ls-row-win" : ""}`}>
-      <span className="ls-name">{name}</span>
+      <span className="ls-name">
+        {name}
+        {cardMarks(side)}
+      </span>
       <span className="ls-sets">
         {sets.map((setGames, i) => (
           <span className="ls-set" key={i}>
@@ -248,6 +292,7 @@ const LiveScoreboard = ({
               <span className="ls-vs">{L("vs", "vs")}</span>
               <strong>{nameB}</strong>
             </div>
+            {schedText && <p className="ls-sched">{schedText}</p>}
             {isAdmin ? (
               <>
                 <div className="ls-config">
@@ -306,6 +351,11 @@ const LiveScoreboard = ({
             </div>
 
             <div className="ls-meta">
+              {sched && (
+                <span className="ls-court">
+                  {SCHEDULE_LABELS.courts[sched.court]}
+                </span>
+              )}
               {golden && (
                 <span className="ls-gp-tag">{L("goldenPointTag", "Golden point")}</span>
               )}
@@ -318,6 +368,13 @@ const LiveScoreboard = ({
               <p className="ls-winner">
                 🏆 {L("winner", "Winner")}:{" "}
                 <strong>{winnerSide === "a" ? nameA : nameB}</strong>
+                {sstate?.disqualified && (
+                  <span className="ls-dq-note">
+                    {" "}
+                    · {L("disqualified", "Disqualified")}:{" "}
+                    {sstate.disqualified === "a" ? nameA : nameB}
+                  </span>
+                )}
               </p>
             )}
 
@@ -341,6 +398,42 @@ const LiveScoreboard = ({
                     </button>
                   </div>
                 )}
+
+                {!sstate?.winner && (
+                  <div className="ls-cards">
+                    <span className="ls-cards-label">
+                      {L("cards", "Cards")}
+                    </span>
+                    {["a", "b"].map((side) => (
+                      <div className="ls-card-row" key={side}>
+                        <span className="ls-card-team">
+                          {side === "a" ? nameA : nameB}
+                        </span>
+                        <div className="ls-card-btns">
+                          <button
+                            type="button"
+                            className="ls-card-btn yellow"
+                            title={L("warning", "Warning")}
+                            onClick={() => card(side, "yellow")}
+                          />
+                          <button
+                            type="button"
+                            className="ls-card-btn orange"
+                            title={L("penaltyPoint", "Penalty point")}
+                            onClick={() => card(side, "orange")}
+                          />
+                          <button
+                            type="button"
+                            className="ls-card-btn red"
+                            title={L("disqualify", "Disqualify")}
+                            onClick={() => card(side, "red")}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="ls-action-btns">
                   <button
                     type="button"

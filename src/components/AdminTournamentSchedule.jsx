@@ -2,44 +2,27 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { updateTournament } from "../services/tournaments";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
-
-const COURTS = SCHEDULE_LABELS.courts; // fixed 2 courts
-
-const emptyDay = () => ({
-  dayLabel: "",
-  date: "",
-  rows: [
-    ["", ""],
-    ["", ""],
-  ],
-});
+import {
+  scheduleGrid,
+  slotTimeLabel,
+  DEFAULT_SCHEDULE,
+} from "../lib/scheduleBuild";
 
 const emptySchedule = () => ({
   dateRange: "",
   club: "",
   referee: "",
-  days: [emptyDay()],
+  startTime: DEFAULT_SCHEDULE.startTime,
+  intervalMinutes: DEFAULT_SCHEDULE.intervalMinutes,
 });
 
-// Normalise a stored schedule so every day has exactly 2 court cells per row.
-const normalize = (sched) => {
-  if (!sched || !Array.isArray(sched.days) || sched.days.length === 0) {
-    return emptySchedule();
-  }
-  return {
-    dateRange: sched.dateRange || "",
-    club: sched.club || "",
-    referee: sched.referee || "",
-    days: sched.days.map((d) => ({
-      dayLabel: d.dayLabel || "",
-      date: d.date || "",
-      rows:
-        Array.isArray(d.rows) && d.rows.length
-          ? d.rows.map((r) => [r[0] || "", r[1] || ""])
-          : [["", ""]],
-    })),
-  };
-};
+const normalize = (s) => ({
+  dateRange: s?.dateRange || "",
+  club: s?.club || "",
+  referee: s?.referee || "",
+  startTime: s?.startTime || DEFAULT_SCHEDULE.startTime,
+  intervalMinutes: s?.intervalMinutes || DEFAULT_SCHEDULE.intervalMinutes,
+});
 
 const AdminTournamentSchedule = ({ tournaments }) => {
   const [selectedId, setSelectedId] = useState("");
@@ -50,6 +33,8 @@ const AdminTournamentSchedule = ({ tournaments }) => {
 
   const selectedTournament =
     tournaments.find((tn) => tn.id === selectedId) || null;
+  const draw = selectedTournament?.draw || null;
+  const rows = draw ? scheduleGrid(draw, schedule) : [];
 
   const handleSelect = (id) => {
     setSelectedId(id);
@@ -59,65 +44,8 @@ const AdminTournamentSchedule = ({ tournaments }) => {
     setSchedule(normalize(tn?.schedule));
   };
 
-  // ---- header fields ----
   const setField = (field, value) =>
     setSchedule((s) => ({ ...s, [field]: value }));
-
-  // ---- day helpers ----
-  const setDayField = (di, field, value) =>
-    setSchedule((s) => ({
-      ...s,
-      days: s.days.map((d, i) => (i === di ? { ...d, [field]: value } : d)),
-    }));
-
-  const addDay = () =>
-    setSchedule((s) => ({ ...s, days: [...s.days, emptyDay()] }));
-
-  const removeDay = (di) =>
-    setSchedule((s) => ({
-      ...s,
-      days: s.days.length > 1 ? s.days.filter((_, i) => i !== di) : s.days,
-    }));
-
-  // ---- row / cell helpers ----
-  const addRow = (di) =>
-    setSchedule((s) => ({
-      ...s,
-      days: s.days.map((d, i) =>
-        i === di ? { ...d, rows: [...d.rows, ["", ""]] } : d
-      ),
-    }));
-
-  const removeRow = (di, ri) =>
-    setSchedule((s) => ({
-      ...s,
-      days: s.days.map((d, i) =>
-        i === di
-          ? {
-              ...d,
-              rows:
-                d.rows.length > 1
-                  ? d.rows.filter((_, r) => r !== ri)
-                  : d.rows,
-            }
-          : d
-      ),
-    }));
-
-  const setCell = (di, ri, ci, value) =>
-    setSchedule((s) => ({
-      ...s,
-      days: s.days.map((d, i) =>
-        i === di
-          ? {
-              ...d,
-              rows: d.rows.map((row, r) =>
-                r === ri ? row.map((c, k) => (k === ci ? value : c)) : row
-              ),
-            }
-          : d
-      ),
-    }));
 
   const handlePublish = async () => {
     if (!selectedId) return;
@@ -152,8 +80,9 @@ const AdminTournamentSchedule = ({ tournaments }) => {
   };
 
   const handlePrint = () => {
-    if (!selectedTournament) return;
-    printSchedule(selectedTournament.name, schedule, SCHEDULE_LABELS);
+    if (selectedTournament) {
+      printSchedule(selectedTournament.name, schedule, draw);
+    }
   };
 
   return (
@@ -162,9 +91,9 @@ const AdminTournamentSchedule = ({ tournaments }) => {
         <div>
           <h2>Playing schedule</h2>
           <p>
-            Fill in the playing schedule (План за играње) — one sheet per day,
-            two courts. Publish it to show a “Schedule” tab on the tournament
-            page, or export it as a printable PDF.
+            The matches come straight from the published draw. Just set the start
+            time of the first two matches — the courts (Терен 1 / Терен 2) and all
+            the following times are calculated automatically.
           </p>
         </div>
       </div>
@@ -187,9 +116,38 @@ const AdminTournamentSchedule = ({ tournaments }) => {
           </label>
         </div>
 
-        {selectedId && (
+        {selectedId && !draw && (
+          <p className="admin-empty-state">
+            Publish the draw first — the schedule is built from the draw’s pairs.
+          </p>
+        )}
+
+        {selectedId && draw && (
           <>
             <div className="admin-schedule-head">
+              <label className="admin-field">
+                <span>Start time (first two matches)</span>
+                <input
+                  type="time"
+                  value={schedule.startTime}
+                  onChange={(e) => setField("startTime", e.target.value)}
+                />
+              </label>
+              <label className="admin-field">
+                <span>Interval between slots (minutes)</span>
+                <input
+                  type="number"
+                  min="10"
+                  step="5"
+                  value={schedule.intervalMinutes}
+                  onChange={(e) =>
+                    setField(
+                      "intervalMinutes",
+                      parseInt(e.target.value, 10) || 60
+                    )
+                  }
+                />
+              </label>
               <label className="admin-field">
                 <span>{SCHEDULE_LABELS.date} (range)</span>
                 <input
@@ -219,111 +177,59 @@ const AdminTournamentSchedule = ({ tournaments }) => {
               </label>
             </div>
 
-            {schedule.days.map((day, di) => (
-              <div className="admin-schedule-day" key={di}>
-                <div className="admin-schedule-day-head">
-                  <label className="admin-field">
-                    <span>Day (e.g. петок)</span>
-                    <input
-                      type="text"
-                      placeholder="петок"
-                      value={day.dayLabel}
-                      onChange={(e) =>
-                        setDayField(di, "dayLabel", e.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="admin-field">
-                    <span>Date</span>
-                    <input
-                      type="text"
-                      placeholder="14.08.2026"
-                      value={day.date}
-                      onChange={(e) => setDayField(di, "date", e.target.value)}
-                    />
-                  </label>
-                  {schedule.days.length > 1 && (
-                    <button
-                      type="button"
-                      className="admin-btn decline"
-                      onClick={() => removeDay(di)}
-                    >
-                      Remove day
-                    </button>
-                  )}
-                </div>
-
-                <div className="admin-schedule-grid-wrap">
-                  <table className="admin-schedule-grid">
-                    <thead>
-                      <tr>
-                        <th className="corner" />
-                        {COURTS.map((c) => (
-                          <th key={c}>{c}</th>
-                        ))}
-                        <th className="corner" />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {day.rows.map((row, ri) => (
-                        <tr key={ri}>
-                          <td className="rownum">
-                            {SCHEDULE_LABELS.match} {ri + 1}
-                          </td>
-                          {COURTS.map((_, ci) => (
-                            <td key={ci}>
-                              <textarea
-                                rows={3}
-                                placeholder={
-                                  "Почеток 9,00 часот\nИме Презиме\nvs\nИме Презиме"
-                                }
-                                value={row[ci]}
-                                onChange={(e) =>
-                                  setCell(di, ri, ci, e.target.value)
-                                }
-                              />
-                            </td>
-                          ))}
-                          <td className="rowdel">
-                            {day.rows.length > 1 && (
-                              <button
-                                type="button"
-                                className="admin-schedule-x"
-                                aria-label="Remove match"
-                                onClick={() => removeRow(di, ri)}
-                              >
-                                ×
-                              </button>
-                            )}
-                          </td>
-                        </tr>
+            {rows.length === 0 ? (
+              <p className="admin-empty-state">
+                No matches to schedule yet — the draw has no playable pairs.
+              </p>
+            ) : (
+              <div className="admin-schedule-grid-wrap">
+                <table className="admin-schedule-grid admin-schedule-preview">
+                  <thead>
+                    <tr>
+                      <th className="corner" />
+                      {SCHEDULE_LABELS.courts.map((c) => (
+                        <th key={c}>{c}</th>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <button
-                  type="button"
-                  className="admin-btn admin-edit-btn"
-                  onClick={() => addRow(di)}
-                >
-                  + Add match
-                </button>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, ri) => (
+                      <tr key={ri}>
+                        <td className="rownum">
+                          {SCHEDULE_LABELS.match} {ri + 1}
+                        </td>
+                        {SCHEDULE_LABELS.courts.map((_, ci) => {
+                          const mt = row.cells[ci];
+                          return (
+                            <td key={ci} className="cell">
+                              {mt ? (
+                                <>
+                                  <div className="t">
+                                    {slotTimeLabel(row, SCHEDULE_LABELS)}
+                                  </div>
+                                  <div>{mt.teamA}</div>
+                                  <div className="vs">{SCHEDULE_LABELS.vs}</div>
+                                  <div>{mt.teamB}</div>
+                                </>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
+            )}
 
             <div className="admin-schedule-actions">
               <button
                 type="button"
                 className="admin-btn admin-edit-btn"
-                onClick={addDay}
-              >
-                + Add day
-              </button>
-              <button
-                type="button"
-                className="admin-btn admin-edit-btn"
                 onClick={handlePrint}
+                disabled={rows.length === 0}
               >
                 Export PDF
               </button>

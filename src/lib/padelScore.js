@@ -124,13 +124,54 @@ const replay = (config, history) => {
   };
 };
 
-export const initState = (config = {}) => replay(config, []);
+const other = (t) => (t === "a" ? "b" : "a");
+
+// Carry the non-score metadata (discipline cards, disqualification) across the
+// pure point replay, which only knows about the score.
+const carry = (ns, state) => {
+  ns.cards = state.cards || [];
+  ns.disqualified = state.disqualified || null;
+  return ns;
+};
+
+export const initState = (config = {}) => {
+  const s = replay(config, []);
+  s.cards = [];
+  s.disqualified = null;
+  return s;
+};
 
 export const applyPoint = (state, team) =>
-  replay(state.config, [...(state.history || []), team]);
+  carry(replay(state.config, [...(state.history || []), team]), state);
 
 export const undo = (state) =>
-  replay(state.config, (state.history || []).slice(0, -1));
+  carry(replay(state.config, (state.history || []).slice(0, -1)), state);
+
+// Discipline cards (Член 10):
+//   yellow — warning only (no score change)
+//   orange — penalty point: a point for the OPPONENT
+//   red    — disqualification: the opponent wins the match immediately
+export const applyCard = (state, team, type) => {
+  const cards = [...(state.cards || []), { team, type }];
+  if (type === "orange") {
+    return { ...applyPoint(state, other(team)), cards };
+  }
+  if (type === "red") {
+    return { ...state, cards, winner: other(team), disqualified: team };
+  }
+  return { ...state, cards };
+};
+
+export const cardCounts = (state) => {
+  const c = {
+    a: { yellow: 0, orange: 0, red: 0 },
+    b: { yellow: 0, orange: 0, red: 0 },
+  };
+  (state?.cards || []).forEach(({ team, type }) => {
+    if (c[team] && c[team][type] !== undefined) c[team][type] += 1;
+  });
+  return c;
+};
 
 const PT = ["0", "15", "30", "40"];
 

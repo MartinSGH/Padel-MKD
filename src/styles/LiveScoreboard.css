@@ -173,6 +173,85 @@
   margin: 4px 0 14px;
   color: #ffe27a;
 }
+.ls-dq-note {
+  color: #ff8a8a;
+  font-size: 0.85rem;
+}
+
+/* ---- discipline card marks next to a team name ---- */
+.ls-cardmarks {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.ls-cm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 12px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #1b2440;
+}
+.ls-cm.yellow { background: #f5c518; }
+.ls-cm.orange { background: #ef8b2c; }
+.ls-cm.red { background: #e23b3b; color: #fff; }
+
+/* ---- card controls ---- */
+.ls-cards {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.ls-cards-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9fb0da;
+  margin-bottom: 8px;
+}
+.ls-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+.ls-card-team {
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ls-card-btns {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+.ls-card-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.ls-card-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.6);
+}
+.ls-card-btn:active { transform: scale(0.94); }
+.ls-card-btn.yellow { background: #f5c518; }
+.ls-card-btn.orange { background: #ef8b2c; }
+.ls-card-btn.red { background: #e23b3b; }
 
 /* ---- controls ---- */
 .ls-controls {
@@ -292,4 +371,21 @@
   text-align: center;
   color: #9fb0da;
   margin: 6px 0 0;
+}
+.ls-sched {
+  text-align: center;
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 2px 0 0;
+}
+.ls-court {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.13);
+  padding: 3px 9px;
+  border-radius: 999px;
 }

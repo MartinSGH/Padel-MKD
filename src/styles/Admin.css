@@ -1303,6 +1303,26 @@
   margin-top: 8px;
 }
 
+/* Auto-derived schedule preview (read-only) */
+.admin-schedule-preview td.cell {
+  text-align: center;
+  vertical-align: middle;
+  color: #cdd7f2;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  min-width: 170px;
+}
+.admin-schedule-preview td.cell .t {
+  font-weight: 700;
+  color: #f0c666;
+  margin-bottom: 2px;
+}
+.admin-schedule-preview td.cell .vs {
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
 /* First-round (Round of 32) drop slots inside the bracket layout */
 .admin-bracket-manual .admin-bracket-slot-drop {
   display: flex;

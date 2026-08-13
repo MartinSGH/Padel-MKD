@@ -20,6 +20,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import { getMyProfile } from "../services/profile";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
+import { scheduleGrid, slotTimeLabel } from "../lib/scheduleBuild";
 import {
   getTournamentMatches,
   subscribeTournament,
@@ -672,7 +673,7 @@ const TournamentDetail = () => {
 
   const handleDownloadSchedule = () => {
     if (tournament.schedule) {
-      printSchedule(tournament.name, tournament.schedule, SCHEDULE_LABELS);
+      printSchedule(tournament.name, tournament.schedule, tournament.draw);
     }
   };
 
@@ -1211,15 +1212,19 @@ const TournamentDetail = () => {
                     )}
                   </div>
 
-                  {(tournament.schedule.days || []).map((day, di) => (
-                    <div className="td-schedule-day" key={di}>
-                      {(day.dayLabel || day.date) && (
-                        <div className="td-schedule-day-title">
-                          {[day.dayLabel, day.date]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </div>
-                      )}
+                  {(() => {
+                    const rows = scheduleGrid(
+                      tournament.draw,
+                      tournament.schedule
+                    );
+                    if (rows.length === 0) {
+                      return (
+                        <p className="td-reg-closed">
+                          {t("tournamentsPage.schedule.empty")}
+                        </p>
+                      );
+                    }
+                    return (
                       <div className="td-schedule-table-wrap">
                         <table className="td-schedule-table">
                           <thead>
@@ -1231,23 +1236,39 @@ const TournamentDetail = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {(day.rows || []).map((row, ri) => (
+                            {rows.map((row, ri) => (
                               <tr key={ri}>
                                 <td className="rownum">
                                   {SCHEDULE_LABELS.match} {ri + 1}
                                 </td>
-                                {SCHEDULE_LABELS.courts.map((_, ci) => (
-                                  <td key={ci} className="cell">
-                                    {row[ci] || ""}
-                                  </td>
-                                ))}
+                                {SCHEDULE_LABELS.courts.map((_, ci) => {
+                                  const mt = row.cells[ci];
+                                  return (
+                                    <td key={ci} className="cell">
+                                      {mt ? (
+                                        <>
+                                          <div className="t">
+                                            {slotTimeLabel(row, SCHEDULE_LABELS)}
+                                          </div>
+                                          <div>{mt.teamA}</div>
+                                          <div className="vs">
+                                            {SCHEDULE_LABELS.vs}
+                                          </div>
+                                          <div>{mt.teamB}</div>
+                                        </>
+                                      ) : (
+                                        "—"
+                                      )}
+                                    </td>
+                                  );
+                                })}
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })()}
                 </div>
               </div>
             )}
