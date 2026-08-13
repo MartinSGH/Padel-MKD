@@ -290,12 +290,55 @@
 }
 
 .td-bracket-match {
+  position: relative;
   display: flex;
   flex-direction: column;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #1b2647;
+}
+
+.td-bracket-clickable {
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.12s;
+}
+.td-bracket-clickable:hover {
+  border-color: rgba(255, 215, 0, 0.55);
+  transform: translateY(-1px);
+}
+.td-bracket-clickable:focus-visible {
+  outline: 2px solid rgba(255, 215, 0, 0.7);
+  outline-offset: 2px;
+}
+.td-bracket-match.is-live {
+  border-color: rgba(255, 90, 90, 0.6);
+}
+
+.td-bracket-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 1;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+.td-bracket-badge.live {
+  color: #ff5a5a;
+  background: rgba(255, 90, 90, 0.16);
+}
+.td-bracket-badge.done {
+  color: #7bf2c5;
+  background: rgba(52, 211, 153, 0.16);
+}
+
+.td-bracket-slot.is-winner {
+  color: #ffd700;
+  font-weight: 800;
 }
 
 .td-bracket-slot {
@@ -752,6 +795,101 @@
 .td-pairs-btn {
   padding: 0.55rem 1.15rem;
   font-size: 0.82rem;
+}
+
+/* ---- Playing schedule (public tab) ---- */
+.td-schedule-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.td-schedule-info {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  margin-bottom: 1.5rem;
+}
+
+.td-schedule-info > div {
+  color: #dfe5f5;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.9rem;
+}
+
+.td-schedule-info span {
+  display: block;
+  color: #8e9bc0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.td-schedule-day {
+  margin-bottom: 1.75rem;
+}
+
+.td-schedule-day-title {
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+}
+
+.td-schedule-table-wrap {
+  overflow-x: auto;
+}
+
+.td-schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+
+.td-schedule-table th,
+.td-schedule-table td {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 0.7rem 0.6rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.td-schedule-table th {
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.td-schedule-table th.corner {
+  background: transparent;
+  border-color: transparent;
+}
+
+.td-schedule-table td.rownum {
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.td-schedule-table td.cell {
+  color: #dfe5f5;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  white-space: pre-line;
+  min-width: 150px;
 }
 
 .td-participants {

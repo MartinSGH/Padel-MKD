@@ -29,6 +29,24 @@ const nextPow2 = (n) => {
 };
 const matchCountFor = (n) => nextPow2(n) / 2;
 
+// Turn a stored/published draw (slots are plain label strings or null) back into
+// the in-app bracket shape (slots are { label } objects or null), so a published
+// draw can be shown, exported and re-published from the admin panel.
+const deserializeBracket = (draw) => {
+  if (!draw || !Array.isArray(draw.rounds)) return null;
+  return {
+    size: draw.size,
+    byes: draw.byes,
+    count: draw.count,
+    rounds: draw.rounds.map((round) =>
+      round.map((m) => ({
+        a: m && m.a != null ? { label: m.a } : null,
+        b: m && m.b != null ? { label: m.b } : null,
+      }))
+    ),
+  };
+};
+
 const AdminTournamentDraw = ({ tournaments }) => {
   const [selectedId, setSelectedId] = useState("");
   const [directory, setDirectory] = useState([]);
@@ -145,11 +163,15 @@ const AdminTournamentDraw = ({ tournaments }) => {
   };
 
   // ---- Draw mode ----------------------------------------------------------
-  // Reset the draw whenever the tournament or category changes.
+  // Whenever the tournament or category changes, reset to auto mode and load the
+  // already-published draw (if any) so the admin can view / export / re-publish
+  // it. A fresh "Generate"/"Re-shuffle" then replaces it.
   useEffect(() => {
     setDrawMode("auto");
     setManualMatches([]);
-    setBracket(null);
+    const tn = tournaments.find((x) => x.id === selectedId);
+    setBracket(tn?.draw ? deserializeBracket(tn.draw) : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, category]);
 
   const enterManual = () => {
@@ -435,13 +457,23 @@ const AdminTournamentDraw = ({ tournaments }) => {
     const b = currentBracket();
     if (!b || !selectedTournament) return;
 
-    const rows = b.rounds[0]
-      .map((m, i) => {
-        const a = m.a ? m.a.label : emptyLabel;
-        const bb = m.b ? m.b.label : emptyLabel;
-        return `<tr><td class="num">${i + 1}</td><td>${escapeHtml(
-          a
-        )}</td><td class="vs">vs</td><td>${escapeHtml(bb)}</td></tr>`;
+    // Render the whole bracket as columns (Round of 32 → … → Final), matching
+    // the on-page layout.
+    const columns = b.rounds
+      .map((round, ri) => {
+        const title = roundName(round.length);
+        const matches = round
+          .map((m) => {
+            const a = ri === 0 ? (m.a ? m.a.label : emptyLabel) : "—";
+            const bb = ri === 0 ? (m.b ? m.b.label : emptyLabel) : "—";
+            return `<div class="bm"><div class="bs">${escapeHtml(
+              a
+            )}</div><div class="bs bs2">${escapeHtml(bb)}</div></div>`;
+          })
+          .join("");
+        return `<div class="bcol"><div class="brh">${escapeHtml(
+          title
+        )}</div><div class="bcol-matches">${matches}</div></div>`;
       })
       .join("");
 
@@ -462,17 +494,21 @@ const AdminTournamentDraw = ({ tournaments }) => {
     const html = `<!doctype html><html><head><meta charset="utf-8" />
 <title>Draw - ${escapeHtml(selectedTournament.name)}</title>
 <style>
-  body { font-family: Arial, "Segoe UI", sans-serif; color: #111; padding: 32px; }
+  @page { size: landscape; margin: 12mm; }
+  html { color-scheme: light; }
+  body { font-family: Arial, "Segoe UI", sans-serif; color: #111; background: #fff; padding: 24px; }
   h1 { font-size: 18px; margin: 0 0 2px; }
-  .sub { color: #b8860b; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; margin: 0 0 18px; }
+  .sub { color: #b8860b; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; margin: 0 0 14px; }
   .name { font-size: 16px; font-weight: bold; margin: 0 0 4px; }
-  .meta { color: #555; font-size: 13px; margin: 0 0 22px; }
-  h2 { font-size: 14px; margin: 0 0 8px; border-bottom: 2px solid #111; padding-bottom: 6px; }
-  table { width: 100%; border-collapse: collapse; }
-  td { padding: 10px 12px; border-bottom: 1px solid #ddd; font-size: 14px; }
-  td.num { width: 42px; color: #999; font-weight: bold; }
-  td.vs { width: 42px; text-align: center; color: #999; font-style: italic; }
-  .foot { margin-top: 22px; font-size: 12px; color: #888; }
+  .meta { color: #555; font-size: 13px; margin: 0 0 20px; }
+  .bracket { display: flex; gap: 14px; align-items: stretch; }
+  .bcol { flex: 1; min-width: 150px; display: flex; flex-direction: column; }
+  .brh { text-align: center; font-weight: bold; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; color: #b8860b; margin: 0 0 8px; padding-bottom: 5px; border-bottom: 2px solid #111; }
+  .bcol-matches { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 8px; }
+  .bm { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; page-break-inside: avoid; }
+  .bs { padding: 6px 8px; font-size: 11px; line-height: 1.3; word-break: break-word; }
+  .bs2 { border-top: 1px solid #eee; }
+  .foot { margin-top: 18px; font-size: 12px; color: #888; }
   @media print { body { padding: 0; } }
 </style></head>
 <body>
@@ -480,8 +516,7 @@ const AdminTournamentDraw = ({ tournaments }) => {
   <p class="sub">Tournament Draw · Жреб</p>
   <p class="name">${escapeHtml(selectedTournament.name)}</p>
   <p class="meta">${meta}</p>
-  <h2>First Round</h2>
-  <table>${rows}</table>
+  <div class="bracket">${columns}</div>
   <p class="foot">${b.count} pairs · ${b.byes} bye(s) · bracket of ${b.size}</p>
 </body></html>`;
 

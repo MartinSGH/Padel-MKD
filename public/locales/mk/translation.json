@@ -1,4 +1,8 @@
 {
+  "live": {
+    "sectionTitle": "Во живо",
+    "live": "ВО ЖИВО"
+  },
   "navbar": {
     "whatIsPadel": "Што е Падел?",
     "federation": "Федерација",
@@ -62,6 +66,27 @@
       "semifinals": "Полуфинале",
       "quarterfinals": "Четвртфинале",
       "roundOf": "Рунда од {{n}}"
+    },
+    "schedule": {
+      "tab": "Распоред"
+    },
+    "live": {
+      "live": "ВО ЖИВО",
+      "finished": "Завршено",
+      "notStarted": "Не е започнато",
+      "vs": "vs",
+      "startsOn": "Почнува на",
+      "start": "Започни игра",
+      "end": "Заврши игра",
+      "discard": "Откажи игра",
+      "discardConfirm": "Дали да ја откажете играта и да се врати на незапочната?",
+      "edit": "Измени резултат",
+      "save": "Зачувај",
+      "undo": "Врати",
+      "winner": "Победник",
+      "goldenPoint": "Златна топка",
+      "goldenPointTag": "Златна топка",
+      "superTB": "Супер тај-брејк во 3. сет"
     },
     "status": {
       "upcoming": "Претстоен",

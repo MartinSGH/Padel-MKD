@@ -1,4 +1,5 @@
 import JumboCarousel from "../components/LandingPage/JumboCarousel";
+import LiveMatches from "../components/LandingPage/LiveMatches";
 import Tournaments from "../components/LandingPage/Tournaments";
 import Clubs from "../components/LandingPage/Clubs";
 import Programs from "../components/LandingPage/Programs";
@@ -9,6 +10,7 @@ const Landing = () => {
   return (
     <div>
       <JumboCarousel />
+      <LiveMatches />
       <Tournaments />
       <br />
       <div className="red-line" data-aos="fade-up"></div>

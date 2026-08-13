@@ -19,6 +19,12 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import { getMyProfile } from "../services/profile";
+import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
+import {
+  getTournamentMatches,
+  subscribeTournament,
+} from "../services/liveScores";
+import LiveScoreboard from "../components/LiveScoreboard";
 import {
   formatDateRange,
   formatSingleDate,
@@ -317,6 +323,9 @@ const TournamentDetail = () => {
   const [publishedPairs, setPublishedPairs] = useState([]);
   const [pairsBusy, setPairsBusy] = useState(false);
   const [pairsMsg, setPairsMsg] = useState("");
+  // Live match scoreboard (open match + per-match statuses for badges).
+  const [scoreMatch, setScoreMatch] = useState(null);
+  const [matchStatuses, setMatchStatuses] = useState({});
 
   // In-app registration is used when the tournament has no external form URL
   // and no custom detail page.
@@ -375,6 +384,40 @@ const TournamentDetail = () => {
       setPublishedPairs([]);
     }
   }, [useInApp, tournament?.id, tournament?.pairs_published, isAdmin]);
+
+  // Load + live-subscribe the per-match statuses so the bracket can badge live /
+  // finished matches and refresh as results come in.
+  const loadMatchStatuses = async (tournamentId) => {
+    const rows = await getTournamentMatches(tournamentId).catch(() => []);
+    const map = {};
+    rows.forEach((rrow) => {
+      map[`${rrow.round}:${rrow.match_index}`] = {
+        status: rrow.status,
+        winner: rrow.winner,
+      };
+    });
+    setMatchStatuses(map);
+  };
+
+  useEffect(() => {
+    if (!tournament?.id || !tournament.draw) {
+      setMatchStatuses({});
+      return undefined;
+    }
+    loadMatchStatuses(tournament.id);
+    const unsub = subscribeTournament(tournament.id, () => {
+      loadMatchStatuses(tournament.id);
+    });
+    return unsub;
+  }, [tournament?.id, tournament?.draw]);
+
+  // Refetch the tournament (bracket) + statuses after a result changes.
+  const refreshAfterResult = async () => {
+    if (!tournament?.id) return;
+    const fresh = await getTournamentById(tournament.id).catch(() => null);
+    if (fresh) setTournament(fresh);
+    loadMatchStatuses(tournament.id);
+  };
 
   const nameById = useMemo(() => {
     const map = new Map();
@@ -627,6 +670,12 @@ const TournamentDetail = () => {
     w.print();
   };
 
+  const handleDownloadSchedule = () => {
+    if (tournament.schedule) {
+      printSchedule(tournament.name, tournament.schedule, SCHEDULE_LABELS);
+    }
+  };
+
   // Categories players may register for (admin-chosen, or all three by default).
   const availableCategories =
     tournament.categories && tournament.categories.length
@@ -646,11 +695,13 @@ const TournamentDetail = () => {
   const tabs = ["info"];
   if (useInApp) tabs.push("registered");
   if (tournament.draw) tabs.push("draw");
+  if (tournament.schedule) tabs.push("schedule");
   if (tournament.propositions_url) tabs.push("documents");
   const tabLabel = {
     info: t("tournamentsPage.tabsInfo"),
     registered: t("tournamentsPage.tabsRegistered"),
     draw: t("tournamentsPage.draw.tab"),
+    schedule: t("tournamentsPage.schedule.tab"),
     documents: t("tournamentsPage.tabsDocuments"),
   };
   const currentTab = tabs.includes(activeTab) ? activeTab : "info";
@@ -1048,23 +1099,155 @@ const TournamentDetail = () => {
                         <div className="td-bracket-round">
                           {drawRoundLabel(round.length)}
                         </div>
-                        {round.map((m, i) => (
-                          <div className="td-bracket-match" key={i}>
-                            <span className="td-bracket-slot">
-                              {ri === 0
-                                ? m.a || t("tournamentsPage.draw.bye")
-                                : m.a || "—"}
-                            </span>
-                            <span className="td-bracket-slot">
-                              {ri === 0
-                                ? m.b || t("tournamentsPage.draw.bye")
-                                : m.b || "—"}
-                            </span>
-                          </div>
-                        ))}
+                        {round.map((m, i) => {
+                          const st = matchStatuses[`${ri}:${i}`];
+                          const playable =
+                            m.a && m.b && m.a !== "/" && m.b !== "/";
+                          const open = () =>
+                            playable &&
+                            setScoreMatch({
+                              round: ri,
+                              matchIndex: i,
+                              teamA: m.a,
+                              teamB: m.b,
+                            });
+                          return (
+                            <div
+                              className={`td-bracket-match${
+                                playable ? " td-bracket-clickable" : ""
+                              }${st?.status === "live" ? " is-live" : ""}`}
+                              key={i}
+                              role={playable ? "button" : undefined}
+                              tabIndex={playable ? 0 : undefined}
+                              onClick={open}
+                              onKeyDown={
+                                playable
+                                  ? (e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        open();
+                                      }
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {st?.status === "live" && (
+                                <span className="td-bracket-badge live">
+                                  ● {t("tournamentsPage.live.live", "LIVE")}
+                                </span>
+                              )}
+                              {st?.status === "finished" && (
+                                <span className="td-bracket-badge done">✓</span>
+                              )}
+                              <span
+                                className={`td-bracket-slot${
+                                  st?.status === "finished" &&
+                                  st.winner === "a"
+                                    ? " is-winner"
+                                    : ""
+                                }`}
+                              >
+                                {ri === 0
+                                  ? m.a || t("tournamentsPage.draw.bye")
+                                  : m.a || "—"}
+                              </span>
+                              <span
+                                className={`td-bracket-slot${
+                                  st?.status === "finished" &&
+                                  st.winner === "b"
+                                    ? " is-winner"
+                                    : ""
+                                }`}
+                              >
+                                {ri === 0
+                                  ? m.b || t("tournamentsPage.draw.bye")
+                                  : m.b || "—"}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Schedule tab */}
+            {currentTab === "schedule" && tournament.schedule && (
+              <div className="td-tab-content">
+                <div className="td-block">
+                  <div className="td-schedule-head-row">
+                    <h2 className="td-section-title">
+                      {SCHEDULE_LABELS.title}
+                    </h2>
+                    <button
+                      type="button"
+                      className="td-btn td-btn-outline td-pairs-btn"
+                      onClick={handleDownloadSchedule}
+                    >
+                      {t("tournamentsPage.downloadPdf")}
+                    </button>
+                  </div>
+
+                  <div className="td-schedule-info">
+                    {tournament.schedule.dateRange && (
+                      <div>
+                        <span>{SCHEDULE_LABELS.date}</span>
+                        {tournament.schedule.dateRange}
+                      </div>
+                    )}
+                    {tournament.schedule.club && (
+                      <div>
+                        <span>{SCHEDULE_LABELS.club}</span>
+                        {tournament.schedule.club}
+                      </div>
+                    )}
+                    {tournament.schedule.referee && (
+                      <div>
+                        <span>{SCHEDULE_LABELS.referee}</span>
+                        {tournament.schedule.referee}
+                      </div>
+                    )}
+                  </div>
+
+                  {(tournament.schedule.days || []).map((day, di) => (
+                    <div className="td-schedule-day" key={di}>
+                      {(day.dayLabel || day.date) && (
+                        <div className="td-schedule-day-title">
+                          {[day.dayLabel, day.date]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </div>
+                      )}
+                      <div className="td-schedule-table-wrap">
+                        <table className="td-schedule-table">
+                          <thead>
+                            <tr>
+                              <th className="corner" />
+                              {SCHEDULE_LABELS.courts.map((c) => (
+                                <th key={c}>{c}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(day.rows || []).map((row, ri) => (
+                              <tr key={ri}>
+                                <td className="rownum">
+                                  {SCHEDULE_LABELS.match} {ri + 1}
+                                </td>
+                                {SCHEDULE_LABELS.courts.map((_, ci) => (
+                                  <td key={ci} className="cell">
+                                    {row[ci] || ""}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -1118,6 +1301,21 @@ const TournamentDetail = () => {
           </Col>
         </Row>
       </section>
+
+      {scoreMatch && (
+        <LiveScoreboard
+          tournament={tournament}
+          round={scoreMatch.round}
+          matchIndex={scoreMatch.matchIndex}
+          teamA={scoreMatch.teamA}
+          teamB={scoreMatch.teamB}
+          isAdmin={isAdmin}
+          onClose={() => setScoreMatch(null)}
+          onDrawChanged={refreshAfterResult}
+          t={t}
+          lang={lang}
+        />
+      )}
     </div>
   );
 };

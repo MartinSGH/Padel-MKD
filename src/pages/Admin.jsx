@@ -21,6 +21,7 @@ import {
 } from "../services/tournaments";
 import { formatDateRange } from "../lib/tournamentUtils";
 import AdminTournamentDraw from "../components/AdminTournamentDraw";
+import AdminTournamentSchedule from "../components/AdminTournamentSchedule";
 import "../styles/Admin.css";
 
 const emptyClubForm = {
@@ -1223,6 +1224,8 @@ export default function Admin() {
         </div>
 
         <AdminTournamentDraw tournaments={tournaments} />
+
+        <AdminTournamentSchedule tournaments={tournaments} />
       </div>
     </section>
   );

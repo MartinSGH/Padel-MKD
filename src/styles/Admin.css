@@ -1191,6 +1191,118 @@
   padding-left: 8px;
 }
 
+/* ---- Playing schedule editor ---- */
+.admin-schedule-head {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.admin-schedule-day {
+  margin-bottom: 22px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-schedule-day-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.admin-schedule-day-head .admin-field {
+  max-width: 220px;
+}
+
+.admin-schedule-grid-wrap {
+  overflow-x: auto;
+}
+
+.admin-schedule-grid {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-schedule-grid th,
+.admin-schedule-grid td {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px;
+  vertical-align: top;
+}
+
+.admin-schedule-grid th {
+  color: #f0c666;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 6px;
+}
+
+.admin-schedule-grid th.corner {
+  border-color: transparent;
+  background: transparent;
+}
+
+.admin-schedule-grid td.rownum {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.admin-schedule-grid td.rowdel {
+  border: none;
+  vertical-align: middle;
+}
+
+.admin-schedule-grid textarea {
+  width: 100%;
+  min-width: 180px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+.admin-schedule-grid textarea:focus {
+  outline: none;
+  border-color: rgba(240, 198, 102, 0.6);
+}
+
+.admin-schedule-x {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.admin-schedule-x:hover {
+  color: #ff8a8a;
+}
+
+.admin-schedule-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
 /* First-round (Round of 32) drop slots inside the bracket layout */
 .admin-bracket-manual .admin-bracket-slot-drop {
   display: flex;

@@ -1,4 +1,8 @@
 {
+  "live": {
+    "sectionTitle": "Live now",
+    "live": "LIVE"
+  },
   "navbar": {
     "whatIsPadel": "What is Padel?",
     "federation": "Federation",
@@ -62,6 +66,27 @@
       "semifinals": "Semifinals",
       "quarterfinals": "Quarterfinals",
       "roundOf": "Round of {{n}}"
+    },
+    "schedule": {
+      "tab": "Schedule"
+    },
+    "live": {
+      "live": "LIVE",
+      "finished": "Finished",
+      "notStarted": "Not started",
+      "vs": "vs",
+      "startsOn": "Starts on",
+      "start": "Start match",
+      "end": "End match",
+      "discard": "Discard match",
+      "discardConfirm": "Discard this match and reset it to not started?",
+      "edit": "Edit result",
+      "save": "Save",
+      "undo": "Undo",
+      "winner": "Winner",
+      "goldenPoint": "Golden point",
+      "goldenPointTag": "Golden point",
+      "superTB": "3rd set super tie-break"
     },
     "status": {
       "upcoming": "Upcoming",
