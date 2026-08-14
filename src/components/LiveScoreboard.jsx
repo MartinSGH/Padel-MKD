@@ -42,6 +42,7 @@ const LiveScoreboard = ({
   teamA,
   teamB,
   isAdmin,
+  canScore = false,
   onClose,
   onDrawChanged,
   t,
@@ -97,25 +98,25 @@ const LiveScoreboard = ({
   }, [onClose]);
 
   const status = match?.status || "not_started";
-  const canScore = isAdmin && (status === "live" || editing);
+  const scoringActive = canScore && (status === "live" || editing);
   const golden = sstate && isGoldenPoint(sstate);
   const points = sstate ? gameLabel(sstate) : { a: "", b: "" };
   const sets = sstate?.setsGames || [];
 
   const point = (team) => {
-    if (!canScore || !match || !sstate || sstate.winner) return;
+    if (!scoringActive || !match || !sstate || sstate.winner) return;
     const ns = applyPoint(sstate, team);
     setSstate(ns);
     saveState(match.id, ns).catch(() => {});
   };
   const doUndo = () => {
-    if (!canScore || !match || !sstate) return;
+    if (!scoringActive || !match || !sstate) return;
     const ns = undo(sstate);
     setSstate(ns);
     saveState(match.id, ns).catch(() => {});
   };
   const card = (team, type) => {
-    if (!canScore || !match || !sstate || sstate.winner) return;
+    if (!scoringActive || !match || !sstate || sstate.winner) return;
     if (type === "red" && !window.confirm(L("dqConfirm", "Disqualify this pair? The match ends and the opponent wins."))) {
       return;
     }
@@ -303,7 +304,7 @@ const LiveScoreboard = ({
               <strong>{nameB}</strong>
             </div>
             {schedText && <p className="ls-sched">{schedText}</p>}
-            {isAdmin ? (
+            {canScore ? (
               <>
                 <div className="ls-config">
                   <label>
@@ -401,7 +402,7 @@ const LiveScoreboard = ({
               </p>
             )}
 
-            {isAdmin && (status === "live" || editing) && (
+            {canScore && (status === "live" || editing) && (
               <div className="ls-controls">
                 {!sstate?.winner && (
                   <div className="ls-point-btns">
@@ -556,6 +557,7 @@ LiveScoreboard.propTypes = {
   teamA: PropTypes.string,
   teamB: PropTypes.string,
   isAdmin: PropTypes.bool,
+  canScore: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
   onDrawChanged: PropTypes.func,
   t: PropTypes.func.isRequired,

@@ -6,6 +6,7 @@ export const getAllPlayers = async () => {
     .select(
       "id, full_name, email, total_points, role, avatar_url, phone, club_name, created_at"
     )
+    .neq("role", "referee") // referees are hidden from every list
     .order("total_points", { ascending: false });
 
   if (error) throw error;

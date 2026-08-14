@@ -1,5 +1,4 @@
 import { supabase } from "../lib/supabaseClient";
-import { updateTournament } from "./tournaments";
 import { recomputeDraw, finishedMapFromRows } from "../lib/drawAdvance";
 import {
   computePoints,
@@ -80,10 +79,15 @@ const afterResultChange = async (tournamentId) => {
   if (e2) throw e2;
   const draw = tn?.draw;
 
-  // 1) advance the draw
+  // 1) advance the draw (via an RPC so referees — who can't update tournaments
+  // directly — can also finish matches; it only touches the draw column).
   if (draw) {
     const nextDraw = recomputeDraw(draw, finishedMapFromRows(rows || []));
-    await updateTournament(tournamentId, { draw: nextDraw });
+    const { error: drawErr } = await supabase.rpc("set_tournament_draw", {
+      p_tournament_id: tournamentId,
+      p_draw: nextDraw,
+    });
+    if (drawErr) throw drawErr;
   }
 
   // 2) recompute ranking points from the finished matches

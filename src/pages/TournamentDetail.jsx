@@ -320,6 +320,7 @@ const TournamentDetail = () => {
   // Players already in a pair, per category: { player_id, category } rows.
   const [takenRows, setTakenRows] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canScore, setCanScore] = useState(false); // admin OR referee
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [regError, setRegError] = useState("");
@@ -370,11 +371,18 @@ const TournamentDetail = () => {
   useEffect(() => {
     if (!user) {
       setIsAdmin(false);
+      setCanScore(false);
       return;
     }
     getMyProfile()
-      .then((p) => setIsAdmin(p?.role === "admin"))
-      .catch(() => setIsAdmin(false));
+      .then((p) => {
+        setIsAdmin(p?.role === "admin");
+        setCanScore(p?.role === "admin" || p?.role === "referee");
+      })
+      .catch(() => {
+        setIsAdmin(false);
+        setCanScore(false);
+      });
   }, [user]);
 
   // When the list of pairs is published, load it (names only) for non-admins so
@@ -1374,6 +1382,7 @@ const TournamentDetail = () => {
           teamA={scoreMatch.teamA}
           teamB={scoreMatch.teamB}
           isAdmin={isAdmin}
+          canScore={canScore}
           onClose={() => setScoreMatch(null)}
           onDrawChanged={refreshAfterResult}
           t={t}
