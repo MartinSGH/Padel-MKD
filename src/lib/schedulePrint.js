@@ -27,29 +27,43 @@ const escapeHtml = (str) =>
 
 const cellHtml = (row, mt, labels) => {
   if (!mt) return "&nbsp;";
-  return `<div class="t">${escapeHtml(slotTimeLabel(row, labels))}</div>
-<div>${escapeHtml(mt.teamA)}</div><div class="vs">${escapeHtml(labels.vs)}</div><div>${escapeHtml(mt.teamB)}</div>`;
+  const solo = mt.teamA && !mt.teamB;
+  const time = `<div class="t">${escapeHtml(slotTimeLabel(row, labels))}</div>`;
+  if (solo) return `${time}<div>${escapeHtml(mt.teamA)}</div>`;
+  return `${time}<div>${escapeHtml(mt.teamA)}</div><div class="vs">${escapeHtml(
+    labels.vs
+  )}</div><div>${escapeHtml(mt.teamB)}</div>`;
 };
 
 export const printSchedule = (tournamentName, schedule, draw) => {
   const labels = SCHEDULE_LABELS;
   const rows = scheduleGrid(draw, schedule);
+  const colSpan = labels.courts.length + 1;
 
   const headCourts = labels.courts
     .map((c) => `<td class="court">${escapeHtml(c)}</td>`)
     .join("");
 
+  let curDay = null;
+  let n = 0;
   const body = rows
-    .map(
-      (row, i) =>
-        `<tr><td class="rownum">${escapeHtml(labels.match)} ${i + 1}</td>` +
-        labels.courts
-          .map(
-            (_, ci) => `<td class="cell">${cellHtml(row, row.cells[ci], labels)}</td>`
-          )
-          .join("") +
-        `</tr>`
-    )
+    .map((row) => {
+      let dayRow = "";
+      if (row.day && row.day !== curDay) {
+        curDay = row.day;
+        n = 0;
+        dayRow = `<tr class="dayrow"><td colspan="${colSpan}">${escapeHtml(
+          row.day
+        )}</td></tr>`;
+      }
+      n += 1;
+      const cells = labels.courts
+        .map((_, ci) => `<td class="cell">${cellHtml(row, row.cells[ci], labels)}</td>`)
+        .join("");
+      return `${dayRow}<tr><td class="rownum">${escapeHtml(
+        labels.match
+      )} ${n}</td>${cells}</tr>`;
+    })
     .join("");
 
   const html = `<!doctype html><html><head><meta charset="utf-8" />
@@ -75,6 +89,7 @@ export const printSchedule = (tournamentName, schedule, draw) => {
   .grid .cell { min-width: 160px; }
   .grid .cell .t { font-weight: bold; margin-bottom: 2px; }
   .grid .cell .vs { color: #666; font-style: italic; }
+  .grid .dayrow td { background: #eee; font-weight: bold; text-align: left; text-transform: uppercase; letter-spacing: 1px; }
   @media print { body { padding: 0; } }
 </style></head>
 <body>

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { updateTournament } from "../services/tournaments";
+import {
+  updateTournament,
+  getTournamentById,
+} from "../services/tournaments";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
 import {
   scheduleGrid,
@@ -26,20 +29,30 @@ const normalize = (s) => ({
 
 const AdminTournamentSchedule = ({ tournaments }) => {
   const [selectedId, setSelectedId] = useState("");
+  // The fresh tournament row (so a draw published a moment ago is picked up
+  // without a page reload — the `tournaments` prop can be stale).
+  const [selectedTournament, setSelectedTournament] = useState(null);
   const [schedule, setSchedule] = useState(emptySchedule());
   const [published, setPublished] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  const selectedTournament =
-    tournaments.find((tn) => tn.id === selectedId) || null;
   const draw = selectedTournament?.draw || null;
   const rows = draw ? scheduleGrid(draw, schedule) : [];
 
-  const handleSelect = (id) => {
+  const handleSelect = async (id) => {
     setSelectedId(id);
     setMsg("");
-    const tn = tournaments.find((x) => x.id === id);
+    if (!id) {
+      setSelectedTournament(null);
+      return;
+    }
+    // Fetch the latest tournament so we read the just-published draw.
+    const tn =
+      (await getTournamentById(id).catch(() => null)) ||
+      tournaments.find((x) => x.id === id) ||
+      null;
+    setSelectedTournament(tn);
     setPublished(!!tn?.schedule);
     setSchedule(normalize(tn?.schedule));
   };
@@ -193,32 +206,59 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((row, ri) => (
-                      <tr key={ri}>
-                        <td className="rownum">
-                          {SCHEDULE_LABELS.match} {ri + 1}
-                        </td>
-                        {SCHEDULE_LABELS.courts.map((_, ci) => {
-                          const mt = row.cells[ci];
-                          return (
-                            <td key={ci} className="cell">
-                              {mt ? (
-                                <>
-                                  <div className="t">
-                                    {slotTimeLabel(row, SCHEDULE_LABELS)}
-                                  </div>
-                                  <div>{mt.teamA}</div>
-                                  <div className="vs">{SCHEDULE_LABELS.vs}</div>
-                                  <div>{mt.teamB}</div>
-                                </>
-                              ) : (
-                                "—"
-                              )}
-                            </td>
+                    {(() => {
+                      const out = [];
+                      let curDay = null;
+                      let n = 0;
+                      rows.forEach((row, ri) => {
+                        if (row.day && row.day !== curDay) {
+                          curDay = row.day;
+                          n = 0;
+                          out.push(
+                            <tr key={`d-${ri}`} className="admin-schedule-dayrow">
+                              <td colSpan={SCHEDULE_LABELS.courts.length + 1}>
+                                {row.day}
+                              </td>
+                            </tr>
                           );
-                        })}
-                      </tr>
-                    ))}
+                        }
+                        n += 1;
+                        out.push(
+                          <tr key={ri}>
+                            <td className="rownum">
+                              {SCHEDULE_LABELS.match} {n}
+                            </td>
+                            {SCHEDULE_LABELS.courts.map((_, ci) => {
+                              const mt = row.cells[ci];
+                              const solo = mt && mt.teamA && !mt.teamB;
+                              return (
+                                <td key={ci} className="cell">
+                                  {mt ? (
+                                    <>
+                                      <div className="t">
+                                        {slotTimeLabel(row, SCHEDULE_LABELS)}
+                                      </div>
+                                      <div>{mt.teamA}</div>
+                                      {!solo && (
+                                        <>
+                                          <div className="vs">
+                                            {SCHEDULE_LABELS.vs}
+                                          </div>
+                                          <div>{mt.teamB}</div>
+                                        </>
+                                      )}
+                                    </>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      });
+                      return out;
+                    })()}
                   </tbody>
                 </table>
               </div>

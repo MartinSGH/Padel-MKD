@@ -9,6 +9,7 @@ import {
 } from "../services/registrations";
 import { updateTournament } from "../services/tournaments";
 import { buildBracket, roundName } from "../lib/draw";
+import AdminGroupBuilder from "./AdminGroupBuilder";
 import {
   formatDateRange,
   isRegistrationDeadlinePassed,
@@ -75,6 +76,7 @@ const AdminTournamentDraw = ({ tournaments }) => {
   const [addMsg, setAddMsg] = useState("");
   // Draw mode + manual drag & drop bracket.
   const [drawMode, setDrawMode] = useState("auto"); // auto | manual
+  const [system, setSystem] = useState("elimination"); // elimination | group
   const [manualMatches, setManualMatches] = useState([]);
 
   const selectedTournament =
@@ -99,7 +101,9 @@ const AdminTournamentDraw = ({ tournaments }) => {
     setAddMsg("");
     setDrawMode("auto");
     setManualMatches([]);
-    setPublished(!!tournaments.find((tn) => tn.id === id)?.draw);
+    const selDraw = tournaments.find((tn) => tn.id === id)?.draw;
+    setPublished(!!selDraw);
+    setSystem(selDraw?.system === "group" ? "group" : "elimination");
     if (!id) {
       setRegistrations([]);
       return;
@@ -891,6 +895,43 @@ const AdminTournamentDraw = ({ tournaments }) => {
         )}
 
         {selectedId && (
+          <div className="admin-draw-system">
+            <span className="admin-draw-system-label">Draw system</span>
+            <div className="admin-draw-modes">
+              <button
+                type="button"
+                className={`admin-mode-btn${
+                  system === "elimination" ? " active" : ""
+                }`}
+                onClick={() => setSystem("elimination")}
+              >
+                Elimination
+              </button>
+              <button
+                type="button"
+                className={`admin-mode-btn${
+                  system === "group" ? " active" : ""
+                }`}
+                onClick={() => setSystem("group")}
+              >
+                Group
+              </button>
+            </div>
+          </div>
+        )}
+
+        {selectedId && system === "group" && (
+          <AdminGroupBuilder
+            pairs={pairs}
+            tournamentId={selectedId}
+            tournamentName={selectedTournament?.name}
+            initialDraw={selectedTournament?.draw}
+            published={published}
+            onPublishedChange={setPublished}
+          />
+        )}
+
+        {selectedId && system === "elimination" && (
           <>
             <div className="admin-draw-summary">
               <span className="admin-count-pill">

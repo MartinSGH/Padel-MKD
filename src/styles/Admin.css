@@ -1191,6 +1191,112 @@
   padding-left: 8px;
 }
 
+/* ---- Draw system toggle + group builder ---- */
+.admin-draw-system {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.admin-draw-system-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.admin-group-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 60px;
+  margin-bottom: 18px;
+}
+.admin-group-pool-head {
+  width: 100%;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.admin-group-pool-empty {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.88rem;
+}
+
+.admin-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.admin-group-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  min-height: 120px;
+}
+.admin-group-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #f0c666;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-group-count {
+  background: rgba(240, 198, 102, 0.16);
+  color: #f0c666;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.78rem;
+}
+.admin-group-empty {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.85rem;
+  padding: 8px 0;
+}
+.admin-group-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(240, 198, 102, 0.14);
+  border: 1px solid rgba(240, 198, 102, 0.4);
+  color: #fff;
+  font-size: 0.88rem;
+  cursor: grab;
+  user-select: none;
+}
+.admin-group-chip:active {
+  cursor: grabbing;
+}
+.admin-group-remove {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.admin-group-remove:hover {
+  color: #ff8a8a;
+}
+
 /* ---- Playing schedule editor ---- */
 .admin-schedule-head {
   display: grid;
@@ -1321,6 +1427,16 @@
   color: rgba(255, 255, 255, 0.45);
   font-style: italic;
   font-size: 0.8rem;
+}
+.admin-schedule-dayrow td {
+  background: rgba(240, 198, 102, 0.14);
+  color: #f0c666;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.82rem;
+  text-align: left;
+  padding: 8px 10px;
 }
 
 /* First-round (Round of 32) drop slots inside the bracket layout */

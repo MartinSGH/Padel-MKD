@@ -23,7 +23,8 @@ import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
 import { scheduleGrid, slotTimeLabel } from "../lib/scheduleBuild";
 import { gameLabel } from "../lib/padelScore";
 import { hasThirdPlace } from "../lib/drawAdvance";
-import { THIRD_PLACE_ROUND } from "../lib/points";
+import { THIRD_PLACE_ROUND, SEMI_ROUND, FINAL_ROUND } from "../lib/points";
+import { groupStandings } from "../lib/groupDraw";
 import {
   getTournamentMatches,
   subscribeTournament,
@@ -1187,39 +1188,143 @@ const TournamentDetail = () => {
                   <h2 className="td-section-title">
                     {t("tournamentsPage.draw.title")}
                   </h2>
-                  <div className="td-bracket">
-                    {tournament.draw.rounds.map((round, ri) => (
-                      <div className="td-bracket-col" key={ri}>
-                        <div className="td-bracket-round">
-                          {drawRoundLabel(round.length)}
-                        </div>
-                        {round.length === 2 && (
-                          <div className="td-bracket-note">
-                            {t("tournamentsPage.draw.thirdPlaceNote")}
-                          </div>
-                        )}
-                        {round.map((m, i) => (
-                          <div key={i}>
-                            {renderBracketMatch(ri, i, m.a, m.b, ri === 0)}
+
+                  {tournament.draw.system === "group" ? (
+                    <>
+                      <div className="td-groups">
+                        {(tournament.draw.groups || []).map((g, gi) => (
+                          <div className="td-group" key={gi}>
+                            <div className="td-group-title">{g.name}</div>
+                            <div className="td-standings-wrap">
+                              <table className="td-standings">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th>{t("ranking.player")}</th>
+                                    <th>W</th>
+                                    <th>L</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {groupStandings(g, gi, matchStatuses).map(
+                                    (s, i) => (
+                                      <tr key={s.team}>
+                                        <td>{i + 1}</td>
+                                        <td className="td-standings-name">
+                                          {s.team}
+                                        </td>
+                                        <td>{s.wins}</td>
+                                        <td>{s.losses}</td>
+                                      </tr>
+                                    )
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                            <div className="td-group-matches">
+                              {g.matches.map((m, mi) => (
+                                <div key={mi}>
+                                  {renderBracketMatch(gi, mi, m.a, m.b, false)}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
 
-                  {hasThirdPlace(tournament.draw) && (
-                    <div className="td-thirdplace">
-                      <div className="td-bracket-round">
-                        {t("tournamentsPage.draw.thirdPlace")}
+                      <div className="td-bracket td-knockout">
+                        <div className="td-bracket-col">
+                          <div className="td-bracket-round">
+                            {t("tournamentsPage.draw.semifinals")}
+                          </div>
+                          <div className="td-bracket-note">
+                            {t("tournamentsPage.draw.thirdPlaceNote")}
+                          </div>
+                          <div>
+                            {renderBracketMatch(
+                              SEMI_ROUND,
+                              0,
+                              tournament.draw.semifinals?.[0]?.a,
+                              tournament.draw.semifinals?.[0]?.b,
+                              false
+                            )}
+                          </div>
+                          <div>
+                            {renderBracketMatch(
+                              SEMI_ROUND,
+                              1,
+                              tournament.draw.semifinals?.[1]?.a,
+                              tournament.draw.semifinals?.[1]?.b,
+                              false
+                            )}
+                          </div>
+                        </div>
+                        <div className="td-bracket-col">
+                          <div className="td-bracket-round">
+                            {t("tournamentsPage.draw.final")}
+                          </div>
+                          <div>
+                            {renderBracketMatch(
+                              FINAL_ROUND,
+                              0,
+                              tournament.draw.final?.a,
+                              tournament.draw.final?.b,
+                              false
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      {renderBracketMatch(
-                        THIRD_PLACE_ROUND,
-                        0,
-                        tournament.draw.thirdPlace?.a,
-                        tournament.draw.thirdPlace?.b,
-                        false
+
+                      <div className="td-thirdplace">
+                        <div className="td-bracket-round">
+                          {t("tournamentsPage.draw.thirdPlace")}
+                        </div>
+                        {renderBracketMatch(
+                          THIRD_PLACE_ROUND,
+                          0,
+                          tournament.draw.third?.a,
+                          tournament.draw.third?.b,
+                          false
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="td-bracket">
+                        {tournament.draw.rounds.map((round, ri) => (
+                          <div className="td-bracket-col" key={ri}>
+                            <div className="td-bracket-round">
+                              {drawRoundLabel(round.length)}
+                            </div>
+                            {round.length === 2 && (
+                              <div className="td-bracket-note">
+                                {t("tournamentsPage.draw.thirdPlaceNote")}
+                              </div>
+                            )}
+                            {round.map((m, i) => (
+                              <div key={i}>
+                                {renderBracketMatch(ri, i, m.a, m.b, ri === 0)}
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+
+                      {hasThirdPlace(tournament.draw) && (
+                        <div className="td-thirdplace">
+                          <div className="td-bracket-round">
+                            {t("tournamentsPage.draw.thirdPlace")}
+                          </div>
+                          {renderBracketMatch(
+                            THIRD_PLACE_ROUND,
+                            0,
+                            tournament.draw.thirdPlace?.a,
+                            tournament.draw.thirdPlace?.b,
+                            false
+                          )}
+                        </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -1287,34 +1392,69 @@ const TournamentDetail = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {rows.map((row, ri) => (
-                              <tr key={ri}>
-                                <td className="rownum">
-                                  {SCHEDULE_LABELS.match} {ri + 1}
-                                </td>
-                                {SCHEDULE_LABELS.courts.map((_, ci) => {
-                                  const mt = row.cells[ci];
-                                  return (
-                                    <td key={ci} className="cell">
-                                      {mt ? (
-                                        <>
-                                          <div className="t">
-                                            {slotTimeLabel(row, SCHEDULE_LABELS)}
-                                          </div>
-                                          <div>{mt.teamA}</div>
-                                          <div className="vs">
-                                            {SCHEDULE_LABELS.vs}
-                                          </div>
-                                          <div>{mt.teamB}</div>
-                                        </>
-                                      ) : (
-                                        "—"
-                                      )}
-                                    </td>
+                            {(() => {
+                              const out = [];
+                              let curDay = null;
+                              let n = 0;
+                              rows.forEach((row, ri) => {
+                                if (row.day && row.day !== curDay) {
+                                  curDay = row.day;
+                                  n = 0;
+                                  out.push(
+                                    <tr
+                                      key={`d-${ri}`}
+                                      className="td-schedule-dayrow"
+                                    >
+                                      <td
+                                        colSpan={
+                                          SCHEDULE_LABELS.courts.length + 1
+                                        }
+                                      >
+                                        {row.day}
+                                      </td>
+                                    </tr>
                                   );
-                                })}
-                              </tr>
-                            ))}
+                                }
+                                n += 1;
+                                out.push(
+                                  <tr key={ri}>
+                                    <td className="rownum">
+                                      {SCHEDULE_LABELS.match} {n}
+                                    </td>
+                                    {SCHEDULE_LABELS.courts.map((_, ci) => {
+                                      const mt = row.cells[ci];
+                                      const solo = mt && mt.teamA && !mt.teamB;
+                                      return (
+                                        <td key={ci} className="cell">
+                                          {mt ? (
+                                            <>
+                                              <div className="t">
+                                                {slotTimeLabel(
+                                                  row,
+                                                  SCHEDULE_LABELS
+                                                )}
+                                              </div>
+                                              <div>{mt.teamA}</div>
+                                              {!solo && (
+                                                <>
+                                                  <div className="vs">
+                                                    {SCHEDULE_LABELS.vs}
+                                                  </div>
+                                                  <div>{mt.teamB}</div>
+                                                </>
+                                              )}
+                                            </>
+                                          ) : (
+                                            "—"
+                                          )}
+                                        </td>
+                                      );
+                                    })}
+                                  </tr>
+                                );
+                              });
+                              return out;
+                            })()}
                           </tbody>
                         </table>
                       </div>

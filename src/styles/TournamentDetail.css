@@ -359,6 +359,73 @@
   margin-bottom: 8px;
 }
 
+/* ---- Group system ---- */
+.td-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+.td-group {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1rem 1.1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.td-group-title {
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+}
+.td-standings-wrap {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+.td-standings {
+  width: 100%;
+  border-collapse: collapse;
+}
+.td-standings th,
+.td-standings td {
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.td-standings th {
+  color: #8e9bc0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.td-standings td {
+  color: #dfe5f5;
+  font-variant-numeric: tabular-nums;
+}
+.td-standings td.td-standings-name {
+  text-align: left;
+  font-weight: 600;
+  color: #fff;
+}
+.td-standings tbody tr:first-child td {
+  color: #ffd700;
+}
+.td-standings tbody tr:first-child td.td-standings-name {
+  color: #ffd700;
+}
+.td-group-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.td-knockout {
+  margin-top: 1rem;
+}
+
 .td-bracket-slot {
   display: flex;
   align-items: center;
@@ -950,6 +1017,17 @@
   color: #8e9bc0;
   font-style: italic;
   font-size: 0.82rem;
+}
+.td-schedule-table .td-schedule-dayrow td {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  text-align: left;
+  padding: 8px 10px;
 }
 
 .td-participants {

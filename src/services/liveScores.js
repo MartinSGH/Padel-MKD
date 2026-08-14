@@ -3,8 +3,11 @@ import { recomputeDraw, finishedMapFromRows } from "../lib/drawAdvance";
 import {
   computePoints,
   buildLabelToPlayers,
+  stagePoints,
+  groupStagePoints,
   THIRD_PLACE_ROUND,
 } from "../lib/points";
+import { recomputeGroupDraw, resultMapFromRows } from "../lib/groupDraw";
 import { writeTournamentPoints } from "./ranking";
 import { getTournamentRegistrations } from "./registrations";
 
@@ -71,18 +74,21 @@ const afterResultChange = async (tournamentId) => {
     await Promise.all([
       supabase
         .from("live_scores")
-        .select("round, match_index, status, winner, team_a, team_b")
+        .select("round, match_index, status, winner, team_a, team_b, state")
         .eq("tournament_id", tournamentId),
       supabase.from("tournaments").select("draw").eq("id", tournamentId).single(),
     ]);
   if (e1) throw e1;
   if (e2) throw e2;
   const draw = tn?.draw;
+  const isGroup = draw?.system === "group";
 
   // 1) advance the draw (via an RPC so referees — who can't update tournaments
   // directly — can also finish matches; it only touches the draw column).
   if (draw) {
-    const nextDraw = recomputeDraw(draw, finishedMapFromRows(rows || []));
+    const nextDraw = isGroup
+      ? recomputeGroupDraw(draw, resultMapFromRows(rows || []))
+      : recomputeDraw(draw, finishedMapFromRows(rows || []));
     const { error: drawErr } = await supabase.rpc("set_tournament_draw", {
       p_tournament_id: tournamentId,
       p_draw: nextDraw,
@@ -94,9 +100,14 @@ const afterResultChange = async (tournamentId) => {
   const finished = (rows || []).filter((r) => r.status === "finished");
   const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
   const labelToPlayers = buildLabelToPlayers(regs);
-  const getMatchCount = (round) =>
-    round === THIRD_PLACE_ROUND ? 0 : draw?.rounds?.[round]?.length ?? 0;
-  const points = computePoints(finished, labelToPlayers, getMatchCount);
+  const pointsForRound = isGroup
+    ? groupStagePoints
+    : (round) =>
+        stagePoints(
+          round,
+          round === THIRD_PLACE_ROUND ? 0 : draw?.rounds?.[round]?.length ?? 0
+        );
+  const points = computePoints(finished, labelToPlayers, pointsForRound);
   await writeTournamentPoints(tournamentId, points);
 };
 

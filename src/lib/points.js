@@ -8,12 +8,15 @@
 //   Round of 16 (8)        winner 15
 //   First stage (16, 32…)  winner 5
 
-// Sentinel round for the (extra) 3rd-place match — it isn't part of the tree.
-export const THIRD_PLACE_ROUND = -1;
+// Positional round keys used across both systems (a tournament is one system,
+// so these can't collide with the elimination round indices 0..n).
+export const THIRD_PLACE_ROUND = -1; // 3rd-place match (both systems)
+export const SEMI_ROUND = 100; // group system semifinals
+export const FINAL_ROUND = 101; // group system final
 
 const isEmpty = (label) => label == null || label === "" || label === "/";
 
-// Points for the winner / loser of a match, by round match-count.
+// ELIMINATION points for the winner / loser of a match, by round match-count.
 export const stagePoints = (round, matchCount) => {
   if (round === THIRD_PLACE_ROUND) return { win: 50, lose: 0 };
   if (matchCount === 1) return { win: 100, lose: 70 }; // final
@@ -21,6 +24,14 @@ export const stagePoints = (round, matchCount) => {
   if (matchCount === 4) return { win: 30, lose: 0 }; // quarterfinal
   if (matchCount === 8) return { win: 15, lose: 0 }; // round of 16
   return { win: 5, lose: 0 }; // first stage (round of 16+)
+};
+
+// GROUP-SYSTEM points: group win 5, semifinal 50, final 100/70, 3rd 50.
+export const groupStagePoints = (round) => {
+  if (round === THIRD_PLACE_ROUND) return { win: 50, lose: 0 };
+  if (round === FINAL_ROUND) return { win: 100, lose: 70 };
+  if (round === SEMI_ROUND) return { win: 50, lose: 0 };
+  return { win: 5, lose: 0 }; // group match (round 0..3)
 };
 
 // Map a pair label → the account players in it, from the registrations.
@@ -42,9 +53,9 @@ export const buildLabelToPlayers = (registrations = []) => {
 
 // Compute total points per player from the finished matches.
 // finishedMatches: [{ round, match_index, winner, team_a, team_b }]
-// getMatchCount(round): number of matches in that round (for stage detection).
+// pointsForRound(round): { win, lose } for that round (stage detection).
 // Returns [{ player_id, player_name, points }].
-export const computePoints = (finishedMatches, labelToPlayers, getMatchCount) => {
+export const computePoints = (finishedMatches, labelToPlayers, pointsForRound) => {
   const totals = new Map(); // player_id → { player_name, points }
 
   const credit = (label, pts) => {
@@ -62,7 +73,7 @@ export const computePoints = (finishedMatches, labelToPlayers, getMatchCount) =>
 
   finishedMatches.forEach((m) => {
     if (m.winner !== "a" && m.winner !== "b") return;
-    const { win, lose } = stagePoints(m.round, getMatchCount(m.round));
+    const { win, lose } = pointsForRound(m.round);
     const winLabel = m.winner === "a" ? m.team_a : m.team_b;
     const loseLabel = m.winner === "a" ? m.team_b : m.team_a;
     credit(winLabel, win);
