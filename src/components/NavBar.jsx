@@ -279,6 +279,14 @@ function Navbar() {
               </NavLink>
             </Badge>
 
+            <NavLink
+              onClick={handleClick}
+              className={linkClassName}
+              to="/ranking"
+            >
+              {t("navbar.rankList")}
+            </NavLink>
+
             {isMobileView && (
               <div className="mobile-language-switcher">
                 <LanguageSwitcher />

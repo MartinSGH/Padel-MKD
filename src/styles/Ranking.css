@@ -1,0 +1,99 @@
+.rk-page {
+  min-height: 70vh;
+  padding: clamp(5.5rem, 9vw, 8rem) 0 5rem;
+  color: #fff;
+}
+
+.rk-head {
+  margin-bottom: 2rem;
+}
+.rk-eyebrow {
+  display: inline-block;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+}
+.rk-title {
+  font-family: Montserrat, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
+  margin: 0 0 0.4rem;
+}
+.rk-sub {
+  color: #8e9bc0;
+  font-family: Montserrat, sans-serif;
+  max-width: 60ch;
+}
+
+.rk-empty {
+  color: #8e9bc0;
+  padding: 2rem 0;
+}
+
+.rk-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.rk-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #16204a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rk-row-head {
+  background: transparent;
+  border: none;
+  padding: 0 18px;
+  color: #8e9bc0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.rk-rank {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: #8e9bc0;
+  text-align: center;
+}
+.rk-name {
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  word-break: break-word;
+}
+.rk-points {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #ffd700;
+}
+
+.rk-top {
+  border-color: rgba(255, 215, 0, 0.35);
+}
+.rk-top .rk-rank {
+  color: #ffd700;
+}
+.rk-top-1 {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.16), #16204a 60%);
+  border-color: rgba(255, 215, 0, 0.6);
+}
+.rk-top-2 {
+  background: linear-gradient(135deg, rgba(192, 202, 224, 0.14), #16204a 60%);
+}
+.rk-top-3 {
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.16), #16204a 60%);
+}

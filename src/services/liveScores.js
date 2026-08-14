@@ -1,6 +1,13 @@
 import { supabase } from "../lib/supabaseClient";
 import { updateTournament } from "./tournaments";
 import { recomputeDraw, finishedMapFromRows } from "../lib/drawAdvance";
+import {
+  computePoints,
+  buildLabelToPlayers,
+  THIRD_PLACE_ROUND,
+} from "../lib/points";
+import { writeTournamentPoints } from "./ranking";
+import { getTournamentRegistrations } from "./registrations";
 
 // One live match by its bracket position.
 export const getMatch = async (tournamentId, round, matchIndex) => {
@@ -58,22 +65,35 @@ export const saveState = async (id, state) => {
   if (error) throw error;
 };
 
-// Recompute tournaments.draw from every finished match and save it, so winners
-// advance (and edits reflow) automatically.
-const syncDraw = async (tournamentId) => {
+// After any result change: (1) reflow the draw so winners advance and the
+// 3rd-place match fills, and (2) recompute the tournament's ranking points.
+const afterResultChange = async (tournamentId) => {
   const [{ data: rows, error: e1 }, { data: tn, error: e2 }] =
     await Promise.all([
       supabase
         .from("live_scores")
-        .select("round, match_index, status, winner")
+        .select("round, match_index, status, winner, team_a, team_b")
         .eq("tournament_id", tournamentId),
       supabase.from("tournaments").select("draw").eq("id", tournamentId).single(),
     ]);
   if (e1) throw e1;
   if (e2) throw e2;
-  if (!tn?.draw) return;
-  const nextDraw = recomputeDraw(tn.draw, finishedMapFromRows(rows || []));
-  await updateTournament(tournamentId, { draw: nextDraw });
+  const draw = tn?.draw;
+
+  // 1) advance the draw
+  if (draw) {
+    const nextDraw = recomputeDraw(draw, finishedMapFromRows(rows || []));
+    await updateTournament(tournamentId, { draw: nextDraw });
+  }
+
+  // 2) recompute ranking points from the finished matches
+  const finished = (rows || []).filter((r) => r.status === "finished");
+  const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
+  const labelToPlayers = buildLabelToPlayers(regs);
+  const getMatchCount = (round) =>
+    round === THIRD_PLACE_ROUND ? 0 : draw?.rounds?.[round]?.length ?? 0;
+  const points = computePoints(finished, labelToPlayers, getMatchCount);
+  await writeTournamentPoints(tournamentId, points);
 };
 
 // Admin: finish a match with the final state → mark finished + advance the draw.
@@ -88,7 +108,7 @@ export const endMatch = async (id, tournamentId, state, winner) => {
     })
     .eq("id", id);
   if (error) throw error;
-  await syncDraw(tournamentId);
+  await afterResultChange(tournamentId);
 };
 
 // Admin: discard a match entirely (reset it back to "not started"). Removes the
@@ -96,7 +116,7 @@ export const endMatch = async (id, tournamentId, state, winner) => {
 export const discardMatch = async (id, tournamentId) => {
   const { error } = await supabase.from("live_scores").delete().eq("id", id);
   if (error) throw error;
-  await syncDraw(tournamentId);
+  await afterResultChange(tournamentId);
 };
 
 // Admin: edit an already-finished match → save + reflow the draw.
@@ -106,14 +126,15 @@ export const editMatch = async (id, tournamentId, state, winner) => {
     .update({ state, winner, status: winner ? "finished" : "live" })
     .eq("id", id);
   if (error) throw error;
-  await syncDraw(tournamentId);
+  await afterResultChange(tournamentId);
 };
 
-// Status of every started match in one tournament (to badge the bracket).
+// Status + live score of every started match in one tournament (to show the
+// live result directly on the bracket, e.g. on a big screen).
 export const getTournamentMatches = async (tournamentId) => {
   const { data, error } = await supabase
     .from("live_scores")
-    .select("round, match_index, status, winner")
+    .select("round, match_index, status, winner, state")
     .eq("tournament_id", tournamentId);
   if (error) throw error;
   return data || [];

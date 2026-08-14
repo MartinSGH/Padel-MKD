@@ -312,6 +312,32 @@
   width: 100%;
   margin-top: 4px;
 }
+.ls-endpick {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  background: rgba(255, 215, 0, 0.06);
+  text-align: center;
+}
+.ls-endpick-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 8px;
+}
+.ls-endpick-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ls-endpick-btns .ls-btn {
+  flex: 1;
+  min-width: 90px;
+}
+
 .ls-btn-danger {
   background: rgba(255, 90, 90, 0.12);
   color: #ff8a8a;

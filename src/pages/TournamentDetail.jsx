@@ -21,6 +21,9 @@ import { useNotifications } from "../context/NotificationsContext";
 import { getMyProfile } from "../services/profile";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
 import { scheduleGrid, slotTimeLabel } from "../lib/scheduleBuild";
+import { gameLabel } from "../lib/padelScore";
+import { hasThirdPlace } from "../lib/drawAdvance";
+import { THIRD_PLACE_ROUND } from "../lib/points";
 import {
   getTournamentMatches,
   subscribeTournament,
@@ -395,6 +398,7 @@ const TournamentDetail = () => {
       map[`${rrow.round}:${rrow.match_index}`] = {
         status: rrow.status,
         winner: rrow.winner,
+        state: rrow.state,
       };
     });
     setMatchStatuses(map);
@@ -712,6 +716,87 @@ const TournamentDetail = () => {
     if (matchCount === 2) return t("tournamentsPage.draw.semifinals");
     if (matchCount === 4) return t("tournamentsPage.draw.quarterfinals");
     return t("tournamentsPage.draw.roundOf", { n: matchCount * 2 });
+  };
+
+  // One bracket match cell (with live badge + inline score). Shared by the main
+  // bracket and the 3rd-place match box.
+  const renderBracketMatch = (round, matchIndex, rawA, rawB, firstRound) => {
+    const st = matchStatuses[`${round}:${matchIndex}`];
+    const aReal = !!(rawA && rawA !== "/");
+    const bReal = !!(rawB && rawB !== "/");
+    const playable = aReal && bReal;
+    const open = () =>
+      playable &&
+      setScoreMatch({ round, matchIndex, teamA: rawA, teamB: rawB });
+    const sc = st?.state;
+    const gl = sc ? gameLabel(sc) : null;
+    const slotScore = (side) => {
+      if (!sc) return null;
+      const idx = side === "a" ? 0 : 1;
+      const games = (sc.setsGames || []).map((s) => s[idx]);
+      const pt =
+        st?.status === "live" && !sc.winner && gl ? gl[side] : null;
+      return { games, pt };
+    };
+    const label = (raw) => raw || (firstRound ? t("tournamentsPage.draw.bye") : "—");
+    const renderSlot = (side, raw, real) => {
+      const s = real ? slotScore(side) : null;
+      return (
+        <span
+          className={`td-bracket-slot${
+            st?.status === "finished" && st.winner === side ? " is-winner" : ""
+          }`}
+        >
+          <span className="td-bracket-team">{label(raw)}</span>
+          {s && (
+            <span className="td-bracket-score">
+              {s.games.map((g, gi) => (
+                <span className="td-bg" key={gi}>
+                  {g}
+                </span>
+              ))}
+              {s.pt != null && (
+                <>
+                  <span className="td-bdiv" />
+                  <span className="td-bp">{s.pt}</span>
+                </>
+              )}
+            </span>
+          )}
+        </span>
+      );
+    };
+    return (
+      <div
+        className={`td-bracket-match${
+          playable ? " td-bracket-clickable" : ""
+        }${st?.status === "live" ? " is-live" : ""}`}
+        role={playable ? "button" : undefined}
+        tabIndex={playable ? 0 : undefined}
+        onClick={open}
+        onKeyDown={
+          playable
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  open();
+                }
+              }
+            : undefined
+        }
+      >
+        {st?.status === "live" && (
+          <span className="td-bracket-badge live">
+            ● {t("tournamentsPage.live.live", "LIVE")}
+          </span>
+        )}
+        {st?.status === "finished" && (
+          <span className="td-bracket-badge done">✓</span>
+        )}
+        {renderSlot("a", rawA, aReal)}
+        {renderSlot("b", rawB, bReal)}
+      </div>
+    );
   };
 
   return (
@@ -1100,76 +1185,34 @@ const TournamentDetail = () => {
                         <div className="td-bracket-round">
                           {drawRoundLabel(round.length)}
                         </div>
-                        {round.map((m, i) => {
-                          const st = matchStatuses[`${ri}:${i}`];
-                          const playable =
-                            m.a && m.b && m.a !== "/" && m.b !== "/";
-                          const open = () =>
-                            playable &&
-                            setScoreMatch({
-                              round: ri,
-                              matchIndex: i,
-                              teamA: m.a,
-                              teamB: m.b,
-                            });
-                          return (
-                            <div
-                              className={`td-bracket-match${
-                                playable ? " td-bracket-clickable" : ""
-                              }${st?.status === "live" ? " is-live" : ""}`}
-                              key={i}
-                              role={playable ? "button" : undefined}
-                              tabIndex={playable ? 0 : undefined}
-                              onClick={open}
-                              onKeyDown={
-                                playable
-                                  ? (e) => {
-                                      if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault();
-                                        open();
-                                      }
-                                    }
-                                  : undefined
-                              }
-                            >
-                              {st?.status === "live" && (
-                                <span className="td-bracket-badge live">
-                                  ● {t("tournamentsPage.live.live", "LIVE")}
-                                </span>
-                              )}
-                              {st?.status === "finished" && (
-                                <span className="td-bracket-badge done">✓</span>
-                              )}
-                              <span
-                                className={`td-bracket-slot${
-                                  st?.status === "finished" &&
-                                  st.winner === "a"
-                                    ? " is-winner"
-                                    : ""
-                                }`}
-                              >
-                                {ri === 0
-                                  ? m.a || t("tournamentsPage.draw.bye")
-                                  : m.a || "—"}
-                              </span>
-                              <span
-                                className={`td-bracket-slot${
-                                  st?.status === "finished" &&
-                                  st.winner === "b"
-                                    ? " is-winner"
-                                    : ""
-                                }`}
-                              >
-                                {ri === 0
-                                  ? m.b || t("tournamentsPage.draw.bye")
-                                  : m.b || "—"}
-                              </span>
-                            </div>
-                          );
-                        })}
+                        {round.length === 2 && (
+                          <div className="td-bracket-note">
+                            {t("tournamentsPage.draw.thirdPlaceNote")}
+                          </div>
+                        )}
+                        {round.map((m, i) => (
+                          <div key={i}>
+                            {renderBracketMatch(ri, i, m.a, m.b, ri === 0)}
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
+
+                  {hasThirdPlace(tournament.draw) && (
+                    <div className="td-thirdplace">
+                      <div className="td-bracket-round">
+                        {t("tournamentsPage.draw.thirdPlace")}
+                      </div>
+                      {renderBracketMatch(
+                        THIRD_PLACE_ROUND,
+                        0,
+                        tournament.draw.thirdPlace?.a,
+                        tournament.draw.thirdPlace?.b,
+                        false
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

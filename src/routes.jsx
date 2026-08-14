@@ -20,6 +20,7 @@ import NationalChampionship2026 from "./pages/NationalChampionship2026";
 import Clubs from "./pages/Clubs";
 import Tournaments from "./pages/Tournaments";
 import TournamentDetail from "./pages/TournamentDetail";
+import Ranking from "./pages/Ranking";
 const routes = createBrowserRouter([
   {
     path: "/",
@@ -64,6 +65,10 @@ const routes = createBrowserRouter([
       {
         path: "/tournaments/:id",
         element: <TournamentDetail />,
+      },
+      {
+        path: "/ranking",
+        element: <Ranking />,
       },
       {
         path: "/wip",

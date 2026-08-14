@@ -49,7 +49,33 @@ export const recomputeDraw = (draw, finishedMap = {}) => {
     });
   }
 
+  // 3rd-place match: the two semifinal LOSERS play for 3rd place. The semifinal
+  // is the second-to-last round (2 matches). We fill it once each semifinal has
+  // a finished result; otherwise it stays an empty box so people know it exists.
+  const sfIndex = rounds.length - 2;
+  const thirdPlace = { a: null, b: null };
+  if (sfIndex >= 0 && rounds[sfIndex] && rounds[sfIndex].length === 2) {
+    const loser = (i) => {
+      const key = `${sfIndex}:${i}`;
+      const m = rounds[sfIndex][i];
+      if (!m) return null;
+      if (finishedMap[key] === "a") return isEmptySlot(m.b) ? null : m.b;
+      if (finishedMap[key] === "b") return isEmptySlot(m.a) ? null : m.a;
+      return null;
+    };
+    thirdPlace.a = loser(0);
+    thirdPlace.b = loser(1);
+    return { ...draw, rounds, thirdPlace };
+  }
+
   return { ...draw, rounds };
+};
+
+// Does this draw have a semifinal round (and therefore a 3rd-place match)?
+export const hasThirdPlace = (draw) => {
+  if (!draw || !Array.isArray(draw.rounds)) return false;
+  const sf = draw.rounds[draw.rounds.length - 2];
+  return !!sf && sf.length === 2;
 };
 
 // Convenience: build the finishedMap the recompute expects from live_scores rows.

@@ -9,6 +9,7 @@ import {
   updateMyPassword,
 } from "../services/profile";
 import { getAllClubs } from "../services/clubs";
+import { getPlayerPoints } from "../services/ranking";
 import { useNotifications } from "../context/NotificationsContext";
 import "../styles/Profile.css";
 
@@ -41,6 +42,7 @@ export default function Profile() {
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const [clubs, setClubs] = useState([]);
+  const [rankingPoints, setRankingPoints] = useState(0);
 
   useEffect(() => {
     getAllClubs()
@@ -52,6 +54,9 @@ export default function Profile() {
     try {
       const data = await getMyProfile();
       setProfile(data);
+      getPlayerPoints(data.id)
+        .then(setRankingPoints)
+        .catch(() => setRankingPoints(0));
     } catch (err) {
       setError(err.message || "Failed to load profile.");
     } finally {
@@ -232,6 +237,11 @@ export default function Profile() {
 
           <div className="profile-stats">
             <div className="profile-stat-card highlight">
+              <span>Ranking Points</span>
+              <strong>{rankingPoints}</strong>
+            </div>
+
+            <div className="profile-stat-card">
               <span>Total Points</span>
               <strong>{profile.total_points}</strong>
             </div>

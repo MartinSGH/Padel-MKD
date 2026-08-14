@@ -12,6 +12,7 @@ export const DEFAULT_CONFIG = {
   goldenPoint: true,
   thirdSetSuperTB: true,
   superTBto: 10,
+  gamesPerSet: 6,
   bestOf: 3,
 };
 
@@ -19,6 +20,7 @@ const normalizeConfig = (c = {}) => ({
   goldenPoint: c.goldenPoint !== undefined ? !!c.goldenPoint : true,
   thirdSetSuperTB: c.thirdSetSuperTB !== undefined ? !!c.thirdSetSuperTB : true,
   superTBto: c.superTBto || 10,
+  gamesPerSet: c.gamesPerSet || 6,
   bestOf: 3,
 });
 
@@ -102,10 +104,11 @@ const replay = (config, history) => {
       else gB += 1;
       pA = 0;
       pB = 0;
-      if ((gA >= 6 || gB >= 6) && Math.abs(gA - gB) >= 2) {
+      const target = cfg.gamesPerSet;
+      if ((gA >= target || gB >= target) && Math.abs(gA - gB) >= 2) {
         finishSet(gA, gB);
-      } else if (gA === 6 && gB === 6) {
-        inTB = true; // enter the tie-break
+      } else if (gA === target && gB === target) {
+        inTB = true; // enter the tie-break at target-all
       }
     }
   }

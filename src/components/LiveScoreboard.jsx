@@ -52,6 +52,7 @@ const LiveScoreboard = ({
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [editing, setEditing] = useState(false);
+  const [endPicking, setEndPicking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [, setTick] = useState(0);
   const sstateRef = useRef(sstate);
@@ -145,11 +146,20 @@ const LiveScoreboard = ({
     }
   };
 
-  const end = async () => {
-    if (!sstate?.winner || !match) return;
+  // End the match. If the score already has a winner, use it. Otherwise the
+  // caller passes the winning side (forfeit / retirement / walkover).
+  const end = async (forcedWinner) => {
+    if (!match) return;
+    const winnerSideFinal = sstate?.winner || forcedWinner;
+    if (!winnerSideFinal) {
+      setEndPicking(true); // no natural winner yet → ask who won
+      return;
+    }
+    const finalState = { ...sstate, winner: winnerSideFinal };
     setBusy(true);
     try {
-      await endMatch(match.id, tournament.id, sstate, sstate.winner);
+      await endMatch(match.id, tournament.id, finalState, winnerSideFinal);
+      setEndPicking(false);
       await load();
       onDrawChanged && onDrawChanged();
     } catch (e) {
@@ -322,6 +332,19 @@ const LiveScoreboard = ({
                     />
                     {L("superTB", "3rd set super tie-break")}
                   </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={config.gamesPerSet === 4}
+                      onChange={(e) =>
+                        setConfig((c) => ({
+                          ...c,
+                          gamesPerSet: e.target.checked ? 4 : 6,
+                        }))
+                      }
+                    />
+                    {L("shortSets", "Short sets (to 4)")}
+                  </label>
                 </div>
                 <button
                   type="button"
@@ -456,13 +479,46 @@ const LiveScoreboard = ({
                     <button
                       type="button"
                       className="ls-btn ls-btn-primary"
-                      onClick={end}
-                      disabled={busy || !sstate?.winner}
+                      onClick={() => end()}
+                      disabled={busy}
                     >
                       {L("end", "End match")}
                     </button>
                   )}
                 </div>
+
+                {endPicking && !sstate?.winner && (
+                  <div className="ls-endpick">
+                    <span className="ls-endpick-label">
+                      {L("whoWon", "Who won?")}
+                    </span>
+                    <div className="ls-endpick-btns">
+                      <button
+                        type="button"
+                        className="ls-btn ls-btn-ghost"
+                        onClick={() => end("a")}
+                        disabled={busy}
+                      >
+                        {nameA}
+                      </button>
+                      <button
+                        type="button"
+                        className="ls-btn ls-btn-ghost"
+                        onClick={() => end("b")}
+                        disabled={busy}
+                      >
+                        {nameB}
+                      </button>
+                      <button
+                        type="button"
+                        className="ls-btn ls-btn-ghost"
+                        onClick={() => setEndPicking(false)}
+                      >
+                        {L("cancel", "Cancel")}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

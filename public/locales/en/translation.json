@@ -7,7 +7,17 @@
     "whatIsPadel": "What is Padel?",
     "federation": "Federation",
     "newsMedia": "News and Media",
-    "competitions": "Competitions"
+    "competitions": "Competitions",
+    "rankList": "Rank List"
+  },
+  "ranking": {
+    "eyebrow": "Macedonian Padel Federation",
+    "title": "Rank List",
+    "subtitle": "Player ranking points earned from tournament results.",
+    "player": "Player",
+    "points": "Points",
+    "loading": "Loading…",
+    "empty": "No ranking points yet."
   },
   "jumbo": {
     "slide1": {
@@ -65,7 +75,9 @@
       "final": "Final",
       "semifinals": "Semifinals",
       "quarterfinals": "Quarterfinals",
-      "roundOf": "Round of {{n}}"
+      "roundOf": "Round of {{n}}",
+      "thirdPlace": "Match for 3rd place",
+      "thirdPlaceNote": "Losers play for 3rd place"
     },
     "schedule": {
       "tab": "Schedule",
@@ -79,6 +91,9 @@
       "startsOn": "Starts on",
       "start": "Start match",
       "end": "End match",
+      "shortSets": "Short sets (to 4)",
+      "whoWon": "Who won? (forfeit / retirement)",
+      "cancel": "Cancel",
       "discard": "Discard match",
       "discardConfirm": "Discard this match and reset it to not started?",
       "edit": "Edit result",
