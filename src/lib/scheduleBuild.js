@@ -5,8 +5,8 @@
 //
 // Elimination: matches taken in bracket order.
 // Group system: round-robin round by round, group by group (a group's two
-//   matches of a round run at the same time on the two courts), split across
-//   two days — Сабота = rounds 1 & 2, Недела = round 3 + semifinals + final.
+//   matches of a round run at the same time on the two courts). Day 1 (Сабота)
+//   holds ALL group matches (12 per court); Day 2 (Недела) is semifinals + final.
 
 import { SEMI_ROUND, FINAL_ROUND, THIRD_PLACE_ROUND } from "./points.js";
 
@@ -98,8 +98,9 @@ const groupGrid = (draw, config) => {
 
   // [dayIndex, courtA cell, courtB cell] per slot, in play order.
   const slots = [];
-  // Сабота: round-robin rounds 1 & 2 of every group.
-  [0, 1].forEach((r) => {
+  // Сабота: ALL group matches — round-robin rounds 1, 2 & 3 of every group
+  // (12 slots → 12 matches per court).
+  [0, 1, 2].forEach((r) => {
     for (let g = 0; g < ng; g += 1) {
       slots.push([
         0,
@@ -108,14 +109,6 @@ const groupGrid = (draw, config) => {
       ]);
     }
   });
-  // Недела: round-robin round 3.
-  for (let g = 0; g < ng; g += 1) {
-    slots.push([
-      1,
-      groupCell(draw, g, RR_ROUNDS[2][0]),
-      groupCell(draw, g, RR_ROUNDS[2][1]),
-    ]);
-  }
   // Недела: semifinals, then final + 3rd place.
   slots.push([
     1,
