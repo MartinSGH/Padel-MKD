@@ -1467,3 +1467,84 @@
     min-width: 100%;
   }
 }
+
+/* ---- Quarterfinal draw (group system) ---------------------------------- */
+.admin-qf-draw {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-qf-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+}
+
+.admin-qf-locked {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.admin-qf-lock-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.admin-qf-rank {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(240, 198, 102, 0.9);
+  margin-right: 2px;
+}
+
+.admin-qf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.admin-qf-match {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-qf-match-head {
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.admin-qf-match .admin-bracket-slot-drop {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 6px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.admin-qf-match .admin-bracket-slot-drop .admin-manual-chip {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.admin-qf-match .admin-bracket-slot-drop:not(.filled) {
+  outline: 1px dashed rgba(255, 255, 255, 0.12);
+  outline-offset: -5px;
+}

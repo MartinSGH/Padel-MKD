@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { updateTournament } from "../services/tournaments";
+import { getTournamentMatches } from "../services/liveScores";
 import {
   autoAssignGroups,
   buildGroupDraw,
+  groupQualifiers,
+  allGroupsComplete,
+  recomputeGroupDraw,
+  resultMapFromRows,
   GROUP_COUNT,
   GROUP_NAMES,
+  QUARTER_COUNT,
 } from "../lib/groupDraw";
 
 const escapeHtml = (str) =>
@@ -48,6 +54,176 @@ const AdminGroupBuilder = ({
   const [groups, setGroups] = useState(seed);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+
+  // ---- Quarterfinal draw (top 2 of each group, drawn manually) -------------
+  const seedQf = () => {
+    const stored = initialDraw?.quarterfinals;
+    return Array.from({ length: QUARTER_COUNT }, (_, i) => ({
+      a: (stored && stored[i]?.a) || null,
+      b: (stored && stored[i]?.b) || null,
+    }));
+  };
+  const [qf, setQf] = useState(seedQf);
+  const [resultMap, setResultMap] = useState({});
+  const [qfBusy, setQfBusy] = useState(false);
+  const [qfMsg, setQfMsg] = useState("");
+
+  // Load the group results so we can list the qualifiers (top 2 per group).
+  useEffect(() => {
+    let active = true;
+    if (!tournamentId) return undefined;
+    getTournamentMatches(tournamentId)
+      .then((rows) => {
+        if (active) setResultMap(resultMapFromRows(rows));
+      })
+      .catch(() => {
+        if (active) setResultMap({});
+      });
+    return () => {
+      active = false;
+    };
+  }, [tournamentId]);
+
+  const groupDrawPublished =
+    published && initialDraw?.system === "group";
+  const qualifiers = groupDrawPublished
+    ? groupQualifiers(initialDraw, resultMap)
+    : [];
+  const groupsDone = groupDrawPublished
+    ? allGroupsComplete(initialDraw, resultMap)
+    : false;
+
+  // Group-stage progress (e.g. 24 matches for 4 groups of 4), so the admin can
+  // see how close the quarterfinal draw is to unlocking.
+  const totalGroupMatches = groupDrawPublished
+    ? (initialDraw.groups || []).reduce(
+        (n, g) => n + (g.matches?.length || 0),
+        0
+      )
+    : 0;
+  const finishedGroupMatches = groupDrawPublished
+    ? (initialDraw.groups || []).reduce(
+        (n, g, gi) =>
+          n +
+          (g.matches || []).filter((_, mi) => {
+            const r = resultMap[`${gi}:${mi}`];
+            return r && (r.winner === "a" || r.winner === "b");
+          }).length,
+        0
+      )
+    : 0;
+
+  // Flat list of qualifier chips: { id, label, groupName, rank }.
+  const qualifierChips = [];
+  qualifiers.forEach((q) => {
+    q.teams.forEach((label, ri) => {
+      if (label) {
+        qualifierChips.push({
+          id: label,
+          label,
+          groupName: q.name,
+          rank: ri + 1,
+        });
+      }
+    });
+  });
+
+  const placedQf = new Set();
+  qf.forEach((m) => {
+    if (m.a) placedQf.add(m.a);
+    if (m.b) placedQf.add(m.b);
+  });
+  const qfPool = qualifierChips.filter((c) => !placedQf.has(c.label));
+  const qfPlacedCount = qf.reduce(
+    (n, m) => n + (m.a ? 1 : 0) + (m.b ? 1 : 0),
+    0
+  );
+
+  const placeQf = (label, idx, slot) => {
+    setQf((prev) => {
+      const next = prev.map((m) => ({ ...m }));
+      let ci = -1;
+      let cs = null;
+      next.forEach((m, i) => {
+        if (m.a === label) {
+          ci = i;
+          cs = "a";
+        }
+        if (m.b === label) {
+          ci = i;
+          cs = "b";
+        }
+      });
+      const occupant = next[idx][slot];
+      next[idx][slot] = label;
+      if (ci >= 0) next[ci][cs] = occupant || null;
+      return next;
+    });
+  };
+
+  const removeQf = (label) => {
+    setQf((prev) =>
+      prev.map((m) => ({
+        a: m.a === label ? null : m.a,
+        b: m.b === label ? null : m.b,
+      }))
+    );
+  };
+
+  const clearQf = () =>
+    setQf(Array.from({ length: QUARTER_COUNT }, () => ({ a: null, b: null })));
+
+  const onQfChipDragStart = (e, label) => {
+    e.dataTransfer.setData("text/plain", label);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const onQfSlotDrop = (e, idx, slot) => {
+    e.preventDefault();
+    const label = e.dataTransfer.getData("text/plain");
+    if (label) placeQf(label, idx, slot);
+  };
+  const onQfPoolDrop = (e) => {
+    e.preventDefault();
+    const label = e.dataTransfer.getData("text/plain");
+    if (label) removeQf(label);
+  };
+
+  const handlePublishQf = async () => {
+    // Preserve the already-published group structure (so group results keep
+    // mapping to the same match positions); only set the QF pairings and let the
+    // later rounds recompute from any results already in.
+    const base =
+      initialDraw?.system === "group" && Array.isArray(initialDraw.groups)
+        ? initialDraw
+        : null;
+    if (!base) {
+      setQfMsg("Publish the group draw first.");
+      return;
+    }
+    setQfBusy(true);
+    setQfMsg("");
+    try {
+      const quarterfinals = qf.map((m) => ({
+        a: m.a || null,
+        b: m.b || null,
+      }));
+      const draw = recomputeGroupDraw(
+        { ...base, quarterfinals },
+        resultMap
+      );
+      await updateTournament(tournamentId, { draw });
+      const rows = await getTournamentMatches(tournamentId).catch(() => []);
+      setResultMap(resultMapFromRows(rows));
+      onPublishedChange(true);
+      setQfMsg(
+        "Quarterfinal draw published — it's now live on the Draw and Schedule tabs."
+      );
+    } catch (err) {
+      setQfMsg(err.message || "Failed to publish the quarterfinal draw.");
+    } finally {
+      setQfBusy(false);
+    }
+  };
 
   const placedIds = new Set();
 
@@ -232,6 +408,23 @@ const AdminGroupBuilder = ({
     })
     .join("");
 
+  // Quarterfinal boxes: show the drawn pairing where set, blank lines otherwise.
+  const qfBlocks = qf
+    .map(
+      (m, i) => `
+        <div class="match qf-${i < 2 ? "top" : "bottom"}">
+          <div class="match-title">QF ${i + 1}</div>
+          <div class="match-team">
+            ${m.a ? escapeHtml(m.a) : "__________________"}
+          </div>
+          <div class="match-team">
+            ${m.b ? escapeHtml(m.b) : "__________________"}
+          </div>
+        </div>
+      `
+    )
+    .join("");
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -308,15 +501,16 @@ const AdminGroupBuilder = ({
           display: grid;
 
           /*
-            Groups | Semifinals | 3rd Place | Final
+            Groups | Quarterfinals | Semifinals | 3rd Place | Final
           */
           grid-template-columns:
-            1.35fr
+            1.25fr
             1fr
-            0.9fr
-            0.9fr;
+            1fr
+            0.85fr
+            0.85fr;
 
-          column-gap: 28px;
+          column-gap: 22px;
 
           align-items: center;
           justify-content: center;
@@ -415,6 +609,19 @@ const AdminGroupBuilder = ({
           justify-content: center;
 
           gap: 90px;
+
+          position: relative;
+        }
+
+        .quarterfinals {
+          height: 100%;
+
+          display: flex;
+          flex-direction: column;
+
+          justify-content: center;
+
+          gap: 16px;
 
           position: relative;
         }
@@ -634,6 +841,19 @@ const AdminGroupBuilder = ({
         </div>
 
 
+        <!-- QUARTERFINALS -->
+
+        <div class="quarterfinals">
+
+          <div class="column-title">
+            Quarterfinals
+          </div>
+
+          ${qfBlocks}
+
+        </div>
+
+
         <!-- SEMIFINALS -->
 
         <div class="semifinals">
@@ -645,15 +865,15 @@ const AdminGroupBuilder = ({
           <div class="match semi-top">
 
             <div class="match-title">
-              G1 - G4
+              Semifinal 1
             </div>
 
             <div class="match-team">
-              G1 — __________________
+              __________________
             </div>
 
             <div class="match-team">
-              G4 — __________________
+              __________________
             </div>
 
           </div>
@@ -662,15 +882,15 @@ const AdminGroupBuilder = ({
           <div class="match semi-bottom">
 
             <div class="match-title">
-              G2 - G3
+              Semifinal 2
             </div>
 
             <div class="match-team">
-              G2 — __________________
+              __________________
             </div>
 
             <div class="match-team">
-              G3 — __________________
+              __________________
             </div>
 
           </div>
@@ -907,6 +1127,132 @@ const AdminGroupBuilder = ({
         ))}
 
       </div>
+
+      {groupDrawPublished && (
+        <div className="admin-qf-draw">
+          <div className="admin-rescue-head">
+            <h3>Quarterfinal draw</h3>
+            <p>
+              The top 2 of every group qualify (8 teams). Once every group match
+              is finished, drag each qualifier into a quarterfinal slot to set
+              the matchups manually, then publish — the semifinals, final and
+              3rd-place match then fill in automatically as results come in.
+            </p>
+          </div>
+
+          {!groupsDone ? (
+            <div className="admin-qf-locked">
+              <span className="admin-qf-lock-icon" aria-hidden="true">
+                🔒
+              </span>
+              <div>
+                <strong>Unlocks when the group stage is finished.</strong>
+                <p className="admin-qf-hint">
+                  {finishedGroupMatches}/{totalGroupMatches} group matches
+                  played. The 8 qualifiers appear here once all results are in.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="admin-draw-summary">
+                <span className="admin-count-pill">
+                  {qfPlacedCount}/{QUARTER_COUNT * 2} placed
+                </span>
+                <button
+                  type="button"
+                  className="admin-btn admin-edit-btn"
+                  onClick={clearQf}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn approve"
+                  onClick={handlePublishQf}
+                  disabled={qfBusy || qfPlacedCount === 0}
+                >
+                  {qfBusy ? "Publishing…" : "Publish quarterfinals"}
+                </button>
+              </div>
+
+              {qfMsg && <p className="admin-draw-publish-msg">{qfMsg}</p>}
+
+              <div className="admin-manual-draw">
+                <div
+                  className="admin-manual-pool"
+                  onDragOver={allow}
+                  onDrop={onQfPoolDrop}
+                >
+                  <div className="admin-manual-pool-head">
+                    Qualifiers ({qfPool.length})
+                  </div>
+                  {qfPool.length === 0 ? (
+                    <span className="admin-manual-pool-empty">
+                      All qualifiers placed.
+                    </span>
+                  ) : (
+                    qfPool.map((c) => (
+                      <div
+                        key={c.id}
+                        className="admin-manual-chip"
+                        draggable
+                        onDragStart={(e) => onQfChipDragStart(e, c.label)}
+                      >
+                        <span className="admin-qf-rank">
+                          {c.groupName} · #{c.rank}
+                        </span>
+                        <span>{c.label}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="admin-qf-grid">
+                  {qf.map((m, i) => (
+                    <div className="admin-qf-match" key={i}>
+                      <div className="admin-qf-match-head">QF {i + 1}</div>
+                      {["a", "b"].map((slot) => {
+                        const label = m[slot];
+                        return (
+                          <div
+                            key={slot}
+                            className={`admin-bracket-slot admin-bracket-slot-drop${
+                              label ? " filled" : ""
+                            }`}
+                            onDragOver={allow}
+                            onDrop={(e) => onQfSlotDrop(e, i, slot)}
+                          >
+                            {label ? (
+                              <div
+                                className="admin-manual-chip"
+                                draggable
+                                onDragStart={(e) => onQfChipDragStart(e, label)}
+                              >
+                                <span>{label}</span>
+                                <button
+                                  type="button"
+                                  className="admin-manual-remove"
+                                  onClick={() => removeQf(label)}
+                                  aria-label="Remove"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="admin-manual-empty">/</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
     </div>
   );

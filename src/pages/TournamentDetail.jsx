@@ -23,7 +23,12 @@ import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
 import { scheduleGrid, slotTimeLabel } from "../lib/scheduleBuild";
 import { gameLabel } from "../lib/padelScore";
 import { hasThirdPlace } from "../lib/drawAdvance";
-import { THIRD_PLACE_ROUND, SEMI_ROUND, FINAL_ROUND } from "../lib/points";
+import {
+  THIRD_PLACE_ROUND,
+  SEMI_ROUND,
+  FINAL_ROUND,
+  QUARTER_ROUND,
+} from "../lib/points";
 import { groupStandings } from "../lib/groupDraw";
 import {
   getTournamentMatches,
@@ -1233,6 +1238,22 @@ const TournamentDetail = () => {
                       </div>
 
                       <div className="td-bracket td-knockout">
+                        <div className="td-bracket-col">
+                          <div className="td-bracket-round">
+                            {t("tournamentsPage.draw.quarterfinals")}
+                          </div>
+                          {[0, 1, 2, 3].map((qi) => (
+                            <div key={qi}>
+                              {renderBracketMatch(
+                                QUARTER_ROUND,
+                                qi,
+                                tournament.draw.quarterfinals?.[qi]?.a,
+                                tournament.draw.quarterfinals?.[qi]?.b,
+                                false
+                              )}
+                            </div>
+                          ))}
+                        </div>
                         <div className="td-bracket-col">
                           <div className="td-bracket-round">
                             {t("tournamentsPage.draw.semifinals")}

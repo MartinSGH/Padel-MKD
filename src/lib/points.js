@@ -11,6 +11,7 @@
 // Positional round keys used across both systems (a tournament is one system,
 // so these can't collide with the elimination round indices 0..n).
 export const THIRD_PLACE_ROUND = -1; // 3rd-place match (both systems)
+export const QUARTER_ROUND = 102; // group system quarterfinals (top 2 per group)
 export const SEMI_ROUND = 100; // group system semifinals
 export const FINAL_ROUND = 101; // group system final
 
@@ -26,11 +27,14 @@ export const stagePoints = (round, matchCount) => {
   return { win: 5, lose: 0 }; // first stage (round of 16+)
 };
 
-// GROUP-SYSTEM points: group win 5, semifinal 50, final 100/70, 3rd 50.
+// GROUP-SYSTEM points: group win 5, quarterfinal 30, semifinal 50, final
+// 100/70, 3rd 50. (Quarterfinals only exist in the top-2-advance format; older
+// group draws never produce a round-102 match, so their scoring is unchanged.)
 export const groupStagePoints = (round) => {
   if (round === THIRD_PLACE_ROUND) return { win: 50, lose: 0 };
   if (round === FINAL_ROUND) return { win: 100, lose: 70 };
   if (round === SEMI_ROUND) return { win: 50, lose: 0 };
+  if (round === QUARTER_ROUND) return { win: 30, lose: 0 };
   return { win: 5, lose: 0 }; // group match (round 0..3)
 };
 

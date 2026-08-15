@@ -8,7 +8,12 @@
 //   matches of a round run at the same time on the two courts). Day 1 (Сабота)
 //   holds ALL group matches (12 per court); Day 2 (Недела) is semifinals + final.
 
-import { SEMI_ROUND, FINAL_ROUND, THIRD_PLACE_ROUND } from "./points.js";
+import {
+  SEMI_ROUND,
+  FINAL_ROUND,
+  THIRD_PLACE_ROUND,
+  QUARTER_ROUND,
+} from "./points.js";
 
 export const DEFAULT_SCHEDULE = { startTime: "12:00", intervalMinutes: 60 };
 const COURTS = 2;
@@ -109,16 +114,29 @@ const groupGrid = (draw, config) => {
       ]);
     }
   });
-  // Недела: semifinals, then final + 3rd place.
+  // Недела: quarterfinals first — 4 matches over two slots (two courts) — then
+  // the semifinals. The QF pairings come from the admin's manual draw.
+  const qf = Array.isArray(draw.quarterfinals) ? draw.quarterfinals : [];
+  const qfPh = { a: "Квалификант", b: "Квалификант" };
+  slots.push([
+    1,
+    koCell(QUARTER_ROUND, 0, qf[0], qfPh),
+    koCell(QUARTER_ROUND, 1, qf[1], qfPh),
+  ]);
+  slots.push([
+    1,
+    koCell(QUARTER_ROUND, 2, qf[2], qfPh),
+    koCell(QUARTER_ROUND, 3, qf[3], qfPh),
+  ]);
   slots.push([
     1,
     koCell(SEMI_ROUND, 0, draw.semifinals?.[0], {
-      a: "Победник Група 1",
-      b: "Победник Група 4",
+      a: "Победник ЧФ",
+      b: "Победник ЧФ",
     }),
     koCell(SEMI_ROUND, 1, draw.semifinals?.[1], {
-      a: "Победник Група 2",
-      b: "Победник Група 3",
+      a: "Победник ЧФ",
+      b: "Победник ЧФ",
     }),
   ]);
   slots.push([
