@@ -17,6 +17,10 @@ const emptySchedule = () => ({
   referee: "",
   startTime: DEFAULT_SCHEDULE.startTime,
   intervalMinutes: DEFAULT_SCHEDULE.intervalMinutes,
+  // Day 2 = the knockout day (quarterfinals → semis → final). Its own start
+  // time + interval; empty start time means "same as day 1".
+  day2StartTime: "",
+  day2IntervalMinutes: DEFAULT_SCHEDULE.intervalMinutes,
 });
 
 const normalize = (s) => ({
@@ -25,6 +29,9 @@ const normalize = (s) => ({
   referee: s?.referee || "",
   startTime: s?.startTime || DEFAULT_SCHEDULE.startTime,
   intervalMinutes: s?.intervalMinutes || DEFAULT_SCHEDULE.intervalMinutes,
+  day2StartTime: s?.day2StartTime || "",
+  day2IntervalMinutes:
+    s?.day2IntervalMinutes || DEFAULT_SCHEDULE.intervalMinutes,
 });
 
 const AdminTournamentSchedule = ({ tournaments }) => {
@@ -38,6 +45,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
   const [msg, setMsg] = useState("");
 
   const draw = selectedTournament?.draw || null;
+  const isGroup = draw?.system === "group";
   const rows = draw ? scheduleGrid(draw, schedule) : [];
 
   const handleSelect = async (id) => {
@@ -106,7 +114,10 @@ const AdminTournamentSchedule = ({ tournaments }) => {
           <p>
             The matches come straight from the published draw. Just set the start
             time of the first two matches — the courts (Терен 1 / Терен 2) and all
-            the following times are calculated automatically.
+            the following times are calculated automatically. For a group
+            tournament you can set Day 1 (group stage) and Day 2 (quarterfinals →
+            semifinals → 3rd place → final) times separately; the Day 2 matchups
+            appear once the quarterfinal draw is made.
           </p>
         </div>
       </div>
@@ -139,7 +150,11 @@ const AdminTournamentSchedule = ({ tournaments }) => {
           <>
             <div className="admin-schedule-head">
               <label className="admin-field">
-                <span>Start time (first two matches)</span>
+                <span>
+                  {isGroup
+                    ? "Day 1 · Group stage — start time"
+                    : "Start time (first two matches)"}
+                </span>
                 <input
                   type="time"
                   value={schedule.startTime}
@@ -147,7 +162,11 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                 />
               </label>
               <label className="admin-field">
-                <span>Interval between slots (minutes)</span>
+                <span>
+                  {isGroup
+                    ? "Day 1 · interval (minutes)"
+                    : "Interval between slots (minutes)"}
+                </span>
                 <input
                   type="number"
                   min="10"
@@ -161,6 +180,35 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                   }
                 />
               </label>
+              {isGroup && (
+                <>
+                  <label className="admin-field">
+                    <span>Day 2 · Knockout — start time</span>
+                    <input
+                      type="time"
+                      value={schedule.day2StartTime}
+                      onChange={(e) =>
+                        setField("day2StartTime", e.target.value)
+                      }
+                    />
+                  </label>
+                  <label className="admin-field">
+                    <span>Day 2 · interval (minutes)</span>
+                    <input
+                      type="number"
+                      min="10"
+                      step="5"
+                      value={schedule.day2IntervalMinutes}
+                      onChange={(e) =>
+                        setField(
+                          "day2IntervalMinutes",
+                          parseInt(e.target.value, 10) || 60
+                        )
+                      }
+                    />
+                  </label>
+                </>
+              )}
               <label className="admin-field">
                 <span>{SCHEDULE_LABELS.date} (range)</span>
                 <input

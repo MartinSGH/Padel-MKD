@@ -18,6 +18,21 @@ import {
 export const DEFAULT_SCHEDULE = { startTime: "12:00", intervalMinutes: 60 };
 const COURTS = 2;
 
+// Per-day start time + interval. Day 2 (the knockout day) can have its own start
+// time and interval; when unset it falls back to day 1's, so schedules saved
+// before day-2 timing existed keep behaving exactly as before.
+const dayTiming = (config) => [
+  {
+    start: parseTime(config?.startTime),
+    interval: Number(config?.intervalMinutes) || 60,
+  },
+  {
+    start: parseTime(config?.day2StartTime || config?.startTime),
+    interval:
+      Number(config?.day2IntervalMinutes || config?.intervalMinutes) || 60,
+  },
+];
+
 // Round-robin match indices per round for a group of 4. The matches array is in
 // order [0,1],[0,2],[0,3],[1,2],[1,3],[2,3] → indices 0..5.
 const RR_ROUNDS = [
@@ -97,8 +112,7 @@ const koCell = (round, matchIndex, pair, ph) =>
 
 const groupGrid = (draw, config) => {
   if (draw?.system !== "group" || !Array.isArray(draw.groups)) return [];
-  const start = parseTime(config?.startTime);
-  const interval = Number(config?.intervalMinutes) || 60;
+  const timing = dayTiming(config);
   const ng = draw.groups.length;
 
   // [dayIndex, courtA cell, courtB cell] per slot, in play order.
@@ -148,10 +162,11 @@ const groupGrid = (draw, config) => {
     }),
   ]);
 
-  // Times restart each day.
+  // Times restart each day, each day using its own start time + interval.
   const perDay = {};
   return slots.map(([day, c1, c2]) => {
     const idx = (perDay[day] = (perDay[day] ?? -1) + 1);
+    const { start, interval } = timing[day] || timing[0];
     return {
       day: GROUP_SCHEDULE_DAYS[day] || "",
       slot: idx,
