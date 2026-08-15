@@ -533,7 +533,7 @@ const LiveScoreboard = ({
               </button>
             )}
 
-            {isAdmin && match && (
+            {canScore && match && (
               <button
                 type="button"
                 className="ls-btn ls-btn-danger ls-discard"
