@@ -413,7 +413,7 @@ const AdminGroupBuilder = ({
     .map(
       (m, i) => `
         <div class="match qf-${i < 2 ? "top" : "bottom"}">
-          <div class="match-title">QF ${i + 1}</div>
+          <div class="match-title">1/4 ${i + 1}</div>
           <div class="match-team">
             ${m.a ? escapeHtml(m.a) : "__________________"}
           </div>
@@ -793,7 +793,7 @@ const AdminGroupBuilder = ({
           <div class="match semi-top">
 
             <div class="match-title">
-              Semifinal 1
+              1/2 1
             </div>
 
             <div class="match-team">
@@ -810,7 +810,7 @@ const AdminGroupBuilder = ({
           <div class="match semi-bottom">
 
             <div class="match-title">
-              Semifinal 2
+              1/2 2
             </div>
 
             <div class="match-team">

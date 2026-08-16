@@ -145,12 +145,12 @@ const groupGrid = (draw, config) => {
   slots.push([
     1,
     koCell(SEMI_ROUND, 0, draw.semifinals?.[0], {
-      a: "Победник ЧФ",
-      b: "Победник ЧФ",
+      a: "Победник 1/4",
+      b: "Победник 1/4",
     }),
     koCell(SEMI_ROUND, 1, draw.semifinals?.[1], {
-      a: "Победник ЧФ",
-      b: "Победник ЧФ",
+      a: "Победник 1/4",
+      b: "Победник 1/4",
     }),
   ]);
   slots.push([
