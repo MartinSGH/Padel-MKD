@@ -359,6 +359,12 @@
   margin-bottom: 8px;
 }
 
+/* Final sits below the 3rd-place match in the same column — give its heading
+   clear separation from the match above it. */
+.td-bracket-round-final {
+  margin-top: 1.5rem;
+}
+
 /* ---- Group system ---- */
 .td-groups {
   display: grid;
@@ -923,6 +929,12 @@
   gap: 1rem;
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
+}
+
+.td-schedule-dl-btns {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .td-schedule-info {

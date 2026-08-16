@@ -450,14 +450,14 @@ const AdminGroupBuilder = ({
           margin: 0;
           padding: 0;
           width: 100%;
-          min-height: 100%;
+          height: auto;
           background: #fff;
           color: #111;
           font-family: Arial, Helvetica, sans-serif;
         }
 
         body {
-          padding: 18px 24px;
+          padding: 14px 20px;
         }
 
         /* =========================================
@@ -496,19 +496,18 @@ const AdminGroupBuilder = ({
 
         .draw {
           width: 100%;
-          min-height: 520px;
+          min-height: 480px;
 
           display: grid;
 
           /*
-            Groups | Quarterfinals | Semifinals | 3rd Place | Final
+            Groups | Quarterfinals | Semifinals | Finals (3rd place + Final)
           */
           grid-template-columns:
             1.25fr
             1fr
             1fr
-            0.85fr
-            0.85fr;
+            0.95fr;
 
           column-gap: 22px;
 
@@ -692,102 +691,29 @@ const AdminGroupBuilder = ({
         }
 
         /* =========================================
-           CONNECTOR LINES
+           FINALS COLUMN (3rd place on top, Final below)
         ========================================= */
 
-        .semi-top::after {
-          content: "";
+        .finals {
+          height: 100%;
 
-          position: absolute;
-
-          right: -28px;
-          top: 50%;
-
-          width: 28px;
-
-          border-top: 1.5px solid #222;
-        }
-
-        .semi-bottom::after {
-          content: "";
-
-          position: absolute;
-
-          right: -28px;
-          top: 50%;
-
-          width: 28px;
-
-          border-top: 1.5px solid #222;
-        }
-
-        /* =========================================
-           THIRD PLACE
-        ========================================= */
-
-        .third-place {
           display: flex;
+          flex-direction: column;
 
-          align-items: center;
           justify-content: center;
 
-          height: 100%;
+          gap: 40px;
         }
 
-        .third-place .match {
-          width: 100%;
-        }
-
-        .third-place .match::before {
-          content: "";
-
-          position: absolute;
-
-          left: -28px;
-          top: 50%;
-
-          width: 28px;
-
-          border-top: 1.5px solid #222;
-        }
-
-        .third-place .match-title {
+        .finals .third .match-title {
           background: #555;
         }
 
-        /* =========================================
-           FINAL
-        ========================================= */
-
-        .final {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          height: 100%;
-        }
-
-        .final .match {
-          width: 100%;
-
+        .finals .final-box {
           border: 2px solid #b8860b;
         }
 
-        .final .match::before {
-          content: "";
-
-          position: absolute;
-
-          left: -28px;
-          top: 50%;
-
-          width: 28px;
-
-          border-top: 1.5px solid #222;
-        }
-
-        .final .match-title {
+        .finals .final-box .match-title {
           background: #b8860b;
         }
 
@@ -796,12 +722,14 @@ const AdminGroupBuilder = ({
         ========================================= */
 
         @media print {
+          html,
           body {
+            height: auto;
             padding: 0;
           }
 
           .draw {
-            min-height: 520px;
+            min-height: 460px;
             page-break-inside: avoid;
           }
 
@@ -898,11 +826,11 @@ const AdminGroupBuilder = ({
         </div>
 
 
-        <!-- THIRD PLACE -->
+        <!-- FINALS: 3rd place on top, Final below -->
 
-        <div class="third-place">
+        <div class="finals">
 
-          <div class="match">
+          <div class="match third">
 
             <div class="match-title">
               Match for 3rd Place
@@ -918,14 +846,8 @@ const AdminGroupBuilder = ({
 
           </div>
 
-        </div>
 
-
-        <!-- FINAL -->
-
-        <div class="final">
-
-          <div class="match">
+          <div class="match final-box">
 
             <div class="match-title">
               Final

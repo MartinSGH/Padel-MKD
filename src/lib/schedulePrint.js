@@ -35,9 +35,13 @@ const cellHtml = (row, mt, labels) => {
   )}</div><div>${escapeHtml(mt.teamB)}</div>`;
 };
 
-export const printSchedule = (tournamentName, schedule, draw) => {
+// `dayFilter` (optional): a day label (e.g. "Недела") to print only that day's
+// matches — handy for printing the knockout day on its own sheet.
+export const printSchedule = (tournamentName, schedule, draw, dayFilter = null) => {
   const labels = SCHEDULE_LABELS;
-  const rows = scheduleGrid(draw, schedule);
+  const allRows = scheduleGrid(draw, schedule);
+  const rows =
+    dayFilter != null ? allRows.filter((r) => r.day === dayFilter) : allRows;
   const colSpan = labels.courts.length + 1;
 
   const headCourts = labels.courts

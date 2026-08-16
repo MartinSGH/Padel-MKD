@@ -9,6 +9,7 @@ import {
   scheduleGrid,
   slotTimeLabel,
   DEFAULT_SCHEDULE,
+  GROUP_SCHEDULE_DAYS,
 } from "../lib/scheduleBuild";
 
 const emptySchedule = () => ({
@@ -100,11 +101,17 @@ const AdminTournamentSchedule = ({ tournaments }) => {
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = (dayFilter = null) => {
     if (selectedTournament) {
-      printSchedule(selectedTournament.name, schedule, draw);
+      printSchedule(selectedTournament.name, schedule, draw, dayFilter);
     }
   };
+
+  // Which day labels actually have matches (group draws span two days; an
+  // elimination draw is a single day, so per-day export doesn't apply).
+  const dayLabels = isGroup
+    ? GROUP_SCHEDULE_DAYS.filter((d) => rows.some((r) => r.day === d))
+    : [];
 
   return (
     <div className="admin-card admin-draw-card">
@@ -313,14 +320,38 @@ const AdminTournamentSchedule = ({ tournaments }) => {
             )}
 
             <div className="admin-schedule-actions">
-              <button
-                type="button"
-                className="admin-btn admin-edit-btn"
-                onClick={handlePrint}
-                disabled={rows.length === 0}
-              >
-                Export PDF
-              </button>
+              {isGroup && dayLabels.length > 1 ? (
+                <>
+                  {dayLabels.map((d, di) => (
+                    <button
+                      key={d}
+                      type="button"
+                      className="admin-btn admin-edit-btn"
+                      onClick={() => handlePrint(d)}
+                      disabled={rows.length === 0}
+                    >
+                      Export Day {di + 1} PDF ({d})
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="admin-btn admin-edit-btn"
+                    onClick={() => handlePrint()}
+                    disabled={rows.length === 0}
+                  >
+                    Export both days
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="admin-btn admin-edit-btn"
+                  onClick={() => handlePrint()}
+                  disabled={rows.length === 0}
+                >
+                  Export PDF
+                </button>
+              )}
               <button
                 type="button"
                 className="admin-btn approve"

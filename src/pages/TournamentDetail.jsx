@@ -20,7 +20,11 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import { getMyProfile } from "../services/profile";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
-import { scheduleGrid, slotTimeLabel } from "../lib/scheduleBuild";
+import {
+  scheduleGrid,
+  slotTimeLabel,
+  GROUP_SCHEDULE_DAYS,
+} from "../lib/scheduleBuild";
 import { gameLabel } from "../lib/padelScore";
 import { hasThirdPlace } from "../lib/drawAdvance";
 import {
@@ -689,9 +693,14 @@ const TournamentDetail = () => {
     w.print();
   };
 
-  const handleDownloadSchedule = () => {
+  const handleDownloadSchedule = (dayFilter = null) => {
     if (tournament.schedule) {
-      printSchedule(tournament.name, tournament.schedule, tournament.draw);
+      printSchedule(
+        tournament.name,
+        tournament.schedule,
+        tournament.draw,
+        dayFilter
+      );
     }
   };
 
@@ -1282,6 +1291,18 @@ const TournamentDetail = () => {
                         </div>
                         <div className="td-bracket-col">
                           <div className="td-bracket-round">
+                            {t("tournamentsPage.draw.thirdPlace")}
+                          </div>
+                          <div>
+                            {renderBracketMatch(
+                              THIRD_PLACE_ROUND,
+                              0,
+                              tournament.draw.third?.a,
+                              tournament.draw.third?.b,
+                              false
+                            )}
+                          </div>
+                          <div className="td-bracket-round td-bracket-round-final">
                             {t("tournamentsPage.draw.final")}
                           </div>
                           <div>
@@ -1294,19 +1315,6 @@ const TournamentDetail = () => {
                             )}
                           </div>
                         </div>
-                      </div>
-
-                      <div className="td-thirdplace">
-                        <div className="td-bracket-round">
-                          {t("tournamentsPage.draw.thirdPlace")}
-                        </div>
-                        {renderBracketMatch(
-                          THIRD_PLACE_ROUND,
-                          0,
-                          tournament.draw.third?.a,
-                          tournament.draw.third?.b,
-                          false
-                        )}
                       </div>
                     </>
                   ) : (
@@ -1359,13 +1367,50 @@ const TournamentDetail = () => {
                     <h2 className="td-section-title">
                       {SCHEDULE_LABELS.title}
                     </h2>
-                    <button
-                      type="button"
-                      className="td-btn td-btn-outline td-pairs-btn"
-                      onClick={handleDownloadSchedule}
-                    >
-                      {t("tournamentsPage.downloadPdf")}
-                    </button>
+                    {(() => {
+                      const schedRows = scheduleGrid(
+                        tournament.draw,
+                        tournament.schedule
+                      );
+                      const days =
+                        tournament.draw?.system === "group"
+                          ? GROUP_SCHEDULE_DAYS.filter((d) =>
+                              schedRows.some((r) => r.day === d)
+                            )
+                          : [];
+                      if (days.length > 1) {
+                        return (
+                          <div className="td-schedule-dl-btns">
+                            {days.map((d) => (
+                              <button
+                                key={d}
+                                type="button"
+                                className="td-btn td-btn-outline td-pairs-btn"
+                                onClick={() => handleDownloadSchedule(d)}
+                              >
+                                {t("tournamentsPage.downloadPdf")} — {d}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              className="td-btn td-btn-outline td-pairs-btn"
+                              onClick={() => handleDownloadSchedule()}
+                            >
+                              {t("tournamentsPage.downloadPdf")}
+                            </button>
+                          </div>
+                        );
+                      }
+                      return (
+                        <button
+                          type="button"
+                          className="td-btn td-btn-outline td-pairs-btn"
+                          onClick={() => handleDownloadSchedule()}
+                        >
+                          {t("tournamentsPage.downloadPdf")}
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   <div className="td-schedule-info">
