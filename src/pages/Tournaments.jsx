@@ -61,15 +61,39 @@ const TournamentsPage = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return tournaments.filter((tn) => {
-      if (status === "upcoming" && isPastTournament(tn)) return false;
-      if (status === "past" && !isPastTournament(tn)) return false;
-      if (year !== "all" && getTournamentYear(tn) !== Number(year)) return false;
-      if (month !== "all" && getTournamentMonth(tn) !== Number(month)) return false;
-      if (location !== "all" && tn.location !== location) return false;
-      if (q && !(tn.name || "").toLowerCase().includes(q)) return false;
-      return true;
-    });
+
+    // Ongoing first, then upcoming (soonest first), then finished (most recent
+    // first). Cancelled/postponed sit with the finished group.
+    const groupRank = (tn) => {
+      const timing = getTournamentTiming(tn);
+      if (timing === "ongoing") return 0;
+      if (timing === "upcoming") return 1;
+      return 2; // finished, cancelled, postponed
+    };
+    const startTime = (tn) => {
+      const d = tn.start_date ? new Date(`${tn.start_date}T00:00:00`) : null;
+      return d ? d.getTime() : 0;
+    };
+
+    return tournaments
+      .filter((tn) => {
+        if (status === "upcoming" && isPastTournament(tn)) return false;
+        if (status === "past" && !isPastTournament(tn)) return false;
+        if (year !== "all" && getTournamentYear(tn) !== Number(year)) return false;
+        if (month !== "all" && getTournamentMonth(tn) !== Number(month)) return false;
+        if (location !== "all" && tn.location !== location) return false;
+        if (q && !(tn.name || "").toLowerCase().includes(q)) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const rankA = groupRank(a);
+        const rankB = groupRank(b);
+        if (rankA !== rankB) return rankA - rankB;
+        // Upcoming/ongoing: soonest first. Finished: most recent first.
+        return rankA === 2
+          ? startTime(b) - startTime(a)
+          : startTime(a) - startTime(b);
+      });
   }, [tournaments, status, year, month, location, search]);
 
   const hasActiveFilters =

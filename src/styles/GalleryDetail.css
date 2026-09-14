@@ -1,0 +1,254 @@
+.gd-page {
+  min-height: 70vh;
+  padding-bottom: 64px;
+}
+
+.gd-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 80px;
+}
+
+.gd-hero {
+  padding: 40px 0 8px;
+}
+
+.gd-back {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: #fde834;
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+  text-decoration: none;
+}
+.gd-back:hover {
+  text-decoration: underline;
+}
+
+.gd-hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gd-title {
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 120%;
+  margin: 0;
+  padding-left: 16px;
+  border-left: 10px solid #fde834;
+}
+
+.gd-count,
+.gd-status {
+  color: rgba(255, 255, 255, 0.75);
+  font-family: Montserrat, sans-serif;
+  margin-top: 8px;
+}
+
+/* ---- admin panel ---- */
+.gd-admin {
+  padding: 12px 0 4px;
+}
+.gd-admin-panel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(253, 232, 52, 0.4);
+  border-radius: 20px;
+  padding: 20px 24px;
+}
+.gd-admin-heading {
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+.gd-rename {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+.gd-rename label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 220px;
+}
+.gd-rename label span {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 600;
+}
+.gd-admin-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.gd-progress {
+  color: #fde834;
+  font-weight: 600;
+}
+.gd-select-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.gd-danger-zone {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ---- grid ---- */
+.gd-section {
+  padding-top: 20px;
+}
+.gd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.gd-item {
+  position: relative;
+  margin: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: #1c1c1c;
+}
+.gd-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+  transition: transform 0.25s ease;
+}
+.gd-item:hover .gd-img {
+  transform: scale(1.05);
+}
+
+.gd-item-selected {
+  outline: 3px solid #fde834;
+  outline-offset: -3px;
+}
+.gd-item-selected .gd-img {
+  opacity: 0.7;
+}
+
+.gd-check {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 2px solid #fff;
+  background: rgba(0, 0, 0, 0.5);
+  color: #111;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.gd-check-on {
+  background: #fde834;
+  border-color: #fde834;
+}
+
+.gd-item-tools {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+}
+.gd-tool {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.gd-tool:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+.gd-tool-danger:hover {
+  background: #d4380d;
+}
+
+/* ---- lightbox ---- */
+.gd-lightbox-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gd-lightbox-img {
+  max-width: 88vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+}
+.gd-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+.gd-nav:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+.gd-nav-prev {
+  left: 8px;
+}
+.gd-nav-next {
+  right: 8px;
+}
+
+@media (max-width: 768px) {
+  .gd-title {
+    font-size: 26px;
+  }
+  .gd-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .gd-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+}

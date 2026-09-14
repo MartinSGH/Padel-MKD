@@ -2,6 +2,13 @@
   border-radius: 46px;
   background: linear-gradient(270deg, #fff 0%, rgba(255, 255, 255, 0) 82.76%);
 }
+.gallery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 .gallery-h1 {
   color: var(--Ink-100, #fff);
   font-family: Montserrat;
@@ -104,6 +111,26 @@
   background-position: 75% 75%;
   background-blend-mode: multiply, normal;
 }
+/* Base style for the dynamic (DB-backed) tiles. Background image is applied
+   inline from each gallery's cover_url. */
+.gallery-tile {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 32px;
+  border: 1.888px solid var(--Gradients-Cards-stroke, #fde834);
+  background-color: #1c1c1c;
+  background-position: 50% 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply, normal;
+  display: block;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.gallery-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
 .gallery-title {
   color: #fff;
 
@@ -121,6 +148,10 @@
   width: 100%;
   height: 50vh;
   padding: 24px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: block;
 }
 .gallery-carousel-title {
   color: #fff;
