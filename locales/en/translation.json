@@ -941,5 +941,41 @@
         }
       ]
     }
+  },
+  "galleryDetail": {
+    "backToGallery": "Back to Gallery",
+    "photos": "photos",
+    "empty": "No photos yet.",
+    "notFound": "Gallery not found.",
+    "edit": "Edit",
+    "doneEditing": "Done",
+    "rename": "Rename gallery",
+    "save": "Save",
+    "saved": "Saved.",
+    "addPhotos": "Add photos",
+    "uploadCover": "Upload cover",
+    "makeCover": "Set as cover",
+    "coverUpdated": "Cover updated.",
+    "uploaded": "Uploaded {{count}} photo(s).",
+    "deleted": "Photo deleted.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete this photo?",
+    "titleRequired": "Both titles are required.",
+    "error": "Something went wrong.",
+    "comingSoon": "Coming soon",
+    "select": "Select",
+    "selectAll": "Select all",
+    "clearSelection": "Clear selection",
+    "deleteSelected": "Delete selected ({{count}})",
+    "confirmDeleteMany": "Delete {{count}} selected photo(s)?",
+    "deletedMany": "Deleted {{count}} photo(s).",
+    "deleteGallery": "Delete gallery",
+    "confirmDeleteGallery": "Delete this entire gallery?",
+    "confirmDeleteGalleryDesc": "This removes the gallery and all its photos. This cannot be undone.",
+    "galleryDeleted": "Gallery deleted.",
+    "newGallery": "New gallery",
+    "create": "Create",
+    "created": "Gallery created."
   }
 }
