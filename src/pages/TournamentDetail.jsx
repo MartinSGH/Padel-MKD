@@ -20,6 +20,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import { getMyProfile } from "../services/profile";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
+import { printDraw, printDrawDay } from "../lib/drawPrint";
 import {
   scheduleGrid,
   slotTimeLabel,
@@ -704,6 +705,37 @@ const TournamentDetail = () => {
     }
   };
 
+  // Header fields shared by the draw sheets (same as the schedule sheet).
+  const drawMeta = () => ({
+    dateRange:
+      tournament.schedule?.dateRange ||
+      formatDateRange(tournament.start_date, tournament.end_date, lang),
+    club: tournament.schedule?.club || "",
+    referee: tournament.schedule?.referee || "",
+  });
+
+  // Finished tournaments → one full-draw PDF with every result.
+  const handleDownloadDraw = () => {
+    if (tournament.draw) {
+      printDraw(tournament.name, tournament.draw, matchStatuses, drawMeta());
+    }
+  };
+
+  // Upcoming / ongoing tournaments → one PDF per playing day (that day's matches
+  // from the schedule, with their draw phase + any result so far).
+  const handleDownloadDrawDay = (dayFilter = null) => {
+    if (tournament.draw) {
+      printDrawDay(
+        tournament.name,
+        tournament.draw,
+        tournament.schedule,
+        matchStatuses,
+        dayFilter,
+        drawMeta()
+      );
+    }
+  };
+
   // Categories players may register for (admin-chosen, or all three by default).
   const availableCategories =
     tournament.categories && tournament.categories.length
@@ -1199,9 +1231,58 @@ const TournamentDetail = () => {
             {currentTab === "draw" && tournament.draw && (
               <div className="td-tab-content">
                 <div className="td-block">
-                  <h2 className="td-section-title">
-                    {t("tournamentsPage.draw.title")}
-                  </h2>
+                  <div className="td-schedule-head-row">
+                    <h2 className="td-section-title">
+                      {t("tournamentsPage.draw.title")}
+                    </h2>
+                    {!canScore ? null : timing === "finished" ? (
+                      <button
+                        type="button"
+                        className="td-btn td-btn-outline td-pairs-btn"
+                        onClick={handleDownloadDraw}
+                      >
+                        {t("tournamentsPage.downloadPdf")}
+                      </button>
+                    ) : (
+                      (() => {
+                        const drawRows = scheduleGrid(
+                          tournament.draw,
+                          tournament.schedule
+                        );
+                        const days =
+                          tournament.draw?.system === "group"
+                            ? GROUP_SCHEDULE_DAYS.filter((d) =>
+                                drawRows.some((r) => r.day === d)
+                              )
+                            : [];
+                        if (days.length > 1) {
+                          return (
+                            <div className="td-schedule-dl-btns">
+                              {days.map((d) => (
+                                <button
+                                  key={d}
+                                  type="button"
+                                  className="td-btn td-btn-outline td-pairs-btn"
+                                  onClick={() => handleDownloadDrawDay(d)}
+                                >
+                                  {t("tournamentsPage.downloadPdf")} — {d}
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        }
+                        return (
+                          <button
+                            type="button"
+                            className="td-btn td-btn-outline td-pairs-btn"
+                            onClick={() => handleDownloadDrawDay()}
+                          >
+                            {t("tournamentsPage.downloadPdf")}
+                          </button>
+                        );
+                      })()
+                    )}
+                  </div>
 
                   {tournament.draw.system === "group" ? (
                     <>
