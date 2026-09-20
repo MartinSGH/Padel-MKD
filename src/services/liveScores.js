@@ -1,11 +1,8 @@
 import { supabase } from "../lib/supabaseClient";
 import { recomputeDraw, finishedMapFromRows } from "../lib/drawAdvance";
 import {
-  computePoints,
+  computePlacementPoints,
   buildLabelToPlayers,
-  stagePoints,
-  groupStagePoints,
-  THIRD_PLACE_ROUND,
 } from "../lib/points";
 import { recomputeGroupDraw, resultMapFromRows } from "../lib/groupDraw";
 import { writeTournamentPoints } from "./ranking";
@@ -82,12 +79,15 @@ const afterResultChange = async (tournamentId) => {
   if (e2) throw e2;
   const draw = tn?.draw;
   const isGroup = draw?.system === "group";
+  const resultMap = resultMapFromRows(rows || []);
 
   // 1) advance the draw (via an RPC so referees — who can't update tournaments
-  // directly — can also finish matches; it only touches the draw column).
+  // directly — can also finish matches; it only touches the draw column). Keep
+  // the advanced draw: its filled final / 3rd-place / QF slots drive the points.
+  let nextDraw = draw;
   if (draw) {
-    const nextDraw = isGroup
-      ? recomputeGroupDraw(draw, resultMapFromRows(rows || []))
+    nextDraw = isGroup
+      ? recomputeGroupDraw(draw, resultMap)
       : recomputeDraw(draw, finishedMapFromRows(rows || []));
     const { error: drawErr } = await supabase.rpc("set_tournament_draw", {
       p_tournament_id: tournamentId,
@@ -96,18 +96,12 @@ const afterResultChange = async (tournamentId) => {
     if (drawErr) throw drawErr;
   }
 
-  // 2) recompute ranking points from the finished matches
-  const finished = (rows || []).filter((r) => r.status === "finished");
+  // 2) recompute ranking points by final placement (see computePlacementPoints)
   const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
   const labelToPlayers = buildLabelToPlayers(regs);
-  const pointsForRound = isGroup
-    ? groupStagePoints
-    : (round) =>
-        stagePoints(
-          round,
-          round === THIRD_PLACE_ROUND ? 0 : draw?.rounds?.[round]?.length ?? 0
-        );
-  const points = computePoints(finished, labelToPlayers, pointsForRound);
+  const points = nextDraw
+    ? computePlacementPoints(nextDraw, resultMap, labelToPlayers)
+    : [];
   await writeTournamentPoints(tournamentId, points);
 };
 
