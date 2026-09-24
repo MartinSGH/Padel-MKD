@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { updateTournament } from "../services/tournaments";
 import { getTournamentMatches } from "../services/liveScores";
+import { rowsForSlot } from "../lib/drawSet";
 import {
   autoAssignGroups,
   buildGroupDraw,
@@ -27,9 +27,12 @@ const AdminGroupBuilder = ({
   pairs,
   tournamentId,
   tournamentName,
+  category,
   initialDraw,
+  slot,
   published,
-  onPublishedChange,
+  onSave,
+  onRemove,
 }) => {
   // Seed from an already-published group draw
   const seed = () => {
@@ -68,13 +71,21 @@ const AdminGroupBuilder = ({
   const [qfBusy, setQfBusy] = useState(false);
   const [qfMsg, setQfMsg] = useState("");
 
+  // This category's results only (each category's matches are stored under
+  // their own round offset — see lib/drawSet.js). Unpublished → no results.
+  const loadResults = async () => {
+    if (!tournamentId || slot == null) return {};
+    const rows = await getTournamentMatches(tournamentId);
+    return resultMapFromRows(rowsForSlot(rows, slot));
+  };
+
   // Load the group results so we can list the qualifiers (top 2 per group).
   useEffect(() => {
     let active = true;
     if (!tournamentId) return undefined;
-    getTournamentMatches(tournamentId)
-      .then((rows) => {
-        if (active) setResultMap(resultMapFromRows(rows));
+    loadResults()
+      .then((map) => {
+        if (active) setResultMap(map);
       })
       .catch(() => {
         if (active) setResultMap({});
@@ -82,7 +93,8 @@ const AdminGroupBuilder = ({
     return () => {
       active = false;
     };
-  }, [tournamentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournamentId, slot]);
 
   const groupDrawPublished =
     published && initialDraw?.system === "group";
@@ -211,10 +223,8 @@ const AdminGroupBuilder = ({
         { ...base, quarterfinals },
         resultMap
       );
-      await updateTournament(tournamentId, { draw });
-      const rows = await getTournamentMatches(tournamentId).catch(() => []);
-      setResultMap(resultMapFromRows(rows));
-      onPublishedChange(true);
+      await onSave(draw);
+      setResultMap(await loadResults().catch(() => ({})));
       setQfMsg(
         "Quarterfinal draw published — it's now live on the Draw and Schedule tabs."
       );
@@ -324,9 +334,7 @@ const AdminGroupBuilder = ({
           .map((g) => g.map((p) => p.label))
       );
 
-      await updateTournament(tournamentId, { draw });
-
-      onPublishedChange(true);
+      await onSave(draw);
 
       setMsg(
         "Group draw published — visible to everyone on the Draw tab."
@@ -350,11 +358,7 @@ const AdminGroupBuilder = ({
     setMsg("");
 
     try {
-      await updateTournament(tournamentId, {
-        draw: null,
-      });
-
-      onPublishedChange(false);
+      await onRemove();
 
       setMsg("Published draw removed.");
     } catch (err) {
@@ -754,7 +758,9 @@ const AdminGroupBuilder = ({
         </div>
 
         <div class="tournament-name">
-          ${escapeHtml(tournamentName)}
+          ${escapeHtml(tournamentName)}${
+            category ? ` · ${escapeHtml(category)}` : ""
+          }
         </div>
 
       </div>
@@ -900,6 +906,7 @@ const AdminGroupBuilder = ({
 
         <span className="admin-count-pill">
           {placedCount}/{pairs.length} pairs placed
+          {category ? ` · ${category}` : ""}
         </span>
 
         {published && (
@@ -1184,9 +1191,12 @@ AdminGroupBuilder.propTypes = {
   pairs: PropTypes.array.isRequired,
   tournamentId: PropTypes.string.isRequired,
   tournamentName: PropTypes.string,
+  category: PropTypes.string,
   initialDraw: PropTypes.object,
+  slot: PropTypes.number,
   published: PropTypes.bool,
-  onPublishedChange: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  onRemove: PropTypes.func.isRequired,
 };
 
 export default AdminGroupBuilder;

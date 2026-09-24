@@ -7,7 +7,13 @@ import {
   adminAddPair,
   withdrawRegistration,
 } from "../services/registrations";
-import { updateTournament } from "../services/tournaments";
+import {
+  getTournamentById,
+  saveCategoryDraw,
+  removeCategoryDraw,
+  setDrawCategory,
+} from "../services/tournaments";
+import { listDraws, findDraw } from "../lib/drawSet";
 import { buildBracket, roundName } from "../lib/draw";
 import AdminGroupBuilder from "./AdminGroupBuilder";
 import {
@@ -55,7 +61,9 @@ const AdminTournamentDraw = ({ tournaments }) => {
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState("all");
   const [bracket, setBracket] = useState(null);
-  const [published, setPublished] = useState(false);
+  // The tournament's stored draw column, fetched fresh — it holds one draw per
+  // category (see lib/drawSet.js), so Men's and Women's can both be published.
+  const [tournamentDraw, setTournamentDraw] = useState(null);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState("");
   // Admin rescue (manual pairing of disqualified players after the deadline).
@@ -82,6 +90,14 @@ const AdminTournamentDraw = ({ tournaments }) => {
   const selectedTournament =
     tournaments.find((tn) => tn.id === selectedId) || null;
 
+  // The draw of the selected category ("all" = the uncategorized draw).
+  const drawCategory = category === "all" ? null : category;
+  const categoryEntry = findDraw(tournamentDraw, drawCategory);
+  const published = !!categoryEntry;
+  const publishedEntries = listDraws(tournamentDraw);
+  // A draw published before per-category draws existed has no category.
+  const uncategorizedEntry = findDraw(tournamentDraw, null);
+
   const loadRegs = async (id) => {
     const [dir, regs] = await Promise.all([
       getPlayerDirectory().catch(() => []),
@@ -101,20 +117,31 @@ const AdminTournamentDraw = ({ tournaments }) => {
     setAddMsg("");
     setDrawMode("auto");
     setManualMatches([]);
-    const selDraw = tournaments.find((tn) => tn.id === id)?.draw;
-    setPublished(!!selDraw);
-    setSystem(selDraw?.system === "group" ? "group" : "elimination");
+    setTournamentDraw(null);
     if (!id) {
       setRegistrations([]);
       return;
     }
     setLoading(true);
     try {
-      await loadRegs(id);
+      const [tn] = await Promise.all([
+        getTournamentById(id).catch(
+          () => tournaments.find((x) => x.id === id) || null
+        ),
+        loadRegs(id),
+      ]);
+      const tDraw = tn?.draw || null;
+      setTournamentDraw(tDraw);
+      // Open the first published category draw (or the first category).
+      const first = listDraws(tDraw)[0];
+      setCategory(first?.category || "all");
     } finally {
       setLoading(false);
     }
   };
+
+  // After a publish / remove, keep the fresh draw column the server returned.
+  const applySaved = (row) => setTournamentDraw(row?.draw ?? null);
 
   const nameMap = new Map(
     directory.map((p) => [p.id, p.full_name || "Player"])
@@ -173,10 +200,14 @@ const AdminTournamentDraw = ({ tournaments }) => {
   useEffect(() => {
     setDrawMode("auto");
     setManualMatches([]);
-    const tn = tournaments.find((x) => x.id === selectedId);
-    setBracket(tn?.draw ? deserializeBracket(tn.draw) : null);
+    const d = findDraw(tournamentDraw, category === "all" ? null : category);
+    setBracket(d ? deserializeBracket(d.draw) : null);
+    // A category without a draw yet defaults to the system the tournament's
+    // other draws use (e.g. Women's follows Men's group format).
+    const ref = d?.draw || listDraws(tournamentDraw)[0]?.draw;
+    setSystem(ref?.system === "group" ? "group" : "elimination");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, category]);
+  }, [selectedId, category, loading]);
 
   const enterManual = () => {
     setManualMatches(
@@ -430,8 +461,9 @@ const AdminTournamentDraw = ({ tournaments }) => {
     setPublishing(true);
     setPublishMsg("");
     try {
-      await updateTournament(selectedId, { draw: serializeBracket(b) });
-      setPublished(true);
+      applySaved(
+        await saveCategoryDraw(selectedId, drawCategory, serializeBracket(b))
+      );
       setPublishMsg(
         "Draw published — it's now visible to everyone on the tournament page."
       );
@@ -447,8 +479,7 @@ const AdminTournamentDraw = ({ tournaments }) => {
     setPublishing(true);
     setPublishMsg("");
     try {
-      await updateTournament(selectedId, { draw: null });
-      setPublished(false);
+      applySaved(await removeCategoryDraw(selectedId, drawCategory));
       setPublishMsg("Published draw removed.");
     } catch (err) {
       setPublishMsg(err.message || "Failed to remove draw.");
@@ -535,6 +566,29 @@ const AdminTournamentDraw = ({ tournaments }) => {
     w.print();
   };
 
+  // Group builder callbacks: publish / remove only the selected category.
+  const saveGroupDraw = async (draw) =>
+    applySaved(await saveCategoryDraw(selectedId, drawCategory, draw));
+  const removeGroupDraw = async () =>
+    applySaved(await removeCategoryDraw(selectedId, drawCategory));
+
+  // Adopt the uncategorized (pre-categories) draw as the selected category's
+  // draw. Its results stay attached — only the label changes.
+  const [adoptBusy, setAdoptBusy] = useState(false);
+  const handleAdoptUncategorized = async () => {
+    if (!selectedId || !drawCategory) return;
+    setAdoptBusy(true);
+    setPublishMsg("");
+    try {
+      applySaved(await setDrawCategory(selectedId, null, drawCategory));
+      setPublishMsg(`The existing draw is now the ${drawCategory} draw.`);
+    } catch (err) {
+      setPublishMsg(err.message || "Failed to update the draw.");
+    } finally {
+      setAdoptBusy(false);
+    }
+  };
+
   const tournamentsWithRegs = tournaments; // admin can pick any tournament
 
   const canPublish =
@@ -546,8 +600,10 @@ const AdminTournamentDraw = ({ tournaments }) => {
         <div>
           <h2>Tournament Draw</h2>
           <p>
-            Generate a random single-elimination draw from the registered pairs
-            and export it as a printable PDF.
+            Generate a draw from the registered pairs and export it as a
+            printable PDF. Each category (e.g. Men&apos;s and Women&apos;s pairs)
+            has its own draw — pick the category, build its draw and publish it;
+            the other categories&apos; draws stay published.
           </p>
         </div>
       </div>
@@ -579,7 +635,7 @@ const AdminTournamentDraw = ({ tournaments }) => {
                   setBracket(null);
                 }}
               >
-                <option value="all">All categories</option>
+                <option value="all">All categories (one combined draw)</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -589,6 +645,51 @@ const AdminTournamentDraw = ({ tournaments }) => {
             </label>
           )}
         </div>
+
+        {selectedId && !loading && publishedEntries.length > 0 && (
+          <div className="admin-draw-published-list">
+            <span className="admin-draw-system-label">Published draws</span>
+            {publishedEntries.map((e) => (
+              <button
+                key={e.slot}
+                type="button"
+                className={`admin-mode-btn${
+                  (e.category || null) === drawCategory ? " active" : ""
+                }`}
+                onClick={() => setCategory(e.category || "all")}
+              >
+                {e.category || "Uncategorized"} ·{" "}
+                {e.draw?.system === "group" ? "Group" : "Elimination"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {selectedId &&
+          !loading &&
+          drawCategory &&
+          !categoryEntry &&
+          uncategorizedEntry && (
+            <div className="admin-rescue">
+              <div className="admin-rescue-head">
+                <h3>Existing draw without a category</h3>
+                <p>
+                  This tournament already has a draw that was published before
+                  draws were split per category. If it is the {drawCategory}{" "}
+                  draw, assign it here — its groups and all results are kept.
+                  Otherwise build a new {drawCategory} draw below.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="admin-btn approve"
+                onClick={handleAdoptUncategorized}
+                disabled={adoptBusy}
+              >
+                {adoptBusy ? "Saving…" : `Use it as the ${drawCategory} draw`}
+              </button>
+            </div>
+          )}
 
         {selectedId && !loading && (
           <div className="admin-rescue admin-addpair">
@@ -920,14 +1021,18 @@ const AdminTournamentDraw = ({ tournaments }) => {
           </div>
         )}
 
-        {selectedId && system === "group" && (
+        {selectedId && !loading && system === "group" && (
           <AdminGroupBuilder
+            key={`${selectedId}|${category}`}
             pairs={pairs}
             tournamentId={selectedId}
             tournamentName={selectedTournament?.name}
-            initialDraw={selectedTournament?.draw}
+            category={drawCategory}
+            initialDraw={categoryEntry?.draw}
+            slot={categoryEntry ? categoryEntry.slot : null}
             published={published}
-            onPublishedChange={setPublished}
+            onSave={saveGroupDraw}
+            onRemove={removeGroupDraw}
           />
         )}
 

@@ -5,6 +5,7 @@ import {
   buildLabelToPlayers,
 } from "../lib/points";
 import { recomputeGroupDraw, resultMapFromRows } from "../lib/groupDraw";
+import { listDraws, mapDraws, rowsForSlot } from "../lib/drawSet";
 import { writeTournamentPoints } from "./ranking";
 import { getTournamentRegistrations } from "./registrations";
 
@@ -78,17 +79,20 @@ const afterResultChange = async (tournamentId) => {
   if (e1) throw e1;
   if (e2) throw e2;
   const draw = tn?.draw;
-  const isGroup = draw?.system === "group";
-  const resultMap = resultMapFromRows(rows || []);
 
   // 1) advance the draw (via an RPC so referees — who can't update tournaments
   // directly — can also finish matches; it only touches the draw column). Keep
   // the advanced draw: its filled final / 3rd-place / QF slots drive the points.
+  // A tournament can hold one draw per category; each one only sees its own
+  // category's results (see drawSet.js for the round offsets).
   let nextDraw = draw;
   if (draw) {
-    nextDraw = isGroup
-      ? recomputeGroupDraw(draw, resultMap)
-      : recomputeDraw(draw, finishedMapFromRows(rows || []));
+    nextDraw = mapDraws(draw, ({ slot, draw: d }) => {
+      const local = rowsForSlot(rows || [], slot);
+      return d?.system === "group"
+        ? recomputeGroupDraw(d, resultMapFromRows(local))
+        : recomputeDraw(d, finishedMapFromRows(local));
+    });
     const { error: drawErr } = await supabase.rpc("set_tournament_draw", {
       p_tournament_id: tournamentId,
       p_draw: nextDraw,
@@ -96,12 +100,22 @@ const afterResultChange = async (tournamentId) => {
     if (drawErr) throw drawErr;
   }
 
-  // 2) recompute ranking points by final placement (see computePlacementPoints)
+  // 2) recompute ranking points by final placement (see computePlacementPoints),
+  // per category draw; a player who played two categories gets both added up.
   const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
   const labelToPlayers = buildLabelToPlayers(regs);
-  const points = nextDraw
-    ? computePlacementPoints(nextDraw, resultMap, labelToPlayers)
-    : [];
+  const totals = new Map();
+  listDraws(nextDraw).forEach(({ slot, draw: d }) => {
+    const resultMap = resultMapFromRows(rowsForSlot(rows || [], slot));
+    computePlacementPoints(d, resultMap, labelToPlayers).forEach((p) => {
+      const cur = totals.get(p.player_id);
+      totals.set(
+        p.player_id,
+        cur ? { ...cur, points: cur.points + p.points } : { ...p }
+      );
+    });
+  });
+  const points = [...totals.values()];
   await writeTournamentPoints(tournamentId, points);
 };
 

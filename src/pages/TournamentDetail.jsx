@@ -35,6 +35,7 @@ import {
   QUARTER_ROUND,
 } from "../lib/points";
 import { groupStandings } from "../lib/groupDraw";
+import { listDraws, encodeRound, statusesForSlot } from "../lib/drawSet";
 import {
   getTournamentMatches,
   subscribeTournament,
@@ -342,6 +343,8 @@ const TournamentDetail = () => {
   // Live match scoreboard (open match + per-match statuses for badges).
   const [scoreMatch, setScoreMatch] = useState(null);
   const [matchStatuses, setMatchStatuses] = useState({});
+  // Which category draw the Draw tab shows (its slot — see lib/drawSet.js).
+  const [drawSlot, setDrawSlot] = useState(null);
 
   // In-app registration is used when the tournament has no external form URL
   // and no custom detail page.
@@ -766,6 +769,18 @@ const TournamentDetail = () => {
   };
   const currentTab = tabs.includes(activeTab) ? activeTab : "info";
 
+  // One draw per category (Men's / Women's …). The Draw tab shows one at a
+  // time; its results live under that category's round offset.
+  const drawEntries = listDraws(tournament.draw);
+  const activeDraw =
+    drawEntries.find((e) => e.slot === drawSlot) || drawEntries[0] || null;
+  const catDraw = activeDraw?.draw || null;
+  const catSlot = activeDraw?.slot ?? 0;
+  const catStatuses = statusesForSlot(matchStatuses, catSlot);
+  const multiDraw = drawEntries.length > 1;
+  const anyGroupDraw = drawEntries.some((e) => e.draw?.system === "group");
+  const drawCatName = (e) => (e.category ? catLabel(e.category) : "—");
+
   const drawRoundLabel = (matchCount) => {
     if (matchCount === 1) return t("tournamentsPage.draw.final");
     if (matchCount === 2) return t("tournamentsPage.draw.semifinals");
@@ -775,7 +790,9 @@ const TournamentDetail = () => {
 
   // One bracket match cell (with live badge + inline score). Shared by the main
   // bracket and the 3rd-place match box.
-  const renderBracketMatch = (round, matchIndex, rawA, rawB, firstRound) => {
+  const renderBracketMatch = (localRound, matchIndex, rawA, rawB, firstRound) => {
+    // live_scores round of this match (category offset included).
+    const round = encodeRound(catSlot, localRound);
     const st = matchStatuses[`${round}:${matchIndex}`];
     const aReal = !!(rawA && rawA !== "/");
     const bReal = !!(rawB && rawB !== "/");
@@ -1228,7 +1245,7 @@ const TournamentDetail = () => {
             )}
 
             {/* Draw tab */}
-            {currentTab === "draw" && tournament.draw && (
+            {currentTab === "draw" && catDraw && (
               <div className="td-tab-content">
                 <div className="td-block">
                   <div className="td-schedule-head-row">
@@ -1250,7 +1267,7 @@ const TournamentDetail = () => {
                           tournament.schedule
                         );
                         const days =
-                          tournament.draw?.system === "group"
+                          anyGroupDraw
                             ? GROUP_SCHEDULE_DAYS.filter((d) =>
                                 drawRows.some((r) => r.day === d)
                               )
@@ -1284,10 +1301,38 @@ const TournamentDetail = () => {
                     )}
                   </div>
 
-                  {tournament.draw.system === "group" ? (
+                  {multiDraw && (
+                    <div className="td-draw-cats" role="tablist">
+                      {drawEntries.map((e) => (
+                        <button
+                          key={e.slot}
+                          type="button"
+                          role="tab"
+                          aria-selected={e.slot === catSlot}
+                          className={`td-btn ${
+                            e.slot === catSlot
+                              ? "td-btn-primary"
+                              : "td-btn-outline"
+                          } td-pairs-btn`}
+                          onClick={() => setDrawSlot(e.slot)}
+                        >
+                          {drawCatName(e)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {!multiDraw && activeDraw?.category && (
+                    <div className="td-draw-cats">
+                      <span className="td-group-title">
+                        {drawCatName(activeDraw)}
+                      </span>
+                    </div>
+                  )}
+
+                  {catDraw.system === "group" ? (
                     <>
                       <div className="td-groups">
-                        {(tournament.draw.groups || []).map((g, gi) => (
+                        {(catDraw.groups || []).map((g, gi) => (
                           <div className="td-group" key={gi}>
                             <div className="td-group-title">{g.name}</div>
                             <div className="td-standings-wrap">
@@ -1301,7 +1346,7 @@ const TournamentDetail = () => {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {groupStandings(g, gi, matchStatuses).map(
+                                  {groupStandings(g, gi, catStatuses).map(
                                     (s, i) => (
                                       <tr key={s.team}>
                                         <td>{i + 1}</td>
@@ -1337,8 +1382,8 @@ const TournamentDetail = () => {
                               {renderBracketMatch(
                                 QUARTER_ROUND,
                                 qi,
-                                tournament.draw.quarterfinals?.[qi]?.a,
-                                tournament.draw.quarterfinals?.[qi]?.b,
+                                catDraw.quarterfinals?.[qi]?.a,
+                                catDraw.quarterfinals?.[qi]?.b,
                                 false
                               )}
                             </div>
@@ -1355,8 +1400,8 @@ const TournamentDetail = () => {
                             {renderBracketMatch(
                               SEMI_ROUND,
                               0,
-                              tournament.draw.semifinals?.[0]?.a,
-                              tournament.draw.semifinals?.[0]?.b,
+                              catDraw.semifinals?.[0]?.a,
+                              catDraw.semifinals?.[0]?.b,
                               false
                             )}
                           </div>
@@ -1364,8 +1409,8 @@ const TournamentDetail = () => {
                             {renderBracketMatch(
                               SEMI_ROUND,
                               1,
-                              tournament.draw.semifinals?.[1]?.a,
-                              tournament.draw.semifinals?.[1]?.b,
+                              catDraw.semifinals?.[1]?.a,
+                              catDraw.semifinals?.[1]?.b,
                               false
                             )}
                           </div>
@@ -1378,8 +1423,8 @@ const TournamentDetail = () => {
                             {renderBracketMatch(
                               THIRD_PLACE_ROUND,
                               0,
-                              tournament.draw.third?.a,
-                              tournament.draw.third?.b,
+                              catDraw.third?.a,
+                              catDraw.third?.b,
                               false
                             )}
                           </div>
@@ -1390,8 +1435,8 @@ const TournamentDetail = () => {
                             {renderBracketMatch(
                               FINAL_ROUND,
                               0,
-                              tournament.draw.final?.a,
-                              tournament.draw.final?.b,
+                              catDraw.final?.a,
+                              catDraw.final?.b,
                               false
                             )}
                           </div>
@@ -1401,7 +1446,7 @@ const TournamentDetail = () => {
                   ) : (
                     <>
                       <div className="td-bracket">
-                        {tournament.draw.rounds.map((round, ri) => (
+                        {catDraw.rounds.map((round, ri) => (
                           <div className="td-bracket-col" key={ri}>
                             <div className="td-bracket-round">
                               {drawRoundLabel(round.length)}
@@ -1420,7 +1465,7 @@ const TournamentDetail = () => {
                         ))}
                       </div>
 
-                      {hasThirdPlace(tournament.draw) && (
+                      {hasThirdPlace(catDraw) && (
                         <div className="td-thirdplace">
                           <div className="td-bracket-round">
                             {t("tournamentsPage.draw.thirdPlace")}
@@ -1428,8 +1473,8 @@ const TournamentDetail = () => {
                           {renderBracketMatch(
                             THIRD_PLACE_ROUND,
                             0,
-                            tournament.draw.thirdPlace?.a,
-                            tournament.draw.thirdPlace?.b,
+                            catDraw.thirdPlace?.a,
+                            catDraw.thirdPlace?.b,
                             false
                           )}
                         </div>
@@ -1454,7 +1499,7 @@ const TournamentDetail = () => {
                         tournament.schedule
                       );
                       const days =
-                        tournament.draw?.system === "group"
+                        anyGroupDraw
                           ? GROUP_SCHEDULE_DAYS.filter((d) =>
                               schedRows.some((r) => r.day === d)
                             )
@@ -1575,6 +1620,11 @@ const TournamentDetail = () => {
                                         <td key={ci} className="cell">
                                           {mt ? (
                                             <>
+                                              {multiDraw && mt.category && (
+                                                <div className="cat">
+                                                  {catLabel(mt.category)}
+                                                </div>
+                                              )}
                                               <div className="t">
                                                 {slotTimeLabel(
                                                   row,

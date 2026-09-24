@@ -11,6 +11,7 @@ import {
   DEFAULT_SCHEDULE,
   GROUP_SCHEDULE_DAYS,
 } from "../lib/scheduleBuild";
+import { listDraws } from "../lib/drawSet";
 
 const emptySchedule = () => ({
   dateRange: "",
@@ -45,8 +46,12 @@ const AdminTournamentSchedule = ({ tournaments }) => {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
+  // The stored draw column: one draw per category (Men's / Women's …), all
+  // scheduled together on the same two courts.
   const draw = selectedTournament?.draw || null;
-  const isGroup = draw?.system === "group";
+  const drawEntries = listDraws(draw);
+  const isGroup = drawEntries.some((e) => e.draw?.system === "group");
+  const multiDraw = drawEntries.length > 1;
   const rows = draw ? scheduleGrid(draw, schedule) : [];
 
   const handleSelect = async (id) => {
@@ -119,7 +124,10 @@ const AdminTournamentSchedule = ({ tournaments }) => {
         <div>
           <h2>Playing schedule</h2>
           <p>
-            The matches come straight from the published draw. Just set the start
+            The matches come straight from the published draw(s) — when a
+            tournament has several category draws (e.g. Men&apos;s and
+            Women&apos;s pairs), they share the two courts in one schedule, and a
+            pair is never put on both courts at the same time. Just set the start
             time of the first two matches — the courts (Терен 1 / Терен 2) and all
             the following times are calculated automatically. For a group
             tournament you can set Day 1 (group stage) and Day 2 (quarterfinals →
@@ -290,6 +298,9 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                                 <td key={ci} className="cell">
                                   {mt ? (
                                     <>
+                                      {multiDraw && mt.category && (
+                                        <div className="cat">{mt.category}</div>
+                                      )}
                                       <div className="t">
                                         {slotTimeLabel(row, SCHEDULE_LABELS)}
                                       </div>

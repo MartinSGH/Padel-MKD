@@ -1206,6 +1206,25 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* Published per-category draws (Men's / Women's …) */
+.admin-draw-published-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+/* Category tag inside a schedule cell (when several draws share the courts) */
+.admin-schedule-grid .cat,
+.td-schedule-table td.cell .cat {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8e9bc0;
+}
+
 .admin-group-pool {
   display: flex;
   flex-wrap: wrap;

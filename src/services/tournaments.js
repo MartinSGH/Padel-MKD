@@ -1,4 +1,9 @@
 import { supabase } from "../lib/supabaseClient";
+import {
+  withCategoryDraw,
+  withoutCategoryDraw,
+  renameCategoryDraw,
+} from "../lib/drawSet";
 
 const TOURNAMENT_FILES_BUCKET = "tournament-files";
 
@@ -73,3 +78,30 @@ export const deleteTournament = async (id) => {
   const { error } = await supabase.from("tournaments").delete().eq("id", id);
   if (error) throw error;
 };
+
+// ---- Per-category draws (see src/lib/drawSet.js) -------------------------
+// Each one re-reads the CURRENT draw column first, so publishing one category
+// never overwrites another category's draw (or results advanced meanwhile).
+const updateDrawColumn = async (id, change) => {
+  const { data, error } = await supabase
+    .from("tournaments")
+    .select("draw")
+    .eq("id", id)
+    .single();
+  if (error) throw error;
+  return updateTournament(id, { draw: change(data?.draw ?? null) });
+};
+
+// Publish / replace the draw of one category (null category = uncategorized).
+export const saveCategoryDraw = (id, category, draw) =>
+  updateDrawColumn(id, (cur) => withCategoryDraw(cur, category, draw));
+
+// Remove one category's draw; the others stay published.
+export const removeCategoryDraw = (id, category) =>
+  updateDrawColumn(id, (cur) => withoutCategoryDraw(cur, category));
+
+// Re-label a draw's category, keeping its results attached.
+export const setDrawCategory = (id, fromCategory, toCategory) =>
+  updateDrawColumn(id, (cur) =>
+    renameCategoryDraw(cur, fromCategory, toCategory)
+  );

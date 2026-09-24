@@ -11,6 +11,7 @@
 
 import { scheduleGrid, slotTimeLabel } from "./scheduleBuild";
 import { groupStandings } from "./groupDraw";
+import { listDraws, statusesForSlot, categoryLabelMk } from "./drawSet";
 import {
   THIRD_PLACE_ROUND,
   SEMI_ROUND,
@@ -209,20 +210,30 @@ const bodyForFullDraw = (labels, draw, statuses) => {
   return rounds + third;
 };
 
-// Draw phase label for a schedule cell (used by the per-day sheet).
-const phaseLabelFor = (labels, draw, round) => {
-  if (round === QUARTER_ROUND) return labels.quarterfinals;
-  if (round === SEMI_ROUND) return labels.semifinals;
-  if (round === FINAL_ROUND) return labels.final;
-  if (round === THIRD_PLACE_ROUND) return labels.thirdPlace;
-  if (draw?.system === "group") return draw.groups?.[round]?.name || "";
-  const roundArr = draw?.rounds?.[round];
-  return roundArr ? eliminationRoundLabel(labels, roundArr.length) : "";
+// Draw phase label for a schedule cell (used by the per-day sheet). With more
+// than one category draw, the category is prefixed ("Машки парови · Група 1").
+const phaseLabelFor = (labels, entries, cellMatch) => {
+  const entry = entries.find((e) => e.slot === cellMatch.slot) || entries[0];
+  const draw = entry?.draw;
+  const round = cellMatch.localRound ?? cellMatch.round;
+  let phase = "";
+  if (round === QUARTER_ROUND) phase = labels.quarterfinals;
+  else if (round === SEMI_ROUND) phase = labels.semifinals;
+  else if (round === FINAL_ROUND) phase = labels.final;
+  else if (round === THIRD_PLACE_ROUND) phase = labels.thirdPlace;
+  else if (draw?.system === "group") phase = draw.groups?.[round]?.name || "";
+  else {
+    const roundArr = draw?.rounds?.[round];
+    phase = roundArr ? eliminationRoundLabel(labels, roundArr.length) : "";
+  }
+  const cat = entries.length > 1 ? categoryLabelMk(entry?.category) : "";
+  return [cat, phase].filter(Boolean).join(" · ");
 };
 
 // One day's matches (from the schedule), in play order, with phase + result.
-const bodyForDay = (labels, draw, schedule, statuses, dayFilter) => {
-  const rows = scheduleGrid(draw, schedule).filter(
+const bodyForDay = (labels, tournamentDraw, schedule, statuses, dayFilter) => {
+  const entries = listDraws(tournamentDraw);
+  const rows = scheduleGrid(tournamentDraw, schedule).filter(
     (r) => dayFilter == null || r.day === dayFilter
   );
   const body = rows
@@ -240,7 +251,7 @@ const bodyForDay = (labels, draw, schedule, statuses, dayFilter) => {
             <td class="d-time">${escapeHtml(slotTimeLabel(row, labels))}</td>
             <td class="d-court">${escapeHtml(labels.courts[ci] || "")}</td>
             <td class="d-phase">${escapeHtml(
-              phaseLabelFor(labels, draw, cellMatch.round)
+              phaseLabelFor(labels, entries, cellMatch)
             )}</td>
             <td class="d-match">${name("a", cellMatch.teamA)} <span class="vs">${escapeHtml(
             labels.vs
@@ -295,6 +306,8 @@ const PRINT_STYLES = `
   .day .d-head td { font-weight: bold; background: #f2f2f2; }
   .day .d-score { text-align: center; white-space: nowrap; font-weight: bold; }
   .day .d-match .vs { color: #666; font-style: italic; }
+  .cat-title { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; margin: 18px 0 10px; padding-bottom: 4px; border-bottom: 2px solid #111; break-after: avoid; }
+  .cat-title:first-child { margin-top: 0; }
   @media print { body { padding: 0; } }
 `;
 
@@ -342,25 +355,48 @@ const shellHtml = (labels, tournamentName, meta, subtitle, body) => {
 </body></html>`;
 };
 
-// Whole draw, every result, on one sheet.
-export const printDraw = (tournamentName, draw, statuses, meta = {}) => {
-  if (!draw) return;
+// Whole draw, every result, on one sheet. `tournamentDraw` is the stored
+// tournaments.draw (every category draw is printed, each under its own title);
+// `statuses` is keyed by live_scores round (category offset included).
+export const printDraw = (tournamentName, tournamentDraw, statuses, meta = {}) => {
+  const entries = listDraws(tournamentDraw);
+  if (!entries.length) return;
   const labels = DRAW_LABELS;
-  const body = bodyForFullDraw(labels, draw, statuses || {});
-  openAndPrint(shellHtml(labels, tournamentName, meta, null, body));
+  const body = entries
+    .map((e) => {
+      const title = categoryLabelMk(e.category);
+      const inner = bodyForFullDraw(
+        labels,
+        e.draw,
+        statusesForSlot(statuses || {}, e.slot)
+      );
+      return title && entries.length > 1
+        ? `<h2 class="cat-title">${escapeHtml(title)}</h2>${inner}`
+        : inner;
+    })
+    .join("");
+  const subtitle =
+    entries.length === 1 ? categoryLabelMk(entries[0].category) || null : null;
+  openAndPrint(shellHtml(labels, tournamentName, meta, subtitle, body));
 };
 
 // One playing day's matches (from the schedule) with their draw phase + result.
 export const printDrawDay = (
   tournamentName,
-  draw,
+  tournamentDraw,
   schedule,
   statuses,
   dayFilter = null,
   meta = {}
 ) => {
-  if (!draw) return;
+  if (!tournamentDraw) return;
   const labels = DRAW_LABELS;
-  const body = bodyForDay(labels, draw, schedule, statuses || {}, dayFilter);
+  const body = bodyForDay(
+    labels,
+    tournamentDraw,
+    schedule,
+    statuses || {},
+    dayFilter
+  );
   openAndPrint(shellHtml(labels, tournamentName, meta, dayFilter, body));
 };

@@ -1030,6 +1030,21 @@
   font-style: italic;
   font-size: 0.82rem;
 }
+.td-schedule-table td.cell .cat {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8e9bc0;
+}
+
+/* Category switcher above the draw (Men's / Women's pairs …) */
+.td-draw-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
 .td-schedule-table .td-schedule-dayrow td {
   background: rgba(255, 215, 0, 0.1);
   color: #ffd700;

@@ -3,6 +3,7 @@
 // admin only sets the start time.
 
 import { scheduleGrid, slotTimeLabel } from "./scheduleBuild";
+import { listDraws, categoryLabelMk } from "./drawSet";
 
 // The sheet is an official Macedonian federation document, so its frame labels
 // stay in Macedonian regardless of the site's UI language. Two fixed courts.
@@ -25,10 +26,16 @@ const escapeHtml = (str) =>
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-const cellHtml = (row, mt, labels) => {
+// `showCategory`: tag each match with its category when the tournament has more
+// than one draw (Men's + Women's pairs share the same courts).
+const cellHtml = (row, mt, labels, showCategory) => {
   if (!mt) return "&nbsp;";
   const solo = mt.teamA && !mt.teamB;
-  const time = `<div class="t">${escapeHtml(slotTimeLabel(row, labels))}</div>`;
+  const cat =
+    showCategory && mt.category
+      ? `<div class="cat">${escapeHtml(categoryLabelMk(mt.category))}</div>`
+      : "";
+  const time = `${cat}<div class="t">${escapeHtml(slotTimeLabel(row, labels))}</div>`;
   if (solo) return `${time}<div>${escapeHtml(mt.teamA)}</div>`;
   return `${time}<div>${escapeHtml(mt.teamA)}</div><div class="vs">${escapeHtml(
     labels.vs
@@ -43,6 +50,7 @@ export const printSchedule = (tournamentName, schedule, draw, dayFilter = null) 
   const rows =
     dayFilter != null ? allRows.filter((r) => r.day === dayFilter) : allRows;
   const colSpan = labels.courts.length + 1;
+  const showCategory = listDraws(draw).length > 1;
 
   const headCourts = labels.courts
     .map((c) => `<td class="court">${escapeHtml(c)}</td>`)
@@ -62,7 +70,7 @@ export const printSchedule = (tournamentName, schedule, draw, dayFilter = null) 
       }
       n += 1;
       const cells = labels.courts
-        .map((_, ci) => `<td class="cell">${cellHtml(row, row.cells[ci], labels)}</td>`)
+        .map((_, ci) => `<td class="cell">${cellHtml(row, row.cells[ci], labels, showCategory)}</td>`)
         .join("");
       return `${dayRow}<tr><td class="rownum">${escapeHtml(
         labels.match
@@ -93,6 +101,7 @@ export const printSchedule = (tournamentName, schedule, draw, dayFilter = null) 
   .grid .cell { min-width: 160px; }
   .grid .cell .t { font-weight: bold; margin-bottom: 2px; }
   .grid .cell .vs { color: #666; font-style: italic; }
+  .grid .cell .cat { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555; }
   .grid .dayrow td { background: #eee; font-weight: bold; text-align: left; text-transform: uppercase; letter-spacing: 1px; }
   @media print { body { padding: 0; } }
 </style></head>
