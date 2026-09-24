@@ -130,9 +130,11 @@ const AdminTournamentSchedule = ({ tournaments }) => {
             pair is never put on both courts at the same time. Just set the start
             time of the first two matches — the courts (Терен 1 / Терен 2) and all
             the following times are calculated automatically. For a group
-            tournament you can set Day 1 (group stage) and Day 2 (quarterfinals →
-            semifinals → 3rd place → final) times separately; the Day 2 matchups
-            appear once the quarterfinal draw is made.
+            tournament you can set Day 1 (group stage) and Day 2 times
+            separately. A category with only one group (e.g. Women&apos;s pairs)
+            plays its matches first on Day 2, followed by the quarterfinals →
+            semifinals → 3rd place → final; the knockout matchups appear once the
+            quarterfinal draw is made.
           </p>
         </div>
       </div>

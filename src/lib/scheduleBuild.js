@@ -15,12 +15,17 @@
 //     fully scheduled in earlier slots (a QF winner can't play the SF at the
 //     same time as the QF);
 //   • pairs get a rest slot between matches whenever another match can fill the
-//     court instead.
+//     court instead;
+//   • a later phase of a day only starts once every match of the earlier phase
+//     is placed (Sunday: the single-group categories first, then the knockout).
 //
 // Elimination: matches taken in bracket order, round by round.
 // Group system: round-robin round by round, group by group. Day 1 (Сабота)
-//   holds ALL group matches; Day 2 (Недела) is quarterfinals → semifinals →
-//   final + 3rd place.
+//   holds the group matches of the multi-group categories (Men's pairs); Day 2
+//   (Недела) opens with the categories that have only ONE group (e.g. Women's
+//   pairs — a plain round-robin), then quarterfinals → semifinals → final +
+//   3rd place. A lone single-group category (nothing else on Saturday) stays
+//   on day 1.
 
 import {
   SEMI_ROUND,
@@ -112,15 +117,18 @@ const item = (entry, localRound, matchIndex, a, b, extra) => {
     teamB: b,
     day: extra.day ?? null,
     stage: extra.stage ?? 0,
+    phase: extra.phase ?? 0,
     players: [...playersOf(a, placeholder), ...playersOf(b, placeholder)],
   };
 };
 
 // ---- Queue items per draw system ----------------------------------------
 
-// Group stage (day 0): round-robin round r of every category's every group,
+const isSingleGroup = (e) => (e.draw.groups || []).length === 1;
+
+// Group stage (on `day`): round-robin round r of every category's every group,
 // before round r + 1. Each group's matches are looked up by their two teams.
-const groupStageItems = (entries) => {
+const groupStageItems = (entries, day = 0) => {
   const perEntry = entries.map((e) =>
     (e.draw.groups || []).map((g) => {
       const idx = new Map();
@@ -154,7 +162,7 @@ const groupStageItems = (entries) => {
   const out = [];
   blocks.forEach(({ ei, gi, round }) =>
     round.forEach(({ mi, m }) =>
-      out.push(item(entries[ei], gi, mi, m.a, m.b, { day: 0, stage: 0 }))
+      out.push(item(entries[ei], gi, mi, m.a, m.b, { day, stage: 0 }))
     )
   );
   // Safety net: any group match the round-robin didn't cover (e.g. a hand-
@@ -163,7 +171,7 @@ const groupStageItems = (entries) => {
   entries.forEach((e) =>
     (e.draw.groups || []).forEach((g, gi) =>
       (g.matches || []).forEach((m, mi) => {
-        const it = item(e, gi, mi, m.a, m.b, { day: 0, stage: 0 });
+        const it = item(e, gi, mi, m.a, m.b, { day, stage: 0 });
         if (!seen.has(`${it.round}:${mi}`)) out.push(it);
       })
     )
@@ -171,43 +179,47 @@ const groupStageItems = (entries) => {
   return out;
 };
 
-// Knockout (day 1): quarterfinals of every category, then semifinals, then
-// final + 3rd place. Empty slots show a placeholder until the draw fills them.
+// Knockout (day 1, phase 1 — after the Sunday group matches): quarterfinals of
+// every category, then semifinals, then final + 3rd place. Empty slots show a
+// placeholder until the draw fills them — except for a single-group category,
+// which is a plain round-robin: its knockout is only scheduled for the matches
+// the admin actually fills in.
 const groupKnockoutItems = (entries) => {
+  const out = [];
   const ko = (e, round, i, pair, ph, stage) => {
     const a = pair?.a || null;
     const b = pair?.b || null;
-    return item(e, round, i, a || ph.a, b || ph.b, {
-      day: 1,
-      stage,
-      placeholder: !a || !b,
-    });
+    const placeholder = !a || !b;
+    if (placeholder && isSingleGroup(e)) return;
+    out.push(
+      item(e, round, i, a || ph.a, b || ph.b, {
+        day: 1,
+        stage,
+        phase: 1,
+        placeholder,
+      })
+    );
   };
   const qfPh = { a: "Квалификант", b: "Квалификант" };
   const sfPh = { a: "Победник 1/4", b: "Победник 1/4" };
-  const out = [];
   entries.forEach((e) => {
     const qf = Array.isArray(e.draw.quarterfinals) ? e.draw.quarterfinals : [];
-    [0, 1, 2, 3].forEach((i) =>
-      out.push(ko(e, QUARTER_ROUND, i, qf[i], qfPh, 1))
-    );
+    [0, 1, 2, 3].forEach((i) => ko(e, QUARTER_ROUND, i, qf[i], qfPh, 1));
   });
   entries.forEach((e) =>
     [0, 1].forEach((i) =>
-      out.push(ko(e, SEMI_ROUND, i, e.draw.semifinals?.[i], sfPh, 2))
+      ko(e, SEMI_ROUND, i, e.draw.semifinals?.[i], sfPh, 2)
     )
   );
   entries.forEach((e) => {
-    out.push(ko(e, FINAL_ROUND, 0, e.draw.final, { a: "Финале", b: null }, 3));
-    out.push(
-      ko(
-        e,
-        THIRD_PLACE_ROUND,
-        0,
-        e.draw.third,
-        { a: "Меч за 3-то место", b: null },
-        3
-      )
+    ko(e, FINAL_ROUND, 0, e.draw.final, { a: "Финале", b: null }, 3);
+    ko(
+      e,
+      THIRD_PLACE_ROUND,
+      0,
+      e.draw.third,
+      { a: "Меч за 3-то место", b: null },
+      3
     );
   });
   return out;
@@ -227,7 +239,13 @@ const eliminationItems = (entries, dayOf) => {
       const rounds = e.draw.rounds || [];
       (rounds[ri] || []).forEach((m, i) => {
         if (isRealMatch(m)) {
-          out.push(item(e, ri, i, m.a, m.b, { day: dayOf(ri), stage: ri }));
+          out.push(
+            item(e, ri, i, m.a, m.b, {
+              day: dayOf(ri),
+              stage: ri,
+              phase: dayOf(ri) === 1 ? 1 : 0,
+            })
+          );
         }
       });
       if (ri === rounds.length - 1 && isRealMatch(e.draw.thirdPlace)) {
@@ -235,6 +253,7 @@ const eliminationItems = (entries, dayOf) => {
           item(e, THIRD_PLACE_ROUND, 0, e.draw.thirdPlace.a, e.draw.thirdPlace.b, {
             day: dayOf(ri),
             stage: ri,
+            phase: dayOf(ri) === 1 ? 1 : 0,
           })
         );
       }
@@ -258,10 +277,19 @@ const packSlots = (queue) => {
   pending.forEach((it) =>
     left.set(stageKey(it), (left.get(stageKey(it)) || 0) + 1)
   );
+  // Per phase: how many are still unpicked (updated as soon as a match is
+  // picked, so a later phase can take a court the earlier one leaves free).
+  const phaseLeft = new Map();
+  pending.forEach((it) =>
+    phaseLeft.set(it.phase, (phaseLeft.get(it.phase) || 0) + 1)
+  );
 
-  // A match is ready once every earlier stage of its category is scheduled in
-  // an EARLIER slot.
+  // A match is ready once every earlier phase of its day is picked and every
+  // earlier stage of its category is scheduled in an EARLIER slot.
   const ready = (it, slotIdx) => {
+    for (const [phase, n] of phaseLeft) {
+      if (phase < it.phase && n > 0) return false;
+    }
     for (let s = 0; s < it.stage; s += 1) {
       const k = `${it.slot}|${s}`;
       if ((left.get(k) || 0) > 0) return false;
@@ -285,10 +313,14 @@ const packSlots = (queue) => {
         if (overlaps(it.players, busy)) return;
         if (wantRest && overlaps(it.players, prevPlayers)) return;
         picked.push(it);
+        phaseLeft.set(it.phase, phaseLeft.get(it.phase) - 1);
         it.players.forEach((p) => busy.add(p));
       });
     });
-    if (!picked.length) picked.push(pending[0]); // never loop forever
+    if (!picked.length) {
+      picked.push(pending[0]); // never loop forever
+      phaseLeft.set(pending[0].phase, phaseLeft.get(pending[0].phase) - 1);
+    }
     picked.forEach((it) => {
       pending.splice(pending.indexOf(it), 1);
       const k = stageKey(it);
@@ -322,9 +354,15 @@ export const scheduleGrid = (tournamentDraw, config) => {
   const groupEntries = entries.filter((e) => e.draw.system === "group");
   const elimEntries = entries.filter((e) => e.draw.system !== "group");
   const multiDay = groupEntries.length > 0;
+  // Single-group categories play on Sunday, before the knockout — but only
+  // when a multi-group category is there to fill Saturday.
+  const sunday = groupEntries.some((e) => !isSingleGroup(e))
+    ? groupEntries.filter(isSingleGroup)
+    : [];
 
   const queue = [
-    ...groupStageItems(groupEntries),
+    ...groupStageItems(groupEntries.filter((e) => !sunday.includes(e)), 0),
+    ...groupStageItems(sunday, 1),
     // Mixed with a group draw: an elimination's first round goes on day 1,
     // everything after it on day 2.
     ...eliminationItems(elimEntries, (ri) =>
