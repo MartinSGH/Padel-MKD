@@ -19,6 +19,14 @@
 //   • a later phase of a day only starts once every match of the earlier phase
 //     is placed (Sunday: the single-group categories first, then the knockout).
 //
+// MANUAL mode (config.mode === "manual"): the admin arranges the matches
+// themselves — config.manual holds, per day, a list of time slots with one
+// match key per court ("round:matchIndex", see matchKey). Keys point at draw
+// POSITIONS, not pair names, so a knockout match placed before its pairs are
+// known (Квалификант / Победник 1/4 …) shows the real pairs as soon as the draw
+// fills them. A real match the admin hasn't placed is still appended at the end
+// of its day, so nothing silently drops out of the public schedule.
+//
 // Elimination: matches taken in bracket order, round by round.
 // Group system: round-robin round by round, group by group. Day 1 (Сабота)
 //   holds the group matches of the multi-group categories (Men's pairs); Day 2
@@ -34,6 +42,7 @@ import {
   QUARTER_ROUND,
 } from "./points.js";
 import { listDraws, encodeRound } from "./drawSet.js";
+import { roundName } from "./draw.js";
 
 export const DEFAULT_SCHEDULE = { startTime: "12:00", intervalMinutes: 60 };
 const COURTS = 2;
@@ -104,17 +113,32 @@ const roundRobinRounds = (n) => {
   return rounds.reverse();
 };
 
+// Stable identity of a scheduled match: its (global) live_scores round + index.
+export const matchKey = (m) => `${m.round}:${m.matchIndex}`;
+
 // One schedulable match.
+//   label       short admin-facing name (e.g. "Group 2", "Semifinal 1")
+//   placeholder its pairs aren't (all) known yet
+//   manualOnly  only offered in manual mode — the automatic schedule leaves it
+//               out until its pairs are known (e.g. a later elimination round)
+//   optional    manualOnly and may never be played (a single-group category's
+//               knockout, which only exists if the admin fills it in the draw)
 const item = (entry, localRound, matchIndex, a, b, extra) => {
   const placeholder = !!extra.placeholder;
+  const round = encodeRound(entry.slot, localRound);
   return {
+    key: matchKey({ round, matchIndex }),
     slot: entry.slot,
     category: entry.category,
-    round: encodeRound(entry.slot, localRound),
+    round,
     localRound,
     matchIndex,
     teamA: a,
     teamB: b,
+    label: extra.label || "",
+    placeholder,
+    manualOnly: !!extra.manualOnly,
+    optional: !!extra.optional,
     day: extra.day ?? null,
     stage: extra.stage ?? 0,
     phase: extra.phase ?? 0,
@@ -160,9 +184,17 @@ const groupStageItems = (entries, day = 0) => {
   );
   blocks.sort((x, y) => x.at - y.at || x.ei - y.ei || x.gi - y.gi);
   const out = [];
+  const groupLabel = (e, gi) =>
+    (e.draw.groups || []).length > 1 ? `Group ${gi + 1}` : "Group";
   blocks.forEach(({ ei, gi, round }) =>
     round.forEach(({ mi, m }) =>
-      out.push(item(entries[ei], gi, mi, m.a, m.b, { day, stage: 0 }))
+      out.push(
+        item(entries[ei], gi, mi, m.a, m.b, {
+          day,
+          stage: 0,
+          label: groupLabel(entries[ei], gi),
+        })
+      )
     )
   );
   // Safety net: any group match the round-robin didn't cover (e.g. a hand-
@@ -171,7 +203,11 @@ const groupStageItems = (entries, day = 0) => {
   entries.forEach((e) =>
     (e.draw.groups || []).forEach((g, gi) =>
       (g.matches || []).forEach((m, mi) => {
-        const it = item(e, gi, mi, m.a, m.b, { day, stage: 0 });
+        const it = item(e, gi, mi, m.a, m.b, {
+          day,
+          stage: 0,
+          label: groupLabel(e, gi),
+        });
         if (!seen.has(`${it.round}:${mi}`)) out.push(it);
       })
     )
@@ -179,55 +215,86 @@ const groupStageItems = (entries, day = 0) => {
   return out;
 };
 
+// Placeholder text for a knockout match whose pairs aren't known yet. `ph` is
+// used when neither pair is known, `side` fills a single missing pair.
+const QF_PH = { a: "Квалификант", b: "Квалификант", side: "Квалификант" };
+const SF_PH = { a: "Победник 1/4", b: "Победник 1/4", side: "Победник 1/4" };
+const FINAL_PH = { a: "Финале", b: null, side: "Победник 1/2" };
+const THIRD_PH = { a: "Меч за 3-то место", b: null, side: "Поразен 1/2" };
+
+const withPlaceholders = (a, b, ph) =>
+  !a && !b ? [ph.a, ph.b] : [a || ph.side, b || ph.side];
+
 // Knockout (day 1, phase 1 — after the Sunday group matches): quarterfinals of
 // every category, then semifinals, then final + 3rd place. Empty slots show a
 // placeholder until the draw fills them — except for a single-group category,
-// which is a plain round-robin: its knockout is only scheduled for the matches
-// the admin actually fills in.
+// which is a plain round-robin: its knockout is only scheduled automatically
+// for the matches the admin actually fills in (manual mode still offers the
+// empty ones, as optional).
 const groupKnockoutItems = (entries) => {
   const out = [];
-  const ko = (e, round, i, pair, ph, stage) => {
+  const ko = (e, round, i, pair, ph, stage, label) => {
     const a = pair?.a || null;
     const b = pair?.b || null;
     const placeholder = !a || !b;
-    if (placeholder && isSingleGroup(e)) return;
+    const optional = placeholder && isSingleGroup(e);
+    const [ta, tb] = withPlaceholders(a, b, ph);
     out.push(
-      item(e, round, i, a || ph.a, b || ph.b, {
+      item(e, round, i, ta, tb, {
         day: 1,
         stage,
         phase: 1,
         placeholder,
+        manualOnly: optional,
+        optional,
+        label,
       })
     );
   };
-  const qfPh = { a: "Квалификант", b: "Квалификант" };
-  const sfPh = { a: "Победник 1/4", b: "Победник 1/4" };
   entries.forEach((e) => {
     const qf = Array.isArray(e.draw.quarterfinals) ? e.draw.quarterfinals : [];
-    [0, 1, 2, 3].forEach((i) => ko(e, QUARTER_ROUND, i, qf[i], qfPh, 1));
+    [0, 1, 2, 3].forEach((i) =>
+      ko(e, QUARTER_ROUND, i, qf[i], QF_PH, 1, `Quarterfinal ${i + 1}`)
+    );
   });
   entries.forEach((e) =>
     [0, 1].forEach((i) =>
-      ko(e, SEMI_ROUND, i, e.draw.semifinals?.[i], sfPh, 2)
+      ko(
+        e,
+        SEMI_ROUND,
+        i,
+        e.draw.semifinals?.[i],
+        SF_PH,
+        2,
+        `Semifinal ${i + 1}`
+      )
     )
   );
   entries.forEach((e) => {
-    ko(e, FINAL_ROUND, 0, e.draw.final, { a: "Финале", b: null }, 3);
-    ko(
-      e,
-      THIRD_PLACE_ROUND,
-      0,
-      e.draw.third,
-      { a: "Меч за 3-то место", b: null },
-      3
-    );
+    ko(e, FINAL_ROUND, 0, e.draw.final, FINAL_PH, 3, "Final");
+    ko(e, THIRD_PLACE_ROUND, 0, e.draw.third, THIRD_PH, 3, "3rd place");
   });
   return out;
 };
 
+// Can this side of elimination match (ri, i) ever hold a pair? Only when the
+// branch of the bracket feeding it has at least one real pair (a bye-vs-bye
+// branch never produces one).
+const sideCanFill = (rounds, ri, i, side) => {
+  if (ri === 0) return isRealLabel(rounds[0]?.[i]?.[side]);
+  const j = 2 * i + (side === "a" ? 0 : 1);
+  return (
+    sideCanFill(rounds, ri - 1, j, "a") || sideCanFill(rounds, ri - 1, j, "b")
+  );
+};
+
+// "Победник 1/8" — the winner of a round with `n` matches.
+const winnerOf = (n) => `Победник 1/${n}`;
+
 // Elimination: every playable match, round by round (each round of every
 // category before the next round), then the 3rd-place match with the final.
-// `dayOf(round)` places rounds on days when mixed with a group draw.
+// `dayOf(round)` places rounds on days when mixed with a group draw. Later-round
+// matches whose pairs aren't known yet are included as manualOnly placeholders.
 const eliminationItems = (entries, dayOf) => {
   const maxRounds = Math.max(
     0,
@@ -237,25 +304,68 @@ const eliminationItems = (entries, dayOf) => {
   for (let ri = 0; ri < maxRounds; ri += 1) {
     entries.forEach((e) => {
       const rounds = e.draw.rounds || [];
+      const extra = {
+        day: dayOf(ri),
+        stage: ri,
+        phase: dayOf(ri) === 1 ? 1 : 0,
+      };
       (rounds[ri] || []).forEach((m, i) => {
+        const label =
+          rounds[ri].length === 1
+            ? roundName(1)
+            : `${roundName(rounds[ri].length)} · ${i + 1}`;
         if (isRealMatch(m)) {
+          out.push(item(e, ri, i, m.a, m.b, { ...extra, label }));
+        } else if (
+          ri > 0 &&
+          sideCanFill(rounds, ri, i, "a") &&
+          sideCanFill(rounds, ri, i, "b")
+        ) {
+          const side = winnerOf(rounds[ri - 1].length);
+          const ph =
+            rounds[ri].length === 1
+              ? { ...FINAL_PH, side }
+              : { a: side, b: side, side };
+          const [ta, tb] = withPlaceholders(
+            isRealLabel(m?.a) ? m.a : null,
+            isRealLabel(m?.b) ? m.b : null,
+            ph
+          );
           out.push(
-            item(e, ri, i, m.a, m.b, {
-              day: dayOf(ri),
-              stage: ri,
-              phase: dayOf(ri) === 1 ? 1 : 0,
+            item(e, ri, i, ta, tb, {
+              ...extra,
+              label,
+              placeholder: true,
+              manualOnly: true,
             })
           );
         }
       });
-      if (ri === rounds.length - 1 && isRealMatch(e.draw.thirdPlace)) {
-        out.push(
-          item(e, THIRD_PLACE_ROUND, 0, e.draw.thirdPlace.a, e.draw.thirdPlace.b, {
-            day: dayOf(ri),
-            stage: ri,
-            phase: dayOf(ri) === 1 ? 1 : 0,
-          })
-        );
+      const hasSemis = (rounds[rounds.length - 2] || []).length === 2;
+      if (ri === rounds.length - 1 && hasSemis) {
+        const tp = e.draw.thirdPlace;
+        if (isRealMatch(tp)) {
+          out.push(
+            item(e, THIRD_PLACE_ROUND, 0, tp.a, tp.b, {
+              ...extra,
+              label: "3rd place",
+            })
+          );
+        } else {
+          const [ta, tb] = withPlaceholders(
+            isRealLabel(tp?.a) ? tp.a : null,
+            isRealLabel(tp?.b) ? tp.b : null,
+            THIRD_PH
+          );
+          out.push(
+            item(e, THIRD_PLACE_ROUND, 0, ta, tb, {
+              ...extra,
+              label: "3rd place",
+              placeholder: true,
+              manualOnly: true,
+            })
+          );
+        }
       }
     });
   }
@@ -333,6 +443,7 @@ const packSlots = (queue) => {
 };
 
 const toCell = (it) => ({
+  key: it.key,
   round: it.round,
   localRound: it.localRound,
   matchIndex: it.matchIndex,
@@ -342,15 +453,15 @@ const toCell = (it) => ({
   teamB: it.teamB,
 });
 
-// Slot rows for the 2-court grid (display + PDF). Rows carry an optional `day`.
-// `tournamentDraw` is the stored `tournaments.draw` value (see drawSet.js).
-export const scheduleGrid = (tournamentDraw, config) => {
+// Every match the schedule can hold (manualOnly ones included), in the
+// automatic queue order. `multiDay`: a group draw spreads over two days.
+const buildQueue = (tournamentDraw) => {
   const entries = listDraws(tournamentDraw).filter(
     (e) =>
       (e.draw?.system === "group" && Array.isArray(e.draw.groups)) ||
       Array.isArray(e.draw?.rounds)
   );
-  if (!entries.length) return [];
+  if (!entries.length) return { queue: [], multiDay: false };
   const groupEntries = entries.filter((e) => e.draw.system === "group");
   const elimEntries = entries.filter((e) => e.draw.system !== "group");
   const multiDay = groupEntries.length > 0;
@@ -370,36 +481,194 @@ export const scheduleGrid = (tournamentDraw, config) => {
     ),
     ...groupKnockoutItems(groupEntries),
   ];
+  return { queue, multiDay };
+};
 
-  if (!multiDay) {
-    const { start, interval } = dayTiming(config)[0];
-    return packSlots(queue).map((picked, idx) => ({
-      day: null,
-      slot: idx,
-      time: fmtTime(start + idx * interval),
-      first: idx === 0,
-      cells: Array.from({ length: COURTS }, (_, c) =>
-        picked[c] ? toCell(picked[c]) : null
-      ),
-    }));
-  }
+export const isManualSchedule = (config) =>
+  config?.mode === "manual" && Array.isArray(config?.manual);
 
-  // Times restart each day, each day using its own start time + interval.
-  const timing = dayTiming(config);
-  return [0, 1].flatMap((day) => {
-    const { start, interval } = timing[day];
-    return packSlots(queue.filter((it) => it.day === day)).map(
-      (picked, idx) => ({
-        day: GROUP_SCHEDULE_DAYS[day],
-        slot: idx,
-        time: fmtTime(start + idx * interval),
-        first: idx === 0,
-        cells: Array.from({ length: COURTS }, (_, c) =>
-          picked[c] ? toCell(picked[c]) : null
-        ),
+// Time of slot `idx` on day `dayIdx` (0 / 1), e.g. "13:00".
+export const slotTime = (config, dayIdx, idx) => {
+  const { start, interval } = dayTiming(config)[dayIdx || 0];
+  return fmtTime(start + idx * interval);
+};
+
+const dayIndexOf = (it) => it.day || 0;
+
+// Automatic: pack each day's queue into slots → per day, a list of slots of
+// items (null = free court).
+const autoDays = (queue, multiDay) =>
+  (multiDay ? [0, 1] : [0]).map((d) =>
+    packSlots(
+      queue.filter((it) => !it.manualOnly && dayIndexOf(it) === d)
+    ).map((picked) =>
+      Array.from({ length: COURTS }, (_, c) => picked[c] || null)
+    )
+  );
+
+// Manual: resolve the admin's layout (match keys) against the current draw.
+// Unknown / duplicate keys are dropped. A real match that isn't placed anywhere
+// is appended (auto-packed) after its day's slots, flagged `appended`.
+const manualDays = (queue, multiDay, layout) => {
+  const byKey = new Map(queue.map((it) => [it.key, it]));
+  const used = new Set();
+  const days = (multiDay ? [0, 1] : [0]).map((d) =>
+    (Array.isArray(layout[d]) ? layout[d] : []).map((slot) =>
+      Array.from({ length: COURTS }, (_, c) => {
+        const k = Array.isArray(slot) ? slot[c] : null;
+        const it = k != null && !used.has(k) ? byKey.get(k) : null;
+        if (!it) return null;
+        used.add(k);
+        return it;
       })
+    )
+  );
+  days.forEach((slots, d) => {
+    const rest = queue.filter(
+      (it) => !used.has(it.key) && !it.manualOnly && dayIndexOf(it) === d
+    );
+    packSlots(rest).forEach((picked) =>
+      slots.push(
+        Array.from({ length: COURTS }, (_, c) =>
+          picked[c] ? { ...picked[c], appended: true } : null
+        )
+      )
     );
   });
+  return days;
+};
+
+const placedDays = (tournamentDraw, config) => {
+  const { queue, multiDay } = buildQueue(tournamentDraw);
+  if (!queue.length) return { days: [], multiDay, queue };
+  const days = isManualSchedule(config)
+    ? manualDays(queue, multiDay, config.manual)
+    : autoDays(queue, multiDay);
+  return { days, multiDay, queue };
+};
+
+// Slot rows for the 2-court grid (display + PDF). Rows carry an optional `day`.
+// `tournamentDraw` is the stored `tournaments.draw` value (see drawSet.js).
+// Times restart each day, each day using its own start time + interval. A slot
+// the admin left empty in a manual schedule isn't shown, but still takes its
+// time (a break); the day's first shown slot reads "Почеток".
+export const scheduleGrid = (tournamentDraw, config) => {
+  const { days, multiDay } = placedDays(tournamentDraw, config);
+  return days.flatMap((slots, d) => {
+    const rows = [];
+    slots.forEach((cells, idx) => {
+      if (cells.every((c) => !c)) return;
+      rows.push({
+        day: multiDay ? GROUP_SCHEDULE_DAYS[d] : null,
+        slot: idx,
+        time: slotTime(config, d, idx),
+        first: rows.length === 0,
+        cells: cells.map((c) => (c ? toCell(c) : null)),
+      });
+    });
+    return rows;
+  });
+};
+
+// Everything the manual editor needs: every match (current pair names or
+// placeholders) and the day structure.
+export const schedulePool = (tournamentDraw) => {
+  const { queue, multiDay } = buildQueue(tournamentDraw);
+  return {
+    matches: queue.map(({ players, ...rest }) => ({
+      ...rest,
+      hasPlayers: players.length > 0,
+    })),
+    multiDay,
+    days: multiDay ? GROUP_SCHEDULE_DAYS : [null],
+  };
+};
+
+// The automatic schedule as a manual layout (per day, slots of match keys) —
+// the starting point when the admin switches to manual.
+export const autoLayout = (tournamentDraw) => {
+  const { queue, multiDay } = buildQueue(tournamentDraw);
+  return autoDays(queue, multiDay).map((slots) =>
+    slots.map((cells) => cells.map((c) => (c ? c.key : null)))
+  );
+};
+
+// Problems in a manual schedule, as readable strings:
+//   • the same player on both courts in one slot;
+//   • a knockout round placed before (or alongside) an earlier round of its
+//     category — e.g. a semifinal before every quarterfinal is played;
+//   • real matches not placed (they get appended at the end of their day);
+//   • knockout matches with no pairs yet that aren't placed.
+export const scheduleWarnings = (tournamentDraw, config) => {
+  if (!isManualSchedule(config)) return [];
+  const { days, multiDay, queue } = placedDays(tournamentDraw, config);
+  const out = [];
+  const dayName = (d) => (multiDay ? `${GROUP_SCHEDULE_DAYS[d]} ` : "");
+  // The player's name as written in the draw (players are matched lowercased).
+  const nameOf = (it, p) =>
+    [it.teamA, it.teamB]
+      .flatMap((t) => String(t || "").split("&"))
+      .map((x) => x.trim())
+      .find((x) => x.toLowerCase() === p) || p;
+  // key → global position (day, slot) of every match the ADMIN placed (not the
+  // appended ones — those are reported as "not placed" below).
+  const pos = new Map();
+  days.forEach((slots, d) =>
+    slots.forEach((cells, idx) => {
+      cells.forEach(
+        (it) => it && !it.appended && pos.set(it.key, d * 10000 + idx)
+      );
+      const seen = new Set();
+      cells.forEach((it) => {
+        if (!it) return;
+        const clash = it.players.find((p) => seen.has(p));
+        if (clash) {
+          out.push(
+            `${dayName(d)}${slotTime(config, d, idx)}: ${nameOf(it, clash)} is on both courts.`
+          );
+        }
+        it.players.forEach((p) => seen.add(p));
+      });
+    })
+  );
+
+  // Knockout order per category.
+  const reported = new Set();
+  queue.forEach((it) => {
+    if (!it.stage || !pos.has(it.key)) return;
+    const early = queue.find(
+      (o) =>
+        o.slot === it.slot &&
+        o.stage < it.stage &&
+        pos.has(o.key) &&
+        pos.get(o.key) >= pos.get(it.key)
+    );
+    const rk = `${it.slot}|${it.stage}`;
+    if (early && !reported.has(rk)) {
+      reported.add(rk);
+      out.push(
+        `${it.category ? `${it.category}: ` : ""}${it.label} is scheduled before (or at the same time as) ${early.label}.`
+      );
+    }
+  });
+
+  const appended = days
+    .flat(2)
+    .filter((it) => it && it.appended).length;
+  if (appended) {
+    out.push(
+      `${appended} match${appended > 1 ? "es are" : " is"} not placed — the public schedule adds ${appended > 1 ? "them" : "it"} at the end of the day.`
+    );
+  }
+  const pendingKo = queue.filter(
+    (it) => it.manualOnly && !it.optional && !pos.has(it.key)
+  ).length;
+  if (pendingKo) {
+    out.push(
+      `${pendingKo} upcoming knockout match${pendingKo > 1 ? "es" : ""} (pairs not known yet) ${pendingKo > 1 ? "are" : "is"} not placed.`
+    );
+  }
+  return out;
 };
 
 // Court + time for one specific match (used by the live scoreboard). `round` is
