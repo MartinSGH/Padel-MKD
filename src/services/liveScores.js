@@ -3,7 +3,7 @@ import { recomputeDraw, finishedMapFromRows } from "../lib/drawAdvance";
 import {
   computePlacementPoints,
   buildLabelToPlayers,
-  placementPointsFor,
+  resolvePointsScheme,
 } from "../lib/points";
 import { recomputeGroupDraw, resultMapFromRows } from "../lib/groupDraw";
 import { listDraws, mapDraws, rowsForSlot } from "../lib/drawSet";
@@ -66,19 +66,56 @@ export const saveState = async (id, state) => {
   if (error) throw error;
 };
 
-// After any result change: (1) reflow the draw so winners advance and the
-// 3rd-place match fills, and (2) recompute the tournament's ranking points.
-const afterResultChange = async (tournamentId) => {
+// Recompute a tournament's ranking points by final placement (see
+// computePlacementPoints), per category draw; a player who played two
+// categories gets both added up. `rows` are the tournament's live_scores rows.
+const writePlacementPoints = async (tournamentId, draw, rows, storedScheme) => {
+  const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
+  const labelToPlayers = buildLabelToPlayers(regs);
+  const scheme = resolvePointsScheme(storedScheme);
+  const totals = new Map();
+  listDraws(draw).forEach(({ slot, draw: d }) => {
+    const resultMap = resultMapFromRows(rowsForSlot(rows || [], slot));
+    computePlacementPoints(d, resultMap, labelToPlayers, scheme).forEach((p) => {
+      const cur = totals.get(p.player_id);
+      totals.set(
+        p.player_id,
+        cur ? { ...cur, points: cur.points + p.points } : { ...p }
+      );
+    });
+  });
+  const points = [...totals.values()];
+  await writeTournamentPoints(tournamentId, points);
+};
+
+// The tournament's live_scores rows + its row (draw, points_scheme). `select *`
+// so a database without the points_scheme column yet still works.
+const loadResults = async (tournamentId) => {
   const [{ data: rows, error: e1 }, { data: tn, error: e2 }] =
     await Promise.all([
       supabase
         .from("live_scores")
         .select("round, match_index, status, winner, team_a, team_b, state")
         .eq("tournament_id", tournamentId),
-      supabase.from("tournaments").select("draw").eq("id", tournamentId).single(),
+      supabase.from("tournaments").select("*").eq("id", tournamentId).single(),
     ]);
   if (e1) throw e1;
   if (e2) throw e2;
+  return { rows, tn };
+};
+
+// Admin: rescore a tournament from its current draw + results (e.g. after its
+// scoring system changed). Does nothing for a tournament without a draw.
+export const recomputeTournamentPoints = async (tournamentId) => {
+  const { rows, tn } = await loadResults(tournamentId);
+  if (!tn?.draw) return;
+  await writePlacementPoints(tournamentId, tn.draw, rows, tn.points_scheme);
+};
+
+// After any result change: (1) reflow the draw so winners advance and the
+// 3rd-place match fills, and (2) recompute the tournament's ranking points.
+const afterResultChange = async (tournamentId) => {
+  const { rows, tn } = await loadResults(tournamentId);
   const draw = tn?.draw;
 
   // 1) advance the draw (via an RPC so referees — who can't update tournaments
@@ -101,24 +138,8 @@ const afterResultChange = async (tournamentId) => {
     if (drawErr) throw drawErr;
   }
 
-  // 2) recompute ranking points by final placement (see computePlacementPoints),
-  // per category draw; a player who played two categories gets both added up.
-  const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
-  const labelToPlayers = buildLabelToPlayers(regs);
-  const scheme = placementPointsFor(tournamentId);
-  const totals = new Map();
-  listDraws(nextDraw).forEach(({ slot, draw: d }) => {
-    const resultMap = resultMapFromRows(rowsForSlot(rows || [], slot));
-    computePlacementPoints(d, resultMap, labelToPlayers, scheme).forEach((p) => {
-      const cur = totals.get(p.player_id);
-      totals.set(
-        p.player_id,
-        cur ? { ...cur, points: cur.points + p.points } : { ...p }
-      );
-    });
-  });
-  const points = [...totals.values()];
-  await writeTournamentPoints(tournamentId, points);
+  // 2) recompute ranking points with the tournament's scoring system.
+  await writePlacementPoints(tournamentId, nextDraw, rows, tn?.points_scheme);
 };
 
 // Admin: finish a match with the final state → mark finished + advance the draw.

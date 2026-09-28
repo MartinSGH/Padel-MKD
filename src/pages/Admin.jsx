@@ -20,6 +20,13 @@ import {
   uploadTournamentFile,
 } from "../services/tournaments";
 import { formatDateRange } from "../lib/tournamentUtils";
+import {
+  SCORING_FIELDS,
+  SCORING_PRESETS,
+  CUSTOM_SCHEME,
+  describePointsScheme,
+} from "../lib/points";
+import { recomputeTournamentPoints } from "../services/liveScores";
 import AdminTournamentDraw from "../components/AdminTournamentDraw";
 import AdminTournamentSchedule from "../components/AdminTournamentSchedule";
 import "../styles/Admin.css";
@@ -54,6 +61,44 @@ const emptyTournamentForm = {
   detail_url: "",
   image_url: "",
   propositions_url: "",
+  scoring_preset: "", // a SCORING_PRESETS key, CUSTOM_SCHEME, or "" (not chosen)
+  scoring_custom: Object.fromEntries(SCORING_FIELDS.map(({ key }) => [key, ""])),
+};
+
+// Stored points_scheme → the form's preset + custom values.
+const schemeToForm = (stored) => {
+  if (!stored) {
+    return {
+      scoring_preset: "",
+      scoring_custom: emptyTournamentForm.scoring_custom,
+    };
+  }
+  const isPreset = SCORING_PRESETS.some((p) => p.key === stored.preset);
+  return {
+    scoring_preset: isPreset ? stored.preset : CUSTOM_SCHEME,
+    scoring_custom: Object.fromEntries(
+      SCORING_FIELDS.map(({ key }) => [key, String(stored[key] ?? "")])
+    ),
+  };
+};
+
+// Form → the points_scheme to store, or an error message. Preset values are
+// copied in so the tournament keeps its points even if a preset changes later.
+const formToScheme = (form) => {
+  if (!form.scoring_preset) return { error: "Choose a scoring system." };
+  const preset = SCORING_PRESETS.find((p) => p.key === form.scoring_preset);
+  if (preset) return { scheme: { preset: preset.key, ...preset.points } };
+
+  const scheme = { preset: CUSTOM_SCHEME };
+  for (const { key, label } of SCORING_FIELDS) {
+    const raw = String(form.scoring_custom[key] ?? "").trim();
+    const n = Number(raw);
+    if (raw === "" || !Number.isInteger(n) || n < 0) {
+      return { error: `Custom scoring: enter whole points for "${label}".` };
+    }
+    scheme[key] = n;
+  }
+  return { scheme };
 };
 
 // Registration categories a tournament can offer. Stored as canonical English
@@ -238,6 +283,14 @@ export default function Admin() {
     setTournamentForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  const handleScoringCustomChange = (key) => (e) => {
+    const value = e.target.value;
+    setTournamentForm((prev) => ({
+      ...prev,
+      scoring_custom: { ...prev.scoring_custom, [key]: value },
+    }));
+  };
+
   // Toggle a registration category on/off in the tournament form.
   const handleCategoryToggle = (value) => (e) => {
     const checked = e.target.checked;
@@ -283,6 +336,7 @@ export default function Admin() {
       detail_url: tournament.detail_url || "",
       image_url: tournament.image_url || "",
       propositions_url: tournament.propositions_url || "",
+      ...schemeToForm(tournament.points_scheme),
     });
     setTournamentImageFile(null);
     setTournamentPdfFile(null);
@@ -303,6 +357,13 @@ export default function Admin() {
 
     if (!tournamentForm.registration_deadline) {
       setTournamentError("Registration deadline is required.");
+      return;
+    }
+
+    const { scheme: pointsScheme, error: schemeError } =
+      formToScheme(tournamentForm);
+    if (schemeError) {
+      setTournamentError(schemeError);
       return;
     }
 
@@ -353,10 +414,21 @@ export default function Admin() {
         detail_url: clean(tournamentForm.detail_url),
         image_url: imageUrl,
         propositions_url: propositionsUrl,
+        points_scheme: pointsScheme,
       };
 
       if (editingTournamentId) {
+        const before = tournaments.find((x) => x.id === editingTournamentId);
         await updateTournament(editingTournamentId, payload);
+        // Scoring changed on a tournament that already has a draw → rescore it
+        // so the Rank List and profiles follow right away.
+        if (
+          before?.draw &&
+          JSON.stringify(before.points_scheme || null) !==
+            JSON.stringify(pointsScheme)
+        ) {
+          await recomputeTournamentPoints(editingTournamentId);
+        }
       } else {
         const nextOrder =
           tournaments.reduce(
@@ -980,6 +1052,63 @@ export default function Admin() {
                     unchecked to offer all three.
                   </small>
                 </div>
+                <div className="admin-field admin-scoring">
+                  <span>Scoring system *</span>
+                  <select
+                    className="admin-select"
+                    value={tournamentForm.scoring_preset}
+                    onChange={handleTournamentFieldChange("scoring_preset")}
+                  >
+                    <option value="" disabled>
+                      Choose a scoring system…
+                    </option>
+                    {SCORING_PRESETS.map((p) => (
+                      <option key={p.key} value={p.key}>
+                        {p.label} ({p.points.champion} / {p.points.runnerUp} /{" "}
+                        {p.points.third})
+                      </option>
+                    ))}
+                    <option value={CUSTOM_SCHEME}>Custom scoring system</option>
+                  </select>
+                  {tournamentForm.scoring_preset === CUSTOM_SCHEME ? (
+                    <div className="admin-scoring-grid">
+                      {SCORING_FIELDS.map(({ key, label }) => (
+                        <label className="admin-field" key={key}>
+                          <span>{label}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            inputMode="numeric"
+                            value={tournamentForm.scoring_custom[key]}
+                            onChange={handleScoringCustomChange(key)}
+                            placeholder="0"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    tournamentForm.scoring_preset && (
+                      <div className="admin-scoring-grid">
+                        {SCORING_FIELDS.map(({ key, label }) => (
+                          <div className="admin-scoring-value" key={key}>
+                            <span>{label}</span>
+                            <strong>
+                              {SCORING_PRESETS.find(
+                                (p) => p.key === tournamentForm.scoring_preset
+                              )?.points[key] ?? 0}
+                            </strong>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
+                  <small className="admin-field-hint">
+                    Ranking points each player gets for how far their pair
+                    finished. Changing it on a tournament with a draw rescores
+                    it.
+                  </small>
+                </div>
                 <label className="admin-field">
                   <span>Location</span>
                   <input
@@ -1196,6 +1325,9 @@ export default function Admin() {
                         "en"
                       )}
                       {tournament.location ? ` — ${tournament.location}` : ""}
+                    </p>
+                    <p className="admin-tournament-sub">
+                      Scoring: {describePointsScheme(tournament.points_scheme)}
                     </p>
                   </div>
                   <div className="admin-tournament-actions">

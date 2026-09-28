@@ -1,10 +1,8 @@
 // Ranking points by FINAL PLACEMENT (a flat value for how far a pair got — not
-// cumulative per win). Both players of a pair get the same value. The values
-// depend on the tournament (see placementPointsFor):
-//   Default:        Champion 100 · Runner-up 70 · 3rd 50 · 4th 40 · QF 30 ·
-//                   everyone else who took part 5
-//   Senator league: Champion 50 · Runner-up 32 · 3rd 25 · 4th (semifinal) 20 ·
-//                   QF 15 · Round of 16 10 · group stage 5
+// cumulative per win). Both players of a pair get the same value. Each
+// tournament stores its own scoring system in tournaments.points_scheme —
+// picked in the admin panel from SCORING_PRESETS or entered as custom values
+// (see resolvePointsScheme).
 // Placement is read from the finished draw, so it works for the group system
 // (groups → QF → SF → final + 3rd place) and for a plain elimination bracket.
 
@@ -17,7 +15,8 @@ export const FINAL_ROUND = 101; // group system final
 
 const isEmpty = (label) => label == null || label === "" || label === "/";
 
-// Points awarded for each final placement (default scheme).
+// Fallback for a tournament with no scoring system saved (the scheme every
+// tournament used before scoring became configurable).
 export const PLACEMENT_POINTS = {
   champion: 100,
   runnerUp: 70,
@@ -28,25 +27,70 @@ export const PLACEMENT_POINTS = {
   participant: 5,
 };
 
-// СЕНАТОР – Национална падел лига на Македонија 2026.
-export const LEAGUE_PLACEMENT_POINTS = {
-  champion: 50,
-  runnerUp: 32,
-  third: 25,
-  fourth: 20, // lost in the semifinal (and the 3rd-place match)
-  quarterfinal: 15,
-  roundOf16: 10,
-  participant: 5, // group stage
+// The placements a scoring system gives points for, in display order.
+export const SCORING_FIELDS = [
+  { key: "champion", label: "1st place" },
+  { key: "runnerUp", label: "2nd place" },
+  { key: "third", label: "3rd place" },
+  { key: "fourth", label: "4th place (semifinal)" },
+  { key: "quarterfinal", label: "Quarterfinals" },
+  { key: "roundOf16", label: "Round of 16" },
+  { key: "participant", label: "Group stage" },
+];
+
+// Federation scoring systems by tournament category (winner / finalist /
+// semifinalist — both semifinalists get the semifinalist value).
+export const SCORING_PRESETS = [
+  {
+    key: "national",
+    label: "Национално првенство",
+    points: { champion: 100, runnerUp: 70, third: 50, fourth: 50,
+      quarterfinal: 0, roundOf16: 0, participant: 0 },
+  },
+  {
+    key: "cup",
+    label: "Куп натпревари",
+    points: { champion: 70, runnerUp: 50, third: 35, fourth: 35,
+      quarterfinal: 0, roundOf16: 0, participant: 0 },
+  },
+  {
+    key: "league",
+    label: "Лиги",
+    points: { champion: 50, runnerUp: 35, third: 20, fourth: 20,
+      quarterfinal: 0, roundOf16: 0, participant: 0 },
+  },
+  {
+    key: "regional",
+    label: "Регионални турнири",
+    points: { champion: 30, runnerUp: 20, third: 10, fourth: 10,
+      quarterfinal: 0, roundOf16: 0, participant: 0 },
+  },
+];
+
+export const CUSTOM_SCHEME = "custom";
+
+// The stored scoring system ({ preset, champion, runnerUp, … }) → the values to
+// award. The values are saved with the tournament (also for presets), so later
+// changes to a preset never rescore a past tournament.
+export const resolvePointsScheme = (stored) => {
+  if (!stored || typeof stored !== "object") return PLACEMENT_POINTS;
+  const scheme = {};
+  SCORING_FIELDS.forEach(({ key }) => {
+    const n = Number(stored[key]);
+    scheme[key] = Number.isFinite(n) && n > 0 ? n : 0;
+  });
+  return scheme;
 };
 
-// Tournaments that don't use the default scheme, by tournament id.
-const SCHEME_BY_TOURNAMENT = {
-  "d0308c58-04fc-43a5-9390-bf7a837a676a": LEAGUE_PLACEMENT_POINTS, // 1 коло – Сенатор
-  "8a6d7d75-1a29-44d8-b8a3-5a7bf5bd173b": LEAGUE_PLACEMENT_POINTS, // 2 коло – Сенатор
+// Short "100 / 70 / 50 / …" summary of a scoring system, for the admin panel.
+export const describePointsScheme = (stored) => {
+  if (!stored) return "Not set (default 100 / 70 / 50 / 40 / 30 / 5)";
+  const preset = SCORING_PRESETS.find((p) => p.key === stored.preset);
+  const s = resolvePointsScheme(stored);
+  return `${preset ? preset.label : "Custom"} · ${SCORING_FIELDS.map(
+    ({ key }) => s[key]
+  ).join(" / ")}`;
 };
-
-export const placementPointsFor = (tournamentId) =>
-  SCHEME_BY_TOURNAMENT[tournamentId] || PLACEMENT_POINTS;
 
 // Winner / loser labels of a knockout match, from its draw slot + result row
 // ({ winner: "a" | "b" }). Empty slots (byes) resolve to null.
@@ -140,12 +184,12 @@ export const buildLabelToPlayers = (registrations = []) => {
 };
 
 // Compute each player's ranking points from the finished draw, by final
-// placement (see placementPointsFor). Both players of a pair get the pair's value.
+// placement (see resolvePointsScheme). Both players of a pair get the pair's value.
 //   draw            the recomputed draw (its final / 3rd-place / QF slots filled)
 //   resultMap       "round:index" → { winner: "a" | "b", state } for finished
 //                   matches (from resultMapFromRows)
 //   labelToPlayers  pair label → [{ id, name }] (from buildLabelToPlayers)
-//   scheme          placement values (default PLACEMENT_POINTS)
+//   scheme          placement values (from resolvePointsScheme)
 // Returns [{ player_id, player_name, points }].
 export const computePlacementPoints = (
   draw,

@@ -666,6 +666,33 @@
   margin-top: 16px;
 }
 
+/* Scoring system picker spans the whole form row. */
+.admin-scoring {
+  grid-column: 1 / -1;
+}
+
+.admin-scoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.admin-scoring-value {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-scoring-value strong {
+  font-size: 1.1rem;
+  color: #d4a63d;
+}
+
 .admin-tournaments-list {
   display: flex;
   flex-direction: column;
