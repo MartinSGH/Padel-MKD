@@ -4,17 +4,31 @@ import { Row, Col } from "antd";
 import { useTranslation } from "react-i18next";
 import { getRanking } from "../services/ranking";
 
+// One Rank List per category; the value is the category stored on the points.
+const LISTS = [
+  { category: "Men's pairs", labelKey: "ranking.men" },
+  { category: "Women's pairs", labelKey: "ranking.women" },
+];
+
 const Ranking = () => {
   const { t } = useTranslation();
-  const [rows, setRows] = useState([]);
+  const [category, setCategory] = useState(LISTS[0].category);
+  const [rowsByCategory, setRowsByCategory] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getRanking()
-      .then(setRows)
-      .catch(() => setRows([]))
+    Promise.all(
+      LISTS.map((l) => getRanking(l.category).catch(() => []))
+    )
+      .then((lists) =>
+        setRowsByCategory(
+          Object.fromEntries(LISTS.map((l, i) => [l.category, lists[i]]))
+        )
+      )
       .finally(() => setLoading(false));
   }, []);
+
+  const rows = rowsByCategory[category] || [];
 
   return (
     <div className="rk-page">
@@ -24,6 +38,21 @@ const Ranking = () => {
             <span className="rk-eyebrow">{t("ranking.eyebrow")}</span>
             <h1 className="rk-title">{t("ranking.title")}</h1>
             <p className="rk-sub">{t("ranking.subtitle")}</p>
+          </div>
+
+          <div className="rk-tabs" role="tablist">
+            {LISTS.map((l) => (
+              <button
+                key={l.category}
+                type="button"
+                role="tab"
+                aria-selected={category === l.category}
+                className={`rk-tab${category === l.category ? " active" : ""}`}
+                onClick={() => setCategory(l.category)}
+              >
+                {t(l.labelKey)}
+              </button>
+            ))}
           </div>
 
           {loading ? (

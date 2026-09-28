@@ -14,6 +14,8 @@
     "eyebrow": "Macedonian Padel Federation",
     "title": "Rank List",
     "subtitle": "Player ranking points earned from tournament results.",
+    "men": "Men",
+    "women": "Women",
     "player": "Player",
     "points": "Points",
     "loading": "Loading…",

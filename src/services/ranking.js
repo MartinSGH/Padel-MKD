@@ -1,11 +1,13 @@
 import { supabase } from "../lib/supabaseClient";
 
-// Public ranking: every player's points across all tournaments, summed and
-// sorted. Returns [{ player_id, player_name, points }].
-export const getRanking = async () => {
+// Public ranking for one category ("Men's pairs" / "Women's pairs"): every
+// player's points in it across all tournaments, summed and sorted.
+// Returns [{ player_id, player_name, points }].
+export const getRanking = async (category) => {
   const { data, error } = await supabase
     .from("tournament_points")
-    .select("player_id, player_name, points");
+    .select("player_id, player_name, points")
+    .eq("category", category);
   if (error) throw error;
 
   const totals = new Map();
@@ -47,6 +49,7 @@ export const writeTournamentPoints = async (tournamentId, rows) => {
       tournament_id: tournamentId,
       player_id: r.player_id,
       player_name: r.player_name,
+      category: r.category || "",
       points: r.points,
     }))
   );

@@ -67,20 +67,26 @@ export const saveState = async (id, state) => {
 };
 
 // Recompute a tournament's ranking points by final placement (see
-// computePlacementPoints), per category draw; a player who played two
-// categories gets both added up. `rows` are the tournament's live_scores rows.
+// computePlacementPoints), per category draw. Each row keeps the category it
+// was earned in (the draw's, else the player's registration) so the Rank List
+// can show Men's and Women's separately. `rows` are the tournament's
+// live_scores rows.
 const writePlacementPoints = async (tournamentId, draw, rows, storedScheme) => {
   const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
   const labelToPlayers = buildLabelToPlayers(regs);
   const scheme = resolvePointsScheme(storedScheme);
-  const totals = new Map();
-  listDraws(draw).forEach(({ slot, draw: d }) => {
+  const totals = new Map(); // "player_id|category" → row
+  listDraws(draw).forEach(({ slot, category, draw: d }) => {
     const resultMap = resultMapFromRows(rowsForSlot(rows || [], slot));
     computePlacementPoints(d, resultMap, labelToPlayers, scheme).forEach((p) => {
-      const cur = totals.get(p.player_id);
+      const cat = category || p.category || "";
+      const key = `${p.player_id}|${cat}`;
+      const cur = totals.get(key);
       totals.set(
-        p.player_id,
-        cur ? { ...cur, points: cur.points + p.points } : { ...p }
+        key,
+        cur
+          ? { ...cur, points: cur.points + p.points }
+          : { ...p, category: cat }
       );
     });
   });

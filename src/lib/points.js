@@ -4,7 +4,10 @@
 // picked in the admin panel from SCORING_PRESETS or entered as custom values
 // (see resolvePointsScheme).
 // Placement is read from the finished draw, so it works for the group system
-// (groups → QF → SF → final + 3rd place) and for a plain elimination bracket.
+// (groups → QF → SF → final + 3rd place), a single round-robin group with no
+// knockout, and a plain elimination bracket.
+
+import { groupComplete, groupStandings } from "./groupDraw.js";
 
 // Positional round keys used across both systems (a tournament is one system,
 // so these can't collide with the elimination round indices 0..n).
@@ -14,6 +17,19 @@ export const SEMI_ROUND = 100; // group system semifinals
 export const FINAL_ROUND = 101; // group system final
 
 const isEmpty = (label) => label == null || label === "" || label === "/";
+
+// A group draw that is a single round-robin group with nobody placed in any
+// knockout match (quarterfinals / semifinals / final / 3rd place).
+const isGroupOnly = (draw) => {
+  if (!Array.isArray(draw?.groups) || draw.groups.length !== 1) return false;
+  const ko = [
+    ...(draw.quarterfinals || []),
+    ...(draw.semifinals || []),
+    draw.final,
+    draw.third,
+  ];
+  return ko.every((m) => isEmpty(m?.a) && isEmpty(m?.b));
+};
 
 // Fallback for a tournament with no scoring system saved (the scheme every
 // tournament used before scoring became configurable).
@@ -116,6 +132,19 @@ const placementByLabel = (draw, resultMap, scheme) => {
     if ((pts.get(label) ?? 0) < p) pts.set(label, p);
   };
 
+  if (draw?.system === "group" && isGroupOnly(draw)) {
+    // Only one group, no knockout (e.g. a small Women's category that just
+    // plays a round-robin): the group winner (most wins) is the champion and
+    // everyone else gets 0 — nothing until the group is fully played.
+    const g = draw.groups[0];
+    const done = groupComplete(g, 0, resultMap);
+    const winner = done ? groupStandings(g, 0, resultMap)[0]?.team : null;
+    (g.teams || []).forEach((t) => {
+      if (!isEmpty(t)) pts.set(t, t === winner ? scheme.champion : 0);
+    });
+    return pts;
+  }
+
   if (draw?.system === "group") {
     // Everyone in a group took part; both teams of each quarterfinal reached it.
     (draw.groups || []).forEach((g) =>
@@ -167,17 +196,20 @@ const placementByLabel = (draw, resultMap, scheme) => {
 };
 
 // Map a pair label → the account players in it, from the registrations.
-// Guests (no account) are skipped since they have no profile.
+// Guests (no account) are skipped since they have no profile. Each player also
+// carries the registration's category (Men's / Women's / Mixed pairs).
 export const buildLabelToPlayers = (registrations = []) => {
   const map = new Map();
   registrations.forEach((reg) => {
     const label = `${reg.player_name || "Player"} & ${
       reg.partner_name || "Player"
     }`;
+    const category = reg.category || null;
     const players = [];
-    if (reg.player_id) players.push({ id: reg.player_id, name: reg.player_name });
+    if (reg.player_id)
+      players.push({ id: reg.player_id, name: reg.player_name, category });
     if (reg.partner_id)
-      players.push({ id: reg.partner_id, name: reg.partner_name });
+      players.push({ id: reg.partner_id, name: reg.partner_name, category });
     if (players.length) map.set(label, players);
   });
   return map;
@@ -188,9 +220,10 @@ export const buildLabelToPlayers = (registrations = []) => {
 //   draw            the recomputed draw (its final / 3rd-place / QF slots filled)
 //   resultMap       "round:index" → { winner: "a" | "b", state } for finished
 //                   matches (from resultMapFromRows)
-//   labelToPlayers  pair label → [{ id, name }] (from buildLabelToPlayers)
+//   labelToPlayers  pair label → [{ id, name, category }] (from
+//                   buildLabelToPlayers)
 //   scheme          placement values (from resolvePointsScheme)
-// Returns [{ player_id, player_name, points }].
+// Returns [{ player_id, player_name, category, points }].
 export const computePlacementPoints = (
   draw,
   resultMap,
@@ -198,14 +231,18 @@ export const computePlacementPoints = (
   scheme = PLACEMENT_POINTS
 ) => {
   const labelPts = placementByLabel(draw, resultMap, scheme);
-  const totals = new Map(); // player_id → { player_name, points }
+  const totals = new Map(); // player_id → { player_name, category, points }
 
   labelPts.forEach((points, label) => {
     const players = labelToPlayers.get(label);
     if (!players) return; // guest-only pair (no accounts) — nothing to credit
-    players.forEach(({ id, name }) => {
+    players.forEach(({ id, name, category }) => {
       if (!id) return;
-      const cur = totals.get(id) || { player_name: name, points: 0 };
+      const cur = totals.get(id) || {
+        player_name: name,
+        category: category || null,
+        points: 0,
+      };
       // A player belongs to one pair, so this is a plain assign; max() just
       // guards against a duplicate label.
       cur.points = Math.max(cur.points, points);
@@ -217,6 +254,7 @@ export const computePlacementPoints = (
   return [...totals.entries()].map(([player_id, v]) => ({
     player_id,
     player_name: v.player_name,
+    category: v.category,
     points: v.points,
   }));
 };

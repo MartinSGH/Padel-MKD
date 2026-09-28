@@ -29,6 +29,33 @@
   max-width: 60ch;
 }
 
+.rk-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.rk-tab {
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #16204a;
+  color: #8e9bc0;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.rk-tab:hover {
+  color: #fff;
+}
+.rk-tab.active {
+  color: #111c38;
+  background: #ffd700;
+  border-color: #ffd700;
+}
+
 .rk-empty {
   color: #8e9bc0;
   padding: 2rem 0;
