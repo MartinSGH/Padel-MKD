@@ -1,7 +1,10 @@
 // Ranking points by FINAL PLACEMENT (a flat value for how far a pair got — not
-// cumulative per win). Both players of a pair get the same value:
-//   Champion 100 · Runner-up 70 · 3rd 50 · 4th 40 · Quarterfinalist 30
-//   Everyone else who took part 5
+// cumulative per win). Both players of a pair get the same value. The values
+// depend on the tournament (see placementPointsFor):
+//   Default:        Champion 100 · Runner-up 70 · 3rd 50 · 4th 40 · QF 30 ·
+//                   everyone else who took part 5
+//   Senator league: Champion 50 · Runner-up 32 · 3rd 25 · 4th (semifinal) 20 ·
+//                   QF 15 · Round of 16 10 · group stage 5
 // Placement is read from the finished draw, so it works for the group system
 // (groups → QF → SF → final + 3rd place) and for a plain elimination bracket.
 
@@ -14,15 +17,36 @@ export const FINAL_ROUND = 101; // group system final
 
 const isEmpty = (label) => label == null || label === "" || label === "/";
 
-// Points awarded for each final placement.
+// Points awarded for each final placement (default scheme).
 export const PLACEMENT_POINTS = {
   champion: 100,
   runnerUp: 70,
   third: 50,
   fourth: 40,
   quarterfinal: 30,
+  roundOf16: 5, // no separate Round of 16 value — same as taking part
   participant: 5,
 };
+
+// СЕНАТОР – Национална падел лига на Македонија 2026.
+export const LEAGUE_PLACEMENT_POINTS = {
+  champion: 50,
+  runnerUp: 32,
+  third: 25,
+  fourth: 20, // lost in the semifinal (and the 3rd-place match)
+  quarterfinal: 15,
+  roundOf16: 10,
+  participant: 5, // group stage
+};
+
+// Tournaments that don't use the default scheme, by tournament id.
+const SCHEME_BY_TOURNAMENT = {
+  "d0308c58-04fc-43a5-9390-bf7a837a676a": LEAGUE_PLACEMENT_POINTS, // 1 коло – Сенатор
+  "8a6d7d75-1a29-44d8-b8a3-5a7bf5bd173b": LEAGUE_PLACEMENT_POINTS, // 2 коло – Сенатор
+};
+
+export const placementPointsFor = (tournamentId) =>
+  SCHEME_BY_TOURNAMENT[tournamentId] || PLACEMENT_POINTS;
 
 // Winner / loser labels of a knockout match, from its draw slot + result row
 // ({ winner: "a" | "b" }). Empty slots (byes) resolve to null.
@@ -40,8 +64,8 @@ const koResult = (slot, res) => {
 };
 
 // Map every team label → its placement points. `bump` only ever raises a label,
-// so a finalist keeps 100/70 over the 30 they also earned as a quarterfinalist.
-const placementByLabel = (draw, resultMap) => {
+// so a finalist keeps their final value over what they earned in earlier rounds.
+const placementByLabel = (draw, resultMap, scheme) => {
   const pts = new Map();
   const bump = (label, p) => {
     if (isEmpty(label) || p == null) return;
@@ -49,45 +73,51 @@ const placementByLabel = (draw, resultMap) => {
   };
 
   if (draw?.system === "group") {
-    // Everyone in a group took part (5); both teams of each quarterfinal got 30.
+    // Everyone in a group took part; both teams of each quarterfinal reached it.
     (draw.groups || []).forEach((g) =>
-      (g.teams || []).forEach((t) => bump(t, PLACEMENT_POINTS.participant))
+      (g.teams || []).forEach((t) => bump(t, scheme.participant))
     );
     (draw.quarterfinals || []).forEach((m) => {
-      bump(m?.a, PLACEMENT_POINTS.quarterfinal);
-      bump(m?.b, PLACEMENT_POINTS.quarterfinal);
+      bump(m?.a, scheme.quarterfinal);
+      bump(m?.b, scheme.quarterfinal);
     });
     const third = koResult(draw.third, resultMap[`${THIRD_PLACE_ROUND}:0`]);
-    bump(third.winner, PLACEMENT_POINTS.third);
-    bump(third.loser, PLACEMENT_POINTS.fourth);
+    bump(third.winner, scheme.third);
+    bump(third.loser, scheme.fourth);
     const final = koResult(draw.final, resultMap[`${FINAL_ROUND}:0`]);
-    bump(final.winner, PLACEMENT_POINTS.champion);
-    bump(final.loser, PLACEMENT_POINTS.runnerUp);
+    bump(final.winner, scheme.champion);
+    bump(final.loser, scheme.runnerUp);
     return pts;
   }
 
-  // Elimination bracket: rounds[0] holds every entrant; the round with 4 matches
-  // is the quarterfinal; the last round (1 match) is the final.
+  // Elimination bracket: rounds[0] holds every entrant; the round with 8 matches
+  // is the Round of 16, the one with 4 the quarterfinal; the last round (1
+  // match) is the final.
   const rounds = Array.isArray(draw?.rounds) ? draw.rounds : [];
   (rounds[0] || []).forEach((m) => {
-    bump(m?.a, PLACEMENT_POINTS.participant);
-    bump(m?.b, PLACEMENT_POINTS.participant);
+    bump(m?.a, scheme.participant);
+    bump(m?.b, scheme.participant);
   });
   rounds.forEach((r) => {
-    if (r.length === 4)
-      r.forEach((m) => {
-        bump(m?.a, PLACEMENT_POINTS.quarterfinal);
-        bump(m?.b, PLACEMENT_POINTS.quarterfinal);
-      });
+    const p =
+      r.length === 8
+        ? scheme.roundOf16
+        : r.length === 4
+        ? scheme.quarterfinal
+        : null;
+    r.forEach((m) => {
+      bump(m?.a, p);
+      bump(m?.b, p);
+    });
   });
   const third = koResult(draw?.thirdPlace, resultMap[`${THIRD_PLACE_ROUND}:0`]);
-  bump(third.winner, PLACEMENT_POINTS.third);
-  bump(third.loser, PLACEMENT_POINTS.fourth);
+  bump(third.winner, scheme.third);
+  bump(third.loser, scheme.fourth);
   const li = rounds.length - 1;
   if (li >= 0 && rounds[li]?.length === 1) {
     const final = koResult(rounds[li][0], resultMap[`${li}:0`]);
-    bump(final.winner, PLACEMENT_POINTS.champion);
-    bump(final.loser, PLACEMENT_POINTS.runnerUp);
+    bump(final.winner, scheme.champion);
+    bump(final.loser, scheme.runnerUp);
   }
   return pts;
 };
@@ -110,14 +140,20 @@ export const buildLabelToPlayers = (registrations = []) => {
 };
 
 // Compute each player's ranking points from the finished draw, by final
-// placement (see PLACEMENT_POINTS). Both players of a pair get the pair's value.
+// placement (see placementPointsFor). Both players of a pair get the pair's value.
 //   draw            the recomputed draw (its final / 3rd-place / QF slots filled)
 //   resultMap       "round:index" → { winner: "a" | "b", state } for finished
 //                   matches (from resultMapFromRows)
 //   labelToPlayers  pair label → [{ id, name }] (from buildLabelToPlayers)
+//   scheme          placement values (default PLACEMENT_POINTS)
 // Returns [{ player_id, player_name, points }].
-export const computePlacementPoints = (draw, resultMap, labelToPlayers) => {
-  const labelPts = placementByLabel(draw, resultMap);
+export const computePlacementPoints = (
+  draw,
+  resultMap,
+  labelToPlayers,
+  scheme = PLACEMENT_POINTS
+) => {
+  const labelPts = placementByLabel(draw, resultMap, scheme);
   const totals = new Map(); // player_id → { player_name, points }
 
   labelPts.forEach((points, label) => {

@@ -3,6 +3,7 @@ import { recomputeDraw, finishedMapFromRows } from "../lib/drawAdvance";
 import {
   computePlacementPoints,
   buildLabelToPlayers,
+  placementPointsFor,
 } from "../lib/points";
 import { recomputeGroupDraw, resultMapFromRows } from "../lib/groupDraw";
 import { listDraws, mapDraws, rowsForSlot } from "../lib/drawSet";
@@ -104,10 +105,11 @@ const afterResultChange = async (tournamentId) => {
   // per category draw; a player who played two categories gets both added up.
   const regs = await getTournamentRegistrations(tournamentId).catch(() => []);
   const labelToPlayers = buildLabelToPlayers(regs);
+  const scheme = placementPointsFor(tournamentId);
   const totals = new Map();
   listDraws(nextDraw).forEach(({ slot, draw: d }) => {
     const resultMap = resultMapFromRows(rowsForSlot(rows || [], slot));
-    computePlacementPoints(d, resultMap, labelToPlayers).forEach((p) => {
+    computePlacementPoints(d, resultMap, labelToPlayers, scheme).forEach((p) => {
       const cur = totals.get(p.player_id);
       totals.set(
         p.player_id,
