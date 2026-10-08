@@ -1113,6 +1113,10 @@
   transition: background 0.15s, border-color 0.15s;
 }
 
+.td-download-btn + .td-download-btn {
+  margin-left: 8px;
+}
+
 .td-download-btn:hover {
   background: rgba(255, 215, 0, 0.18);
   border-color: rgba(255, 215, 0, 0.65);

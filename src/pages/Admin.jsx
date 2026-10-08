@@ -27,8 +27,12 @@ import {
   describePointsScheme,
 } from "../lib/points";
 import { recomputeTournamentPoints } from "../services/liveScores";
+import EmailListModal from "../components/EmailListModal";
+import { uniqueEmails } from "../lib/emails";
 import AdminTournamentDraw from "../components/AdminTournamentDraw";
 import AdminTournamentSchedule from "../components/AdminTournamentSchedule";
+import AdminCardTitle from "../components/AdminCardTitle";
+import { useCollapsedSection } from "../hooks/useCollapsedSection";
 import "../styles/Admin.css";
 
 const emptyClubForm = {
@@ -116,6 +120,12 @@ function getStatusClass(status) {
 }
 
 export default function Admin() {
+  const playersSection = useCollapsedSection("players");
+  const submissionsSection = useCollapsedSection("submissions");
+  const historySection = useCollapsedSection("history");
+  const clubsSection = useCollapsedSection("clubs");
+  const tournamentsSection = useCollapsedSection("tournaments");
+  const [showEmailList, setShowEmailList] = useState(false);
   const [players, setPlayers] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [clubs, setClubs] = useState([]);
@@ -496,6 +506,8 @@ export default function Admin() {
     }
   };
 
+  const playerEmails = uniqueEmails(players.map((player) => player.email));
+
   if (loading) {
     return <div className="admin-page admin-loading">Loading admin panel...</div>;
   }
@@ -524,269 +536,304 @@ export default function Admin() {
         </div>
 
         <div className="admin-layout">
-          <div className="admin-card admin-players-card">
+          <div
+            className={`admin-card admin-players-card${playersSection.collapsed ? " is-collapsed" : ""}`}
+          >
             <div className="admin-card-header">
-              <div>
-                <h2>Player List</h2>
-                <p>All registered players with current points.</p>
+              <AdminCardTitle
+                title="Player List"
+                description="All registered players with current points."
+                collapsed={playersSection.collapsed}
+                onToggle={playersSection.toggle}
+              />
+              <div className="admin-clubs-header-actions">
+                <div className="admin-count-pill">{players.length} Players</div>
+                <button
+                  type="button"
+                  className="admin-btn approve admin-add-club-btn"
+                  onClick={() => setShowEmailList(true)}
+                  disabled={players.length === 0}
+                >
+                  Download Excel file
+                </button>
               </div>
-              <div className="admin-count-pill">{players.length} Players</div>
             </div>
 
-            <div className="admin-players-table-wrap">
-              <table className="admin-players-table">
-                <thead>
-                  <tr>
-                    <th>Player</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Club</th>
-                    <th>Points</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {players.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="admin-empty-cell">
-                        No players found.
-                      </td>
-                    </tr>
-                  ) : (
-                    players.map((player) => (
-                      <tr key={player.id}>
-                        <td>
-                          <div className="admin-player-meta">
-                            <div className="admin-player-avatar">
-                              {player.avatar_url ? (
-                                <img src={player.avatar_url} alt={player.full_name} />
-                              ) : (
-                                <span>
-                                  {(player.full_name || "P").charAt(0).toUpperCase()}
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="admin-player-name">
-                                {player.full_name || "Unnamed Player"}
-                              </p>
-                              <span className="admin-player-role">{player.role}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="admin-player-email">{player.email}</td>
-                        <td className="admin-player-phone">
-                          {player.phone || "—"}
-                        </td>
-                        <td className="admin-player-club">
-                          {player.club_name || "—"}
-                        </td>
-                        <td>
-                          <span className="admin-points-pill">
-                            {player.total_points}
-                          </span>
-                        </td>
+            <div className="admin-card-collapse">
+              <div className="admin-card-collapse-inner">
+                <div className="admin-players-table-wrap">
+                  <table className="admin-players-table">
+                    <thead>
+                      <tr>
+                        <th>Player</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Club</th>
+                        <th>Points</th>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {players.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="admin-empty-cell">
+                            No players found.
+                          </td>
+                        </tr>
+                      ) : (
+                        players.map((player) => (
+                          <tr key={player.id}>
+                            <td>
+                              <div className="admin-player-meta">
+                                <div className="admin-player-avatar">
+                                  {player.avatar_url ? (
+                                    <img src={player.avatar_url} alt={player.full_name} />
+                                  ) : (
+                                    <span>
+                                      {(player.full_name || "P").charAt(0).toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="admin-player-name">
+                                    {player.full_name || "Unnamed Player"}
+                                  </p>
+                                  <span className="admin-player-role">{player.role}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="admin-player-email">{player.email}</td>
+                            <td className="admin-player-phone">
+                              {player.phone || "—"}
+                            </td>
+                            <td className="admin-player-club">
+                              {player.club_name || "—"}
+                            </td>
+                            <td>
+                              <span className="admin-points-pill">
+                                {player.total_points}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="admin-card admin-submissions-card">
+          <div
+            className={`admin-card admin-submissions-card${submissionsSection.collapsed ? " is-collapsed" : ""}`}
+          >
             <div className="admin-card-header">
-              <div>
-                <h2>Point Submissions</h2>
-                <p>Approve or decline submitted tournament points.</p>
-              </div>
+              <AdminCardTitle
+                title="Point Submissions"
+                description="Approve or decline submitted tournament points."
+                collapsed={submissionsSection.collapsed}
+                onToggle={submissionsSection.toggle}
+              />
               <div className="admin-count-pill">
                 {submissions.filter((item) => item.status === "pending").length} Pending
               </div>
             </div>
 
-            <div className="admin-submissions-list">
-              {pendingSubmissions.length === 0 ? (
-                <div className="admin-empty-state">
-                  No pending submissions.
+            <div className="admin-card-collapse">
+              <div className="admin-card-collapse-inner">
+                <div className="admin-submissions-list">
+                  {pendingSubmissions.length === 0 ? (
+                    <div className="admin-empty-state">
+                      No pending submissions.
+                    </div>
+                  ) : (
+                    pendingSubmissions.map((item) => (
+                      <div key={item.id} className="admin-submission-item">
+                        <div className="admin-submission-top">
+                          <div>
+                            <h3>{item.tournament_name}</h3>
+                            <p>
+                              <strong>Player:</strong>{" "}
+                              {item.profiles?.full_name || "Unknown Player"}
+                            </p>
+                            <p>
+                              <strong>Email:</strong> {item.profiles?.email || "-"}
+                            </p>
+                          </div>
+
+                          <span className={getStatusClass(item.status)}>
+                            {item.status}
+                          </span>
+                        </div>
+
+                        <div className="admin-submission-grid">
+                          <div>
+                            <span className="admin-label">Tournament Link</span>
+                            <a
+                              href={item.tournament_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="admin-link"
+                            >
+                              Open tournament link
+                            </a>
+                          </div>
+
+                          <div>
+                            <span className="admin-label">Requested Points</span>
+                            <p>{item.requested_points}</p>
+                          </div>
+
+                          <div>
+                            <span className="admin-label">Tournament Date</span>
+                            <p>{item.tournament_date || "-"}</p>
+                          </div>
+
+                          <div>
+                            <span className="admin-label">Submitted At</span>
+                            <p>{new Date(item.submitted_at).toLocaleString()}</p>
+                          </div>
+                        </div>
+
+                        {item.admin_note && (
+                          <div className="admin-note-box">
+                            <span className="admin-label">Admin Note</span>
+                            <p>{item.admin_note}</p>
+                          </div>
+                        )}
+
+                        {item.status === "pending" && (
+                          <div className="admin-actions">
+                            <button
+                              type="button"
+                              className="admin-btn approve"
+                              disabled={actionLoadingId === item.id}
+                              onClick={() => handleApprove(item)}
+                            >
+                              {actionLoadingId === item.id ? "Processing..." : "Approve"}
+                            </button>
+
+                            <button
+                              type="button"
+                              className="admin-btn decline"
+                              disabled={actionLoadingId === item.id}
+                              onClick={() => handleDecline(item.id)}
+                            >
+                              {actionLoadingId === item.id ? "Processing..." : "Decline"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
-              ) : (
-                pendingSubmissions.map((item) => (
-                  <div key={item.id} className="admin-submission-item">
-                    <div className="admin-submission-top">
-                      <div>
-                        <h3>{item.tournament_name}</h3>
-                        <p>
-                          <strong>Player:</strong>{" "}
-                          {item.profiles?.full_name || "Unknown Player"}
-                        </p>
-                        <p>
-                          <strong>Email:</strong> {item.profiles?.email || "-"}
-                        </p>
-                      </div>
-
-                      <span className={getStatusClass(item.status)}>
-                        {item.status}
-                      </span>
-                    </div>
-
-                    <div className="admin-submission-grid">
-                      <div>
-                        <span className="admin-label">Tournament Link</span>
-                        <a
-                          href={item.tournament_link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="admin-link"
-                        >
-                          Open tournament link
-                        </a>
-                      </div>
-
-                      <div>
-                        <span className="admin-label">Requested Points</span>
-                        <p>{item.requested_points}</p>
-                      </div>
-
-                      <div>
-                        <span className="admin-label">Tournament Date</span>
-                        <p>{item.tournament_date || "-"}</p>
-                      </div>
-
-                      <div>
-                        <span className="admin-label">Submitted At</span>
-                        <p>{new Date(item.submitted_at).toLocaleString()}</p>
-                      </div>
-                    </div>
-
-                    {item.admin_note && (
-                      <div className="admin-note-box">
-                        <span className="admin-label">Admin Note</span>
-                        <p>{item.admin_note}</p>
-                      </div>
-                    )}
-
-                    {item.status === "pending" && (
-                      <div className="admin-actions">
-                        <button
-                          type="button"
-                          className="admin-btn approve"
-                          disabled={actionLoadingId === item.id}
-                          onClick={() => handleApprove(item)}
-                        >
-                          {actionLoadingId === item.id ? "Processing..." : "Approve"}
-                        </button>
-
-                        <button
-                          type="button"
-                          className="admin-btn decline"
-                          disabled={actionLoadingId === item.id}
-                          onClick={() => handleDecline(item.id)}
-                        >
-                          {actionLoadingId === item.id ? "Processing..." : "Decline"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Submissions history (resolved → accordion) */}
-        <div className="admin-card admin-history-card">
+        <div
+          className={`admin-card admin-history-card${historySection.collapsed ? " is-collapsed" : ""}`}
+        >
           <div className="admin-card-header">
-            <div>
-              <h2>Submissions History</h2>
-              <p>Approved and declined submissions. Click to expand details.</p>
-            </div>
+            <AdminCardTitle
+              title="Submissions History"
+              description="Approved and declined submissions. Click to expand details."
+              collapsed={historySection.collapsed}
+              onToggle={historySection.toggle}
+            />
             <div className="admin-count-pill">
               {resolvedSubmissions.length} Resolved
             </div>
           </div>
 
-          <div className="admin-history-list">
-            {resolvedSubmissions.length === 0 ? (
-              <div className="admin-empty-state">
-                No resolved submissions yet.
-              </div>
-            ) : (
-              resolvedSubmissions.map((item) => (
-                <details key={item.id} className="admin-history-item">
-                  <summary className="admin-history-summary">
-                    <div className="admin-history-head">
-                      <span className="admin-history-title">
-                        {item.tournament_name}
-                      </span>
-                      <span className="admin-history-player">
-                        {item.profiles?.full_name || "Unknown Player"}
-                      </span>
-                    </div>
-                    <span className={getStatusClass(item.status)}>
-                      {item.status}
-                    </span>
-                  </summary>
-
-                  <div className="admin-history-body">
-                    <div className="admin-submission-grid">
-                      <div>
-                        <span className="admin-label">Email</span>
-                        <p>{item.profiles?.email || "-"}</p>
-                      </div>
-                      <div>
-                        <span className="admin-label">Requested Points</span>
-                        <p>{item.requested_points}</p>
-                      </div>
-                      <div>
-                        <span className="admin-label">Tournament Link</span>
-                        <a
-                          href={item.tournament_link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="admin-link"
-                        >
-                          Open tournament link
-                        </a>
-                      </div>
-                      <div>
-                        <span className="admin-label">Tournament Date</span>
-                        <p>{item.tournament_date || "-"}</p>
-                      </div>
-                      <div>
-                        <span className="admin-label">Submitted At</span>
-                        <p>{new Date(item.submitted_at).toLocaleString()}</p>
-                      </div>
-                      {item.reviewed_at && (
-                        <div>
-                          <span className="admin-label">Reviewed At</span>
-                          <p>{new Date(item.reviewed_at).toLocaleString()}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {item.admin_note && (
-                      <div className="admin-note-box">
-                        <span className="admin-label">Admin Note</span>
-                        <p>{item.admin_note}</p>
-                      </div>
-                    )}
+          <div className="admin-card-collapse">
+            <div className="admin-card-collapse-inner">
+              <div className="admin-history-list">
+                {resolvedSubmissions.length === 0 ? (
+                  <div className="admin-empty-state">
+                    No resolved submissions yet.
                   </div>
-                </details>
-              ))
-            )}
+                ) : (
+                  resolvedSubmissions.map((item) => (
+                    <details key={item.id} className="admin-history-item">
+                      <summary className="admin-history-summary">
+                        <div className="admin-history-head">
+                          <span className="admin-history-title">
+                            {item.tournament_name}
+                          </span>
+                          <span className="admin-history-player">
+                            {item.profiles?.full_name || "Unknown Player"}
+                          </span>
+                        </div>
+                        <span className={getStatusClass(item.status)}>
+                          {item.status}
+                        </span>
+                      </summary>
+
+                      <div className="admin-history-body">
+                        <div className="admin-submission-grid">
+                          <div>
+                            <span className="admin-label">Email</span>
+                            <p>{item.profiles?.email || "-"}</p>
+                          </div>
+                          <div>
+                            <span className="admin-label">Requested Points</span>
+                            <p>{item.requested_points}</p>
+                          </div>
+                          <div>
+                            <span className="admin-label">Tournament Link</span>
+                            <a
+                              href={item.tournament_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="admin-link"
+                            >
+                              Open tournament link
+                            </a>
+                          </div>
+                          <div>
+                            <span className="admin-label">Tournament Date</span>
+                            <p>{item.tournament_date || "-"}</p>
+                          </div>
+                          <div>
+                            <span className="admin-label">Submitted At</span>
+                            <p>{new Date(item.submitted_at).toLocaleString()}</p>
+                          </div>
+                          {item.reviewed_at && (
+                            <div>
+                              <span className="admin-label">Reviewed At</span>
+                              <p>{new Date(item.reviewed_at).toLocaleString()}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {item.admin_note && (
+                          <div className="admin-note-box">
+                            <span className="admin-label">Admin Note</span>
+                            <p>{item.admin_note}</p>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Clubs management */}
-        <div className="admin-card admin-clubs-card">
+        <div
+          className={`admin-card admin-clubs-card${clubsSection.collapsed ? " is-collapsed" : ""}`}
+        >
           <div className="admin-card-header">
-            <div>
-              <h2>Clubs</h2>
-              <p>
-                Manage the clubs shown in the landing page carousel and on the
-                Clubs page.
-              </p>
-            </div>
+            <AdminCardTitle
+              title="Clubs"
+              description="Manage the clubs shown in the landing page carousel and on the Clubs page."
+              collapsed={clubsSection.collapsed}
+              onToggle={clubsSection.toggle}
+            />
             <div className="admin-clubs-header-actions">
               <div className="admin-count-pill">{clubs.length} Clubs</div>
               <button
@@ -799,6 +846,7 @@ export default function Admin() {
                   } else {
                     resetClubForm();
                     setShowAddClub(true);
+                    if (clubsSection.collapsed) clubsSection.toggle();
                   }
                 }}
               >
@@ -807,167 +855,172 @@ export default function Admin() {
             </div>
           </div>
 
-          {showAddClub && (
-            <form className="admin-club-form" onSubmit={handleSubmitClub}>
-              {editingClubId && (
-                <p className="admin-edit-note">
-                  Editing “{clubForm.name || "club"}”
-                </p>
-              )}
-              <div className="admin-club-form-grid">
-                <label className="admin-field">
-                  <span>Name *</span>
-                  <input
-                    value={clubForm.name}
-                    onChange={handleClubFieldChange("name")}
-                    placeholder="Club name"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Address</span>
-                  <input
-                    value={clubForm.address}
-                    onChange={handleClubFieldChange("address")}
-                    placeholder="Street, City"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Working hours</span>
-                  <input
-                    value={clubForm.hours}
-                    onChange={handleClubFieldChange("hours")}
-                    placeholder="Open from 10-6"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Phone</span>
-                  <input
-                    value={clubForm.phone}
-                    onChange={handleClubFieldChange("phone")}
-                    placeholder="07x xxx xxx"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Email</span>
-                  <input
-                    value={clubForm.email}
-                    onChange={handleClubFieldChange("email")}
-                    placeholder="club@email.com"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Logo URL</span>
-                  <input
-                    value={clubForm.logo_url}
-                    onChange={handleClubFieldChange("logo_url")}
-                    placeholder="https://… or /images/…"
-                    disabled={!!clubLogoFile}
-                  />
-                </label>
-              </div>
-
-              <div className="admin-club-logo-row">
-                <label className="admin-field admin-club-file-field">
-                  <span>…or upload a logo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleClubLogoChange}
-                  />
-                </label>
-                {clubLogoPreview && (
-                  <div className="admin-club-logo-preview">
-                    <img src={clubLogoPreview} alt="Logo preview" />
+          <div className="admin-card-collapse">
+            <div className="admin-card-collapse-inner">
+              {showAddClub && (
+                <form className="admin-club-form" onSubmit={handleSubmitClub}>
+                  {editingClubId && (
+                    <p className="admin-edit-note">
+                      Editing “{clubForm.name || "club"}”
+                    </p>
+                  )}
+                  <div className="admin-club-form-grid">
+                    <label className="admin-field">
+                      <span>Name *</span>
+                      <input
+                        value={clubForm.name}
+                        onChange={handleClubFieldChange("name")}
+                        placeholder="Club name"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Address</span>
+                      <input
+                        value={clubForm.address}
+                        onChange={handleClubFieldChange("address")}
+                        placeholder="Street, City"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Working hours</span>
+                      <input
+                        value={clubForm.hours}
+                        onChange={handleClubFieldChange("hours")}
+                        placeholder="Open from 10-6"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Phone</span>
+                      <input
+                        value={clubForm.phone}
+                        onChange={handleClubFieldChange("phone")}
+                        placeholder="07x xxx xxx"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Email</span>
+                      <input
+                        value={clubForm.email}
+                        onChange={handleClubFieldChange("email")}
+                        placeholder="club@email.com"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Logo URL</span>
+                      <input
+                        value={clubForm.logo_url}
+                        onChange={handleClubFieldChange("logo_url")}
+                        placeholder="https://… or /images/…"
+                        disabled={!!clubLogoFile}
+                      />
+                    </label>
                   </div>
+
+                  <div className="admin-club-logo-row">
+                    <label className="admin-field admin-club-file-field">
+                      <span>…or upload a logo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleClubLogoChange}
+                      />
+                    </label>
+                    {clubLogoPreview && (
+                      <div className="admin-club-logo-preview">
+                        <img src={clubLogoPreview} alt="Logo preview" />
+                      </div>
+                    )}
+                  </div>
+
+                  {clubError && <p className="admin-club-error">{clubError}</p>}
+
+                  <div className="admin-actions">
+                    <button
+                      type="submit"
+                      className="admin-btn approve"
+                      disabled={clubSubmitting}
+                    >
+                      {clubSubmitting
+                        ? "Saving…"
+                        : editingClubId
+                          ? "Update Club"
+                          : "Save Club"}
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn decline"
+                      onClick={() => {
+                        resetClubForm();
+                        setShowAddClub(false);
+                      }}
+                      disabled={clubSubmitting}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              <div className="admin-clubs-grid">
+                {clubs.length === 0 ? (
+                  <div className="admin-empty-state">
+                    No clubs yet. Add the first one.
+                  </div>
+                ) : (
+                  clubs.map((club) => (
+                    <div key={club.id} className="admin-club-item">
+                      <div className="admin-club-logo">
+                        {club.logo_url ? (
+                          <img src={club.logo_url} alt={club.name} />
+                        ) : (
+                          <span>{(club.name || "C").charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div className="admin-club-info">
+                        <h3>{club.name}</h3>
+                        {club.address && <p>{club.address}</p>}
+                        {club.hours && <p>{club.hours}</p>}
+                        {club.phone && <p>{club.phone}</p>}
+                        {club.email && (
+                          <p className="admin-club-email">{club.email}</p>
+                        )}
+                      </div>
+                      <div className="admin-tournament-actions">
+                        <button
+                          type="button"
+                          className="admin-btn admin-edit-btn"
+                          onClick={() => startEditClub(club)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-btn decline admin-club-delete"
+                          disabled={clubActionId === club.id}
+                          onClick={() => handleDeleteClub(club)}
+                        >
+                          {clubActionId === club.id ? "Deleting…" : "Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
-
-              {clubError && <p className="admin-club-error">{clubError}</p>}
-
-              <div className="admin-actions">
-                <button
-                  type="submit"
-                  className="admin-btn approve"
-                  disabled={clubSubmitting}
-                >
-                  {clubSubmitting
-                    ? "Saving…"
-                    : editingClubId
-                      ? "Update Club"
-                      : "Save Club"}
-                </button>
-                <button
-                  type="button"
-                  className="admin-btn decline"
-                  onClick={() => {
-                    resetClubForm();
-                    setShowAddClub(false);
-                  }}
-                  disabled={clubSubmitting}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="admin-clubs-grid">
-            {clubs.length === 0 ? (
-              <div className="admin-empty-state">
-                No clubs yet. Add the first one.
-              </div>
-            ) : (
-              clubs.map((club) => (
-                <div key={club.id} className="admin-club-item">
-                  <div className="admin-club-logo">
-                    {club.logo_url ? (
-                      <img src={club.logo_url} alt={club.name} />
-                    ) : (
-                      <span>{(club.name || "C").charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <div className="admin-club-info">
-                    <h3>{club.name}</h3>
-                    {club.address && <p>{club.address}</p>}
-                    {club.hours && <p>{club.hours}</p>}
-                    {club.phone && <p>{club.phone}</p>}
-                    {club.email && (
-                      <p className="admin-club-email">{club.email}</p>
-                    )}
-                  </div>
-                  <div className="admin-tournament-actions">
-                    <button
-                      type="button"
-                      className="admin-btn admin-edit-btn"
-                      onClick={() => startEditClub(club)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-btn decline admin-club-delete"
-                      disabled={clubActionId === club.id}
-                      onClick={() => handleDeleteClub(club)}
-                    >
-                      {clubActionId === club.id ? "Deleting…" : "Delete"}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+            </div>
           </div>
         </div>
 
         {/* Tournaments management */}
-        <div className="admin-card admin-tournaments-card">
+        <div
+          className={`admin-card admin-tournaments-card${tournamentsSection.collapsed ? " is-collapsed" : ""}`}
+        >
           <div className="admin-card-header">
-            <div>
-              <h2>Tournaments</h2>
-              <p>
-                Manage the tournaments shown in the landing section and on the
-                Tournaments page.
-              </p>
-            </div>
+            <AdminCardTitle
+              title="Tournaments"
+              description="Manage the tournaments shown in the landing section and on the Tournaments page."
+              collapsed={tournamentsSection.collapsed}
+              onToggle={tournamentsSection.toggle}
+            />
             <div className="admin-clubs-header-actions">
               <div className="admin-count-pill">
                 {tournaments.length} Tournaments
@@ -982,6 +1035,7 @@ export default function Admin() {
                   } else {
                     resetTournamentForm();
                     setShowAddTournament(true);
+                    if (tournamentsSection.collapsed) tournamentsSection.toggle();
                   }
                 }}
               >
@@ -990,368 +1044,372 @@ export default function Admin() {
             </div>
           </div>
 
-          {showAddTournament && (
-            <form className="admin-club-form" onSubmit={handleSubmitTournament}>
-              {editingTournamentId && (
-                <p className="admin-edit-note">
-                  Editing “{tournamentForm.name || "tournament"}”
-                </p>
-              )}
-              <div className="admin-club-form-grid">
-                <label className="admin-field">
-                  <span>Name *</span>
-                  <input
-                    value={tournamentForm.name}
-                    onChange={handleTournamentFieldChange("name")}
-                    placeholder="Tournament name"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Code</span>
-                  <input
-                    value={tournamentForm.code}
-                    onChange={handleTournamentFieldChange("code")}
-                    placeholder="e.g. NPC-2026"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Type</span>
-                  <input
-                    value={tournamentForm.type}
-                    onChange={handleTournamentFieldChange("type")}
-                    placeholder="Championship / League / Tournament"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Category</span>
-                  <input
-                    value={tournamentForm.category}
-                    onChange={handleTournamentFieldChange("category")}
-                    placeholder="Open / Juniors / Women / Veterans"
-                  />
-                </label>
-                <div className="admin-field">
-                  <span>Registration categories</span>
-                  <div className="admin-checkbox-group">
-                    {REGISTRATION_CATEGORIES.map((cat) => (
-                      <label className="admin-checkbox" key={cat.value}>
-                        <input
-                          type="checkbox"
-                          checked={
-                            tournamentForm.categories?.includes(cat.value) ||
-                            false
-                          }
-                          onChange={handleCategoryToggle(cat.value)}
-                        />
-                        <span>{cat.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <small className="admin-field-hint">
-                    Which pair categories players can register for. Leave all
-                    unchecked to offer all three.
-                  </small>
-                </div>
-                <div className="admin-field admin-scoring">
-                  <span>Scoring system *</span>
-                  <select
-                    className="admin-select"
-                    value={tournamentForm.scoring_preset}
-                    onChange={handleTournamentFieldChange("scoring_preset")}
-                  >
-                    <option value="" disabled>
-                      Choose a scoring system…
-                    </option>
-                    {SCORING_PRESETS.map((p) => (
-                      <option key={p.key} value={p.key}>
-                        {p.label} ({p.points.champion} / {p.points.runnerUp} /{" "}
-                        {p.points.third})
-                      </option>
-                    ))}
-                    <option value={CUSTOM_SCHEME}>Custom scoring system</option>
-                  </select>
-                  {tournamentForm.scoring_preset === CUSTOM_SCHEME ? (
-                    <div className="admin-scoring-grid">
-                      {SCORING_FIELDS.map(({ key, label }) => (
-                        <label className="admin-field" key={key}>
-                          <span>{label}</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            inputMode="numeric"
-                            value={tournamentForm.scoring_custom[key]}
-                            onChange={handleScoringCustomChange(key)}
-                            placeholder="0"
-                          />
-                        </label>
-                      ))}
-                    </div>
-                  ) : (
-                    tournamentForm.scoring_preset && (
-                      <div className="admin-scoring-grid">
-                        {SCORING_FIELDS.map(({ key, label }) => (
-                          <div className="admin-scoring-value" key={key}>
-                            <span>{label}</span>
-                            <strong>
-                              {SCORING_PRESETS.find(
-                                (p) => p.key === tournamentForm.scoring_preset
-                              )?.points[key] ?? 0}
-                            </strong>
-                          </div>
+          <div className="admin-card-collapse">
+            <div className="admin-card-collapse-inner">
+              {showAddTournament && (
+                <form className="admin-club-form" onSubmit={handleSubmitTournament}>
+                  {editingTournamentId && (
+                    <p className="admin-edit-note">
+                      Editing “{tournamentForm.name || "tournament"}”
+                    </p>
+                  )}
+                  <div className="admin-club-form-grid">
+                    <label className="admin-field">
+                      <span>Name *</span>
+                      <input
+                        value={tournamentForm.name}
+                        onChange={handleTournamentFieldChange("name")}
+                        placeholder="Tournament name"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Code</span>
+                      <input
+                        value={tournamentForm.code}
+                        onChange={handleTournamentFieldChange("code")}
+                        placeholder="e.g. NPC-2026"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Type</span>
+                      <input
+                        value={tournamentForm.type}
+                        onChange={handleTournamentFieldChange("type")}
+                        placeholder="Championship / League / Tournament"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Category</span>
+                      <input
+                        value={tournamentForm.category}
+                        onChange={handleTournamentFieldChange("category")}
+                        placeholder="Open / Juniors / Women / Veterans"
+                      />
+                    </label>
+                    <div className="admin-field">
+                      <span>Registration categories</span>
+                      <div className="admin-checkbox-group">
+                        {REGISTRATION_CATEGORIES.map((cat) => (
+                          <label className="admin-checkbox" key={cat.value}>
+                            <input
+                              type="checkbox"
+                              checked={
+                                tournamentForm.categories?.includes(cat.value) ||
+                                false
+                              }
+                              onChange={handleCategoryToggle(cat.value)}
+                            />
+                            <span>{cat.label}</span>
+                          </label>
                         ))}
                       </div>
-                    )
+                      <small className="admin-field-hint">
+                        Which pair categories players can register for. Leave all
+                        unchecked to offer all three.
+                      </small>
+                    </div>
+                    <div className="admin-field admin-scoring">
+                      <span>Scoring system *</span>
+                      <select
+                        className="admin-select"
+                        value={tournamentForm.scoring_preset}
+                        onChange={handleTournamentFieldChange("scoring_preset")}
+                      >
+                        <option value="" disabled>
+                          Choose a scoring system…
+                        </option>
+                        {SCORING_PRESETS.map((p) => (
+                          <option key={p.key} value={p.key}>
+                            {p.label} ({p.points.champion} / {p.points.runnerUp} /{" "}
+                            {p.points.third})
+                          </option>
+                        ))}
+                        <option value={CUSTOM_SCHEME}>Custom scoring system</option>
+                      </select>
+                      {tournamentForm.scoring_preset === CUSTOM_SCHEME ? (
+                        <div className="admin-scoring-grid">
+                          {SCORING_FIELDS.map(({ key, label }) => (
+                            <label className="admin-field" key={key}>
+                              <span>{label}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                inputMode="numeric"
+                                value={tournamentForm.scoring_custom[key]}
+                                onChange={handleScoringCustomChange(key)}
+                                placeholder="0"
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        tournamentForm.scoring_preset && (
+                          <div className="admin-scoring-grid">
+                            {SCORING_FIELDS.map(({ key, label }) => (
+                              <div className="admin-scoring-value" key={key}>
+                                <span>{label}</span>
+                                <strong>
+                                  {SCORING_PRESETS.find(
+                                    (p) => p.key === tournamentForm.scoring_preset
+                                  )?.points[key] ?? 0}
+                                </strong>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+                      <small className="admin-field-hint">
+                        Ranking points each player gets for how far their pair
+                        finished. Changing it on a tournament with a draw rescores
+                        it.
+                      </small>
+                    </div>
+                    <label className="admin-field">
+                      <span>Location</span>
+                      <input
+                        value={tournamentForm.location}
+                        onChange={handleTournamentFieldChange("location")}
+                        placeholder="Venue, City"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Status</span>
+                      <select
+                        className="admin-select"
+                        value={tournamentForm.status}
+                        onChange={handleTournamentFieldChange("status")}
+                      >
+                        <option value="active">Active</option>
+                        <option value="postponed">Postponed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </label>
+                    <label className="admin-field">
+                      <span>Start date</span>
+                      <input
+                        type="date"
+                        value={tournamentForm.start_date}
+                        onChange={handleTournamentFieldChange("start_date")}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>End date</span>
+                      <input
+                        type="date"
+                        value={tournamentForm.end_date}
+                        onChange={handleTournamentFieldChange("end_date")}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Registration URL</span>
+                      <input
+                        value={tournamentForm.registration_url}
+                        onChange={handleTournamentFieldChange("registration_url")}
+                        placeholder="https://forms.gle/…"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Registration deadline *</span>
+                      <input
+                        type="date"
+                        required
+                        value={tournamentForm.registration_deadline}
+                        onChange={handleTournamentFieldChange(
+                          "registration_deadline"
+                        )}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Format</span>
+                      <input
+                        value={tournamentForm.format}
+                        onChange={handleTournamentFieldChange("format")}
+                        placeholder="Men's / Women's / Mixed pairs"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Competitors</span>
+                      <input
+                        value={tournamentForm.competitors}
+                        onChange={handleTournamentFieldChange("competitors")}
+                        placeholder="Who can take part"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Prizes</span>
+                      <input
+                        value={tournamentForm.prizes}
+                        onChange={handleTournamentFieldChange("prizes")}
+                        placeholder="Trophies, medals…"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Qualifications</span>
+                      <input
+                        value={tournamentForm.qualifications}
+                        onChange={handleTournamentFieldChange("qualifications")}
+                        placeholder="Qualification criteria"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Result</span>
+                      <input
+                        value={tournamentForm.result}
+                        onChange={handleTournamentFieldChange("result")}
+                        placeholder="Winner / outcome (after the event)"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Custom page URL</span>
+                      <input
+                        value={tournamentForm.detail_url}
+                        onChange={handleTournamentFieldChange("detail_url")}
+                        placeholder="/national-championship-2026 (optional)"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Image URL</span>
+                      <input
+                        value={tournamentForm.image_url}
+                        onChange={handleTournamentFieldChange("image_url")}
+                        placeholder="https://… or upload below"
+                        disabled={!!tournamentImageFile}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Propositions PDF URL</span>
+                      <input
+                        value={tournamentForm.propositions_url}
+                        onChange={handleTournamentFieldChange("propositions_url")}
+                        placeholder="https://… or upload below"
+                        disabled={!!tournamentPdfFile}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="admin-club-logo-row">
+                    <label className="admin-field admin-club-file-field">
+                      <span>…or upload a cover image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          setTournamentImageFile(e.target.files?.[0] || null)
+                        }
+                      />
+                    </label>
+                    <label className="admin-field admin-club-file-field">
+                      <span>…or upload propositions (PDF)</span>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) =>
+                          setTournamentPdfFile(e.target.files?.[0] || null)
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <label className="admin-field admin-field-full">
+                    <span>Description</span>
+                    <textarea
+                      rows={3}
+                      value={tournamentForm.description}
+                      onChange={handleTournamentFieldChange("description")}
+                      placeholder="Short description shown in the modal and detail page"
+                    />
+                  </label>
+
+                  {tournamentError && (
+                    <p className="admin-club-error">{tournamentError}</p>
                   )}
-                  <small className="admin-field-hint">
-                    Ranking points each player gets for how far their pair
-                    finished. Changing it on a tournament with a draw rescores
-                    it.
-                  </small>
-                </div>
-                <label className="admin-field">
-                  <span>Location</span>
-                  <input
-                    value={tournamentForm.location}
-                    onChange={handleTournamentFieldChange("location")}
-                    placeholder="Venue, City"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Status</span>
-                  <select
-                    className="admin-select"
-                    value={tournamentForm.status}
-                    onChange={handleTournamentFieldChange("status")}
-                  >
-                    <option value="active">Active</option>
-                    <option value="postponed">Postponed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </label>
-                <label className="admin-field">
-                  <span>Start date</span>
-                  <input
-                    type="date"
-                    value={tournamentForm.start_date}
-                    onChange={handleTournamentFieldChange("start_date")}
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>End date</span>
-                  <input
-                    type="date"
-                    value={tournamentForm.end_date}
-                    onChange={handleTournamentFieldChange("end_date")}
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Registration URL</span>
-                  <input
-                    value={tournamentForm.registration_url}
-                    onChange={handleTournamentFieldChange("registration_url")}
-                    placeholder="https://forms.gle/…"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Registration deadline *</span>
-                  <input
-                    type="date"
-                    required
-                    value={tournamentForm.registration_deadline}
-                    onChange={handleTournamentFieldChange(
-                      "registration_deadline"
-                    )}
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Format</span>
-                  <input
-                    value={tournamentForm.format}
-                    onChange={handleTournamentFieldChange("format")}
-                    placeholder="Men's / Women's / Mixed pairs"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Competitors</span>
-                  <input
-                    value={tournamentForm.competitors}
-                    onChange={handleTournamentFieldChange("competitors")}
-                    placeholder="Who can take part"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Prizes</span>
-                  <input
-                    value={tournamentForm.prizes}
-                    onChange={handleTournamentFieldChange("prizes")}
-                    placeholder="Trophies, medals…"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Qualifications</span>
-                  <input
-                    value={tournamentForm.qualifications}
-                    onChange={handleTournamentFieldChange("qualifications")}
-                    placeholder="Qualification criteria"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Result</span>
-                  <input
-                    value={tournamentForm.result}
-                    onChange={handleTournamentFieldChange("result")}
-                    placeholder="Winner / outcome (after the event)"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Custom page URL</span>
-                  <input
-                    value={tournamentForm.detail_url}
-                    onChange={handleTournamentFieldChange("detail_url")}
-                    placeholder="/national-championship-2026 (optional)"
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Image URL</span>
-                  <input
-                    value={tournamentForm.image_url}
-                    onChange={handleTournamentFieldChange("image_url")}
-                    placeholder="https://… or upload below"
-                    disabled={!!tournamentImageFile}
-                  />
-                </label>
-                <label className="admin-field">
-                  <span>Propositions PDF URL</span>
-                  <input
-                    value={tournamentForm.propositions_url}
-                    onChange={handleTournamentFieldChange("propositions_url")}
-                    placeholder="https://… or upload below"
-                    disabled={!!tournamentPdfFile}
-                  />
-                </label>
-              </div>
 
-              <div className="admin-club-logo-row">
-                <label className="admin-field admin-club-file-field">
-                  <span>…or upload a cover image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setTournamentImageFile(e.target.files?.[0] || null)
-                    }
-                  />
-                </label>
-                <label className="admin-field admin-club-file-field">
-                  <span>…or upload propositions (PDF)</span>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(e) =>
-                      setTournamentPdfFile(e.target.files?.[0] || null)
-                    }
-                  />
-                </label>
-              </div>
-
-              <label className="admin-field admin-field-full">
-                <span>Description</span>
-                <textarea
-                  rows={3}
-                  value={tournamentForm.description}
-                  onChange={handleTournamentFieldChange("description")}
-                  placeholder="Short description shown in the modal and detail page"
-                />
-              </label>
-
-              {tournamentError && (
-                <p className="admin-club-error">{tournamentError}</p>
+                  <div className="admin-actions">
+                    <button
+                      type="submit"
+                      className="admin-btn approve"
+                      disabled={tournamentSubmitting}
+                    >
+                      {tournamentSubmitting
+                        ? "Saving…"
+                        : editingTournamentId
+                          ? "Update Tournament"
+                          : "Save Tournament"}
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn decline"
+                      onClick={() => {
+                        resetTournamentForm();
+                        setShowAddTournament(false);
+                      }}
+                      disabled={tournamentSubmitting}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               )}
 
-              <div className="admin-actions">
-                <button
-                  type="submit"
-                  className="admin-btn approve"
-                  disabled={tournamentSubmitting}
-                >
-                  {tournamentSubmitting
-                    ? "Saving…"
-                    : editingTournamentId
-                      ? "Update Tournament"
-                      : "Save Tournament"}
-                </button>
-                <button
-                  type="button"
-                  className="admin-btn decline"
-                  onClick={() => {
-                    resetTournamentForm();
-                    setShowAddTournament(false);
-                  }}
-                  disabled={tournamentSubmitting}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="admin-tournaments-list">
-            {tournaments.length === 0 ? (
-              <div className="admin-empty-state">
-                No tournaments yet. Add the first one.
-              </div>
-            ) : (
-              tournaments.map((tournament) => (
-                <div key={tournament.id} className="admin-tournament-item">
-                  <div className="admin-tournament-info">
-                    <h3>
-                      {tournament.name}
-                      <span
-                        className={`admin-tournament-status admin-tournament-status-${tournament.status}`}
-                      >
-                        {tournament.status}
-                      </span>
-                    </h3>
-                    <p className="admin-tournament-meta">
-                      {[tournament.type, tournament.category]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                    <p className="admin-tournament-sub">
-                      {formatDateRange(
-                        tournament.start_date,
-                        tournament.end_date,
-                        "en"
-                      )}
-                      {tournament.location ? ` — ${tournament.location}` : ""}
-                    </p>
-                    <p className="admin-tournament-sub">
-                      Scoring: {describePointsScheme(tournament.points_scheme)}
-                    </p>
+              <div className="admin-tournaments-list">
+                {tournaments.length === 0 ? (
+                  <div className="admin-empty-state">
+                    No tournaments yet. Add the first one.
                   </div>
-                  <div className="admin-tournament-actions">
-                    <button
-                      type="button"
-                      className="admin-btn admin-edit-btn"
-                      onClick={() => startEditTournament(tournament)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-btn decline admin-club-delete"
-                      disabled={tournamentActionId === tournament.id}
-                      onClick={() => handleDeleteTournament(tournament)}
-                    >
-                      {tournamentActionId === tournament.id
-                        ? "Deleting…"
-                        : "Delete"}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                ) : (
+                  tournaments.map((tournament) => (
+                    <div key={tournament.id} className="admin-tournament-item">
+                      <div className="admin-tournament-info">
+                        <h3>
+                          {tournament.name}
+                          <span
+                            className={`admin-tournament-status admin-tournament-status-${tournament.status}`}
+                          >
+                            {tournament.status}
+                          </span>
+                        </h3>
+                        <p className="admin-tournament-meta">
+                          {[tournament.type, tournament.category]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                        <p className="admin-tournament-sub">
+                          {formatDateRange(
+                            tournament.start_date,
+                            tournament.end_date,
+                            "en"
+                          )}
+                          {tournament.location ? ` — ${tournament.location}` : ""}
+                        </p>
+                        <p className="admin-tournament-sub">
+                          Scoring: {describePointsScheme(tournament.points_scheme)}
+                        </p>
+                      </div>
+                      <div className="admin-tournament-actions">
+                        <button
+                          type="button"
+                          className="admin-btn admin-edit-btn"
+                          onClick={() => startEditTournament(tournament)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-btn decline admin-club-delete"
+                          disabled={tournamentActionId === tournament.id}
+                          onClick={() => handleDeleteTournament(tournament)}
+                        >
+                          {tournamentActionId === tournament.id
+                            ? "Deleting…"
+                            : "Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1359,6 +1417,16 @@ export default function Admin() {
 
         <AdminTournamentSchedule tournaments={tournaments} />
       </div>
+
+      {showEmailList && (
+        <EmailListModal
+          title="Player emails"
+          subtitle="All players from the Player List."
+          emails={playerEmails}
+          filename={`player-emails-${new Date().toISOString().slice(0, 10)}.xlsx`}
+          onClose={() => setShowEmailList(false)}
+        />
+      )}
     </section>
   );
 }

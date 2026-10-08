@@ -64,6 +64,133 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Collapsible sections: the title block toggles everything below the header.
+   Height animates via the grid-template-rows 0fr <-> 1fr trick, so content of
+   any length opens smoothly to its natural size. */
+.admin-card {
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.admin-card-header {
+  transition: padding 0.35s ease, border-color 0.35s ease;
+}
+
+.admin-card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  margin: -8px;
+  padding: 8px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 16px;
+  outline: none;
+  transition: background 0.2s ease;
+}
+
+.admin-card-title:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-card-title:focus-visible {
+  box-shadow: 0 0 0 2px rgba(240, 198, 102, 0.55);
+}
+
+.admin-card-chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(212, 166, 61, 0.15);
+  color: #f0c666;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
+}
+
+.admin-card-title:hover .admin-card-chevron {
+  background: rgba(212, 166, 61, 0.28);
+}
+
+.admin-card-title-text {
+  min-width: 0;
+  padding-top: 3px;
+}
+
+.admin-card-collapse,
+.admin-card-desc {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
+}
+
+.admin-card-collapse-inner,
+.admin-card-desc-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.admin-card-desc-inner p + p {
+  margin-top: 8px;
+}
+
+.admin-card.is-collapsed {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-card.is-collapsed:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.admin-card.is-collapsed .admin-card-header {
+  align-items: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-bottom-color: transparent;
+}
+
+.admin-card.is-collapsed .admin-card-chevron {
+  transform: rotate(-90deg);
+}
+
+.admin-card.is-collapsed .admin-card-collapse,
+.admin-card.is-collapsed .admin-card-desc {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.admin-card.is-collapsed .admin-card-collapse {
+  visibility: hidden;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease, visibility 0s linear 0.35s;
+}
+
+.admin-card.is-collapsed .admin-card-header h2 {
+  margin-bottom: 0;
+}
+
+.admin-card-header h2 {
+  transition: margin 0.35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-card-header,
+  .admin-card-chevron,
+  .admin-card-collapse,
+  .admin-card-desc,
+  .admin-card-header h2 {
+    transition: none !important;
+  }
+}
+
+.admin-card-header h2 {
+  margin-bottom: 0;
+}
+
 .admin-card-header h2 {
   margin: 0 0 8px;
   font-size: 1.35rem;

@@ -1,4 +1,13 @@
 {
+  "emailList": {
+    "download": "Download Excel",
+    "copy": "Copy all",
+    "copied": "Copied!",
+    "copyFailed": "Could not copy the emails.",
+    "close": "Close",
+    "count": "emails",
+    "empty": "No emails to show."
+  },
   "live": {
     "sectionTitle": "Live now",
     "live": "LIVE"
@@ -144,6 +153,8 @@
       "participantsTitle": "Registered pairs",
       "participantsCount": "registered",
       "downloadPdf": "Download PDF",
+      "downloadExcel": "Download Excel",
+      "emailsTitle": "Registered players' emails",
       "pairsPublish": "Publish list of pairs",
       "pairsHide": "Hide published list",
       "pairsPublishedNote": "Visible to everyone",

@@ -18,6 +18,9 @@ import {
 } from "../services/registrations";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
+import { getAllPlayers } from "../services/admin";
+import EmailListModal from "../components/EmailListModal";
+import { uniqueEmails } from "../lib/emails";
 import { getMyProfile } from "../services/profile";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
 import { printDraw, printDrawDay } from "../lib/drawPrint";
@@ -332,6 +335,7 @@ const TournamentDetail = () => {
   // Players already in a pair, per category: { player_id, category } rows.
   const [takenRows, setTakenRows] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [emailList, setEmailList] = useState(null);
   const [canScore, setCanScore] = useState(false); // admin OR referee
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -695,6 +699,40 @@ const TournamentDetail = () => {
     w.document.close();
     w.focus();
     w.print();
+  };
+
+  // Emails of one category's registered players (admin only), shown in a
+  // preview table that can be downloaded as Excel. Registrations hold player
+  // ids, so emails come from the profiles; guest partners without an account
+  // have no email and are skipped.
+  const handleShowCategoryEmails = async (group) => {
+    let players;
+    try {
+      players = await getAllPlayers();
+    } catch (err) {
+      alert(err.message || "Failed to load player emails.");
+      return;
+    }
+    const emailById = new Map(players.map((p) => [p.id, p.email]));
+    const emails = uniqueEmails(
+      group.regs.flatMap((reg) =>
+        [reg.player_id, reg.partner_id].map(
+          (playerId) => playerId && emailById.get(playerId)
+        )
+      )
+    );
+
+    const title = group.key ? catLabel(group.key) : r("categoryOther");
+    const slug = (value) =>
+      String(value || "")
+        .trim()
+        .replace(/[\\/:*?"<>|]+/g, "")
+        .replace(/\s+/g, "-");
+    setEmailList({
+      title,
+      emails,
+      filename: `${slug(tournament.name)}-${slug(title)}-emails.xlsx`,
+    });
   };
 
   const handleDownloadSchedule = (dayFilter = null) => {
@@ -1199,6 +1237,15 @@ const TournamentDetail = () => {
                                   onClick={() => handleDownloadCategory(group)}
                                 >
                                   {r("downloadPdf")}
+                                </button>
+                              )}
+                              {isAdmin && !windowOpen && group.regs.length > 0 && (
+                                <button
+                                  type="button"
+                                  className="td-download-btn td-download-btn-excel"
+                                  onClick={() => handleShowCategoryEmails(group)}
+                                >
+                                  {r("downloadExcel")}
                                 </button>
                               )}
                             </h3>
@@ -1724,6 +1771,16 @@ const TournamentDetail = () => {
           onDrawChanged={refreshAfterResult}
           t={t}
           lang={lang}
+        />
+      )}
+
+      {emailList && (
+        <EmailListModal
+          title={`${r("emailsTitle")} · ${emailList.title}`}
+          subtitle={tournament.name}
+          emails={emailList.emails}
+          filename={emailList.filename}
+          onClose={() => setEmailList(null)}
         />
       )}
     </div>

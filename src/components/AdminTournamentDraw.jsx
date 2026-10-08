@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import AdminCardTitle from "./AdminCardTitle";
+import { useCollapsedSection } from "../hooks/useCollapsedSection";
 import {
   getTournamentRegistrations,
   getPlayerDirectory,
@@ -55,6 +57,7 @@ const deserializeBracket = (draw) => {
 };
 
 const AdminTournamentDraw = ({ tournaments }) => {
+  const drawSection = useCollapsedSection("draw");
   const [selectedId, setSelectedId] = useState("");
   const [directory, setDirectory] = useState([]);
   const [registrations, setRegistrations] = useState([]);
@@ -595,123 +598,56 @@ const AdminTournamentDraw = ({ tournaments }) => {
     drawMode === "manual" ? placedCount >= 2 : !!bracket;
 
   return (
-    <div className="admin-card admin-draw-card">
+    <div
+      className={`admin-card admin-draw-card${drawSection.collapsed ? " is-collapsed" : ""}`}
+    >
       <div className="admin-card-header">
-        <div>
-          <h2>Tournament Draw</h2>
-          <p>
-            Generate a draw from the registered pairs and export it as a
-            printable PDF. Each category (e.g. Men&apos;s and Women&apos;s pairs)
-            has its own draw — pick the category, build its draw and publish it;
-            the other categories&apos; draws stay published.
-          </p>
-        </div>
+        <AdminCardTitle
+          title="Tournament Draw"
+          description={
+            <p>
+              Generate a draw from the registered pairs and export it as a
+              printable PDF. Each category (e.g. Men&apos;s and Women&apos;s pairs)
+              has its own draw — pick the category, build its draw and publish it;
+              the other categories&apos; draws stay published.
+            </p>
+          }
+          collapsed={drawSection.collapsed}
+          onToggle={drawSection.toggle}
+        />
       </div>
 
-      <div className="admin-draw-body">
-        <div className="admin-draw-controls">
-          <label className="admin-field">
-            <span>Tournament</span>
-            <select
-              value={selectedId}
-              onChange={(e) => handleSelect(e.target.value)}
-            >
-              <option value="">Select a tournament…</option>
-              {tournamentsWithRegs.map((tn) => (
-                <option key={tn.id} value={tn.id}>
-                  {tn.name}
-                </option>
-              ))}
-            </select>
-          </label>
+      <div className="admin-card-collapse">
+        <div className="admin-card-collapse-inner">
+          <div className="admin-draw-body">
+            <div className="admin-draw-controls">
+              <label className="admin-field">
+                <span>Tournament</span>
+                <select
+                  value={selectedId}
+                  onChange={(e) => handleSelect(e.target.value)}
+                >
+                  <option value="">Select a tournament…</option>
+                  {tournamentsWithRegs.map((tn) => (
+                    <option key={tn.id} value={tn.id}>
+                      {tn.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          {categories.length > 0 && (
-            <label className="admin-field">
-              <span>Category</span>
-              <select
-                value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  setBracket(null);
-                }}
-              >
-                <option value="all">All categories (one combined draw)</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-        </div>
-
-        {selectedId && !loading && publishedEntries.length > 0 && (
-          <div className="admin-draw-published-list">
-            <span className="admin-draw-system-label">Published draws</span>
-            {publishedEntries.map((e) => (
-              <button
-                key={e.slot}
-                type="button"
-                className={`admin-mode-btn${
-                  (e.category || null) === drawCategory ? " active" : ""
-                }`}
-                onClick={() => setCategory(e.category || "all")}
-              >
-                {e.category || "Uncategorized"} ·{" "}
-                {e.draw?.system === "group" ? "Group" : "Elimination"}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {selectedId &&
-          !loading &&
-          drawCategory &&
-          !categoryEntry &&
-          uncategorizedEntry && (
-            <div className="admin-rescue">
-              <div className="admin-rescue-head">
-                <h3>Existing draw without a category</h3>
-                <p>
-                  This tournament already has a draw that was published before
-                  draws were split per category. If it is the {drawCategory}{" "}
-                  draw, assign it here — its groups and all results are kept.
-                  Otherwise build a new {drawCategory} draw below.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="admin-btn approve"
-                onClick={handleAdoptUncategorized}
-                disabled={adoptBusy}
-              >
-                {adoptBusy ? "Saving…" : `Use it as the ${drawCategory} draw`}
-              </button>
-            </div>
-          )}
-
-        {selectedId && !loading && (
-          <div className="admin-rescue admin-addpair">
-            <div className="admin-rescue-head">
-              <h3>Add a pair</h3>
-              <p>
-                Manually add a confirmed pair. Pick each side from the registered
-                players, or switch to “No account” to type a name for someone
-                without a profile.
-              </p>
-            </div>
-
-            <form className="admin-addpair-form" onSubmit={handleAddPair}>
-              {addCategories.length > 0 && (
+              {categories.length > 0 && (
                 <label className="admin-field">
                   <span>Category</span>
                   <select
-                    value={addCategory}
-                    onChange={(e) => setAddCategory(e.target.value)}
+                    value={category}
+                    onChange={(e) => {
+                      setCategory(e.target.value);
+                      setBracket(null);
+                    }}
                   >
-                    <option value="">No category</option>
-                    {addCategories.map((c) => (
+                    <option value="all">All categories (one combined draw)</option>
+                    {categories.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -719,558 +655,635 @@ const AdminTournamentDraw = ({ tournaments }) => {
                   </select>
                 </label>
               )}
+            </div>
 
-              <div className="admin-addpair-side">
-                <div className="admin-addpair-side-head">
-                  <span>Player 1</span>
-                  <div className="admin-addpair-modes">
-                    <button
-                      type="button"
-                      className={`admin-mode-btn${
-                        addPlayerMode === "account" ? " active" : ""
-                      }`}
-                      onClick={() => setAddPlayerMode("account")}
-                    >
-                      Account
-                    </button>
-                    <button
-                      type="button"
-                      className={`admin-mode-btn${
-                        addPlayerMode === "guest" ? " active" : ""
-                      }`}
-                      onClick={() => setAddPlayerMode("guest")}
-                    >
-                      No account
-                    </button>
-                  </div>
-                </div>
-                {addPlayerMode === "account" ? (
-                  <select
-                    value={addPlayerId}
-                    onChange={(e) => setAddPlayerId(e.target.value)}
+            {selectedId && !loading && publishedEntries.length > 0 && (
+              <div className="admin-draw-published-list">
+                <span className="admin-draw-system-label">Published draws</span>
+                {publishedEntries.map((e) => (
+                  <button
+                    key={e.slot}
+                    type="button"
+                    className={`admin-mode-btn${
+                      (e.category || null) === drawCategory ? " active" : ""
+                    }`}
+                    onClick={() => setCategory(e.category || "all")}
                   >
-                    <option value="">Select a player…</option>
-                    {directory.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.full_name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    placeholder="Name Last name"
-                    value={addPlayerName}
-                    onChange={(e) => setAddPlayerName(e.target.value)}
-                  />
-                )}
+                    {e.category || "Uncategorized"} ·{" "}
+                    {e.draw?.system === "group" ? "Group" : "Elimination"}
+                  </button>
+                ))}
               </div>
+            )}
 
-              <div className="admin-addpair-side">
-                <div className="admin-addpair-side-head">
-                  <span>Partner</span>
-                  <div className="admin-addpair-modes">
-                    <button
-                      type="button"
-                      className={`admin-mode-btn${
-                        addPartnerMode === "account" ? " active" : ""
-                      }`}
-                      onClick={() => setAddPartnerMode("account")}
-                    >
-                      Account
-                    </button>
-                    <button
-                      type="button"
-                      className={`admin-mode-btn${
-                        addPartnerMode === "guest" ? " active" : ""
-                      }`}
-                      onClick={() => setAddPartnerMode("guest")}
-                    >
-                      No account
-                    </button>
+            {selectedId &&
+              !loading &&
+              drawCategory &&
+              !categoryEntry &&
+              uncategorizedEntry && (
+                <div className="admin-rescue">
+                  <div className="admin-rescue-head">
+                    <h3>Existing draw without a category</h3>
+                    <p>
+                      This tournament already has a draw that was published before
+                      draws were split per category. If it is the {drawCategory}{" "}
+                      draw, assign it here — its groups and all results are kept.
+                      Otherwise build a new {drawCategory} draw below.
+                    </p>
                   </div>
-                </div>
-                {addPartnerMode === "account" ? (
-                  <select
-                    value={addPartnerId}
-                    onChange={(e) => setAddPartnerId(e.target.value)}
+                  <button
+                    type="button"
+                    className="admin-btn approve"
+                    onClick={handleAdoptUncategorized}
+                    disabled={adoptBusy}
                   >
-                    <option value="">Select a partner…</option>
-                    {directory.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.full_name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    placeholder="Name Last name"
-                    value={addPartnerName}
-                    onChange={(e) => setAddPartnerName(e.target.value)}
-                  />
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="admin-btn approve"
-                disabled={addBusy}
-              >
-                {addBusy ? "Adding…" : "Add pair"}
-              </button>
-            </form>
-
-            {addMsg && <p className="admin-draw-publish-msg">{addMsg}</p>}
-
-            <div className="admin-addpair-list">
-              <div className="admin-addpair-list-head">
-                Current pairs ({confirmedPairs.length})
-              </div>
-              {confirmedPairs.length === 0 ? (
-                <p className="admin-empty-state">No confirmed pairs yet.</p>
-              ) : (
-                <div className="admin-rescue-list">
-                  {confirmedPairs.map((reg) => {
-                    const deleting = deleteBusyId === reg.id;
-                    return (
-                      <div className="admin-rescue-row" key={reg.id}>
-                        <div className="admin-rescue-info">
-                          <strong>{pairLabel(reg)}</strong>
-                          {reg.category && (
-                            <span className="admin-rescue-tag">
-                              {reg.category}
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          className="admin-btn decline"
-                          disabled={deleting}
-                          onClick={() => handleDeleteReg(reg)}
-                        >
-                          {deleting ? "Deleting…" : "Delete pair"}
-                        </button>
-                      </div>
-                    );
-                  })}
+                    {adoptBusy ? "Saving…" : `Use it as the ${drawCategory} draw`}
+                  </button>
                 </div>
               )}
-            </div>
 
-            {deleteMsg && (
-              <p className="admin-draw-publish-msg">{deleteMsg}</p>
-            )}
-          </div>
-        )}
+            {selectedId && !loading && (
+              <div className="admin-rescue admin-addpair">
+                <div className="admin-rescue-head">
+                  <h3>Add a pair</h3>
+                  <p>
+                    Manually add a confirmed pair. Pick each side from the registered
+                    players, or switch to “No account” to type a name for someone
+                    without a profile.
+                  </p>
+                </div>
 
-        {selectedId && !loading && deadlinePassed && (
-          <div className="admin-rescue">
-            <div className="admin-rescue-head">
-              <h3>Disqualified players</h3>
-              <p>
-                The deadline has passed. These players are hidden from the public
-                list because they have no confirmed partner. Until the draw is
-                published you can pair them up manually — confirm a pending
-                request, pick a partner for a solo player, or delete an entry.
-              </p>
-            </div>
+                <form className="admin-addpair-form" onSubmit={handleAddPair}>
+                  {addCategories.length > 0 && (
+                    <label className="admin-field">
+                      <span>Category</span>
+                      <select
+                        value={addCategory}
+                        onChange={(e) => setAddCategory(e.target.value)}
+                      >
+                        <option value="">No category</option>
+                        {addCategories.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
 
-            {published ? (
-              <p className="admin-empty-state">
-                The draw is published. Remove it first (below) to rescue players,
-                then re-publish.
-              </p>
-            ) : disqualified.length === 0 ? (
-              <p className="admin-empty-state">
-                No disqualified players — everyone has a confirmed partner.
-              </p>
-            ) : (
-              <div className="admin-rescue-list">
-                {disqualified.map((reg) => {
-                  const playerName = nameFor(
-                    reg.player_id,
-                    reg.player_name,
-                    "Player"
-                  );
-                  const catTag = reg.category ? ` · ${reg.category}` : "";
-                  const busy = rescueBusyId === reg.id;
-                  const deleting = deleteBusyId === reg.id;
-                  const hasPartner = reg.partner_id || reg.partner_name;
-                  // Pending pair: the invited partner never accepted.
-                  if (hasPartner) {
-                    const partnerName = nameFor(
-                      reg.partner_id,
-                      reg.partner_name,
-                      "Player"
-                    );
-                    return (
-                      <div className="admin-rescue-row" key={reg.id}>
-                        <div className="admin-rescue-info">
-                          <strong>
-                            {playerName} &amp; {partnerName}
-                          </strong>
-                          <span className="admin-rescue-tag">
-                            partner not accepted{catTag}
-                          </span>
-                        </div>
-                        <div className="admin-rescue-actions">
-                          {reg.partner_id && (
-                            <button
-                              type="button"
-                              className="admin-btn approve"
-                              disabled={busy || deleting}
-                              onClick={() => handleRescue(reg, reg.partner_id)}
-                            >
-                              {busy ? "Confirming…" : "Confirm pair"}
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            className="admin-btn decline"
-                            disabled={busy || deleting}
-                            onClick={() => handleDeleteReg(reg)}
-                          >
-                            {deleting ? "Deleting…" : "Delete from list"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-                  // Solo: admin assigns a partner.
-                  const options = availablePartners(reg);
-                  const chosen = rescuePartner[reg.id] || "";
-                  return (
-                    <div className="admin-rescue-row" key={reg.id}>
-                      <div className="admin-rescue-info">
-                        <strong>{playerName}</strong>
-                        <span className="admin-rescue-tag">
-                          no partner{catTag}
-                        </span>
-                      </div>
-                      <div className="admin-rescue-actions">
-                        <select
-                          value={chosen}
-                          onChange={(e) =>
-                            setRescuePartner((m) => ({
-                              ...m,
-                              [reg.id]: e.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">Select a partner…</option>
-                          {options.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.full_name}
-                            </option>
-                          ))}
-                        </select>
+                  <div className="admin-addpair-side">
+                    <div className="admin-addpair-side-head">
+                      <span>Player 1</span>
+                      <div className="admin-addpair-modes">
                         <button
                           type="button"
-                          className="admin-btn approve"
-                          disabled={busy || deleting || !chosen}
-                          onClick={() => handleRescue(reg, chosen)}
+                          className={`admin-mode-btn${
+                            addPlayerMode === "account" ? " active" : ""
+                          }`}
+                          onClick={() => setAddPlayerMode("account")}
                         >
-                          {busy ? "Adding…" : "Add & confirm"}
+                          Account
                         </button>
                         <button
                           type="button"
-                          className="admin-btn decline"
-                          disabled={busy || deleting}
-                          onClick={() => handleDeleteReg(reg)}
+                          className={`admin-mode-btn${
+                            addPlayerMode === "guest" ? " active" : ""
+                          }`}
+                          onClick={() => setAddPlayerMode("guest")}
                         >
-                          {deleting ? "Deleting…" : "Delete from list"}
+                          No account
                         </button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {rescueMsg && <p className="admin-draw-publish-msg">{rescueMsg}</p>}
-            {deleteMsg && (
-              <p className="admin-draw-publish-msg">{deleteMsg}</p>
-            )}
-          </div>
-        )}
-
-        {selectedId && (
-          <div className="admin-draw-system">
-            <span className="admin-draw-system-label">Draw system</span>
-            <div className="admin-draw-modes">
-              <button
-                type="button"
-                className={`admin-mode-btn${
-                  system === "elimination" ? " active" : ""
-                }`}
-                onClick={() => setSystem("elimination")}
-              >
-                Elimination
-              </button>
-              <button
-                type="button"
-                className={`admin-mode-btn${
-                  system === "group" ? " active" : ""
-                }`}
-                onClick={() => setSystem("group")}
-              >
-                Group
-              </button>
-            </div>
-          </div>
-        )}
-
-        {selectedId && !loading && system === "group" && (
-          <AdminGroupBuilder
-            key={`${selectedId}|${category}`}
-            pairs={pairs}
-            tournamentId={selectedId}
-            tournamentName={selectedTournament?.name}
-            category={drawCategory}
-            initialDraw={categoryEntry?.draw}
-            slot={categoryEntry ? categoryEntry.slot : null}
-            published={published}
-            onSave={saveGroupDraw}
-            onRemove={removeGroupDraw}
-          />
-        )}
-
-        {selectedId && system === "elimination" && (
-          <>
-            <div className="admin-draw-summary">
-              <span className="admin-count-pill">
-                {pairs.length} pairs
-                {category !== "all" ? ` · ${category}` : ""}
-              </span>
-              {published && (
-                <span className="admin-tournament-status admin-tournament-status-active">
-                  Published
-                </span>
-              )}
-
-              <div className="admin-draw-modes">
-                <button
-                  type="button"
-                  className={`admin-mode-btn${
-                    drawMode === "auto" ? " active" : ""
-                  }`}
-                  onClick={enterAuto}
-                >
-                  Automatic
-                </button>
-                <button
-                  type="button"
-                  className={`admin-mode-btn${
-                    drawMode === "manual" ? " active" : ""
-                  }`}
-                  onClick={enterManual}
-                >
-                  Manual
-                </button>
-              </div>
-
-              {drawMode === "auto" && pairs.length >= 2 && (
-                <button
-                  type="button"
-                  className="admin-btn approve"
-                  onClick={handleGenerate}
-                >
-                  {bracket ? "Re-shuffle draw" : "Generate draw"}
-                </button>
-              )}
-
-              {drawMode === "manual" && pairs.length >= 2 && (
-                <>
-                  <button
-                    type="button"
-                    className="admin-btn admin-edit-btn"
-                    onClick={autoFillManual}
-                  >
-                    Auto-fill
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-btn admin-edit-btn"
-                    onClick={clearManual}
-                  >
-                    Clear
-                  </button>
-                </>
-              )}
-
-              {canPublish && (
-                <button
-                  type="button"
-                  className="admin-btn admin-edit-btn"
-                  onClick={handlePrint}
-                >
-                  Export PDF
-                </button>
-              )}
-              {canPublish && (
-                <button
-                  type="button"
-                  className="admin-btn approve"
-                  onClick={handlePublish}
-                  disabled={publishing}
-                >
-                  {publishing
-                    ? "Publishing…"
-                    : published
-                      ? "Re-publish draw"
-                      : "Publish draw"}
-                </button>
-              )}
-              {published && (
-                <button
-                  type="button"
-                  className="admin-btn decline"
-                  onClick={handleRemovePublished}
-                  disabled={publishing}
-                >
-                  Remove published
-                </button>
-              )}
-            </div>
-
-            {publishMsg && (
-              <p className="admin-draw-publish-msg">{publishMsg}</p>
-            )}
-
-            {loading ? (
-              <p className="admin-empty-state">Loading registrations…</p>
-            ) : pairs.length < 2 ? (
-              <p className="admin-empty-state">
-                At least 2 confirmed pairs are needed to generate a draw.
-              </p>
-            ) : drawMode === "manual" ? (
-              <div className="admin-manual-draw">
-                <div
-                  className="admin-manual-pool"
-                  onDragOver={allowDrop}
-                  onDrop={onPoolDrop}
-                >
-                  <div className="admin-manual-pool-head">
-                    Unplaced pairs ({poolPairs.length})
-                  </div>
-                  {poolPairs.length === 0 ? (
-                    <span className="admin-manual-pool-empty">
-                      All pairs placed.
-                    </span>
-                  ) : (
-                    poolPairs.map((p) => (
-                      <div
-                        key={p.id}
-                        className="admin-manual-chip"
-                        draggable
-                        onDragStart={(e) => onChipDragStart(e, p.id)}
+                    {addPlayerMode === "account" ? (
+                      <select
+                        value={addPlayerId}
+                        onChange={(e) => setAddPlayerId(e.target.value)}
                       >
-                        {p.label}
+                        <option value="">Select a player…</option>
+                        {directory.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.full_name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Name Last name"
+                        value={addPlayerName}
+                        onChange={(e) => setAddPlayerName(e.target.value)}
+                      />
+                    )}
+                  </div>
+
+                  <div className="admin-addpair-side">
+                    <div className="admin-addpair-side-head">
+                      <span>Partner</span>
+                      <div className="admin-addpair-modes">
+                        <button
+                          type="button"
+                          className={`admin-mode-btn${
+                            addPartnerMode === "account" ? " active" : ""
+                          }`}
+                          onClick={() => setAddPartnerMode("account")}
+                        >
+                          Account
+                        </button>
+                        <button
+                          type="button"
+                          className={`admin-mode-btn${
+                            addPartnerMode === "guest" ? " active" : ""
+                          }`}
+                          onClick={() => setAddPartnerMode("guest")}
+                        >
+                          No account
+                        </button>
                       </div>
-                    ))
+                    </div>
+                    {addPartnerMode === "account" ? (
+                      <select
+                        value={addPartnerId}
+                        onChange={(e) => setAddPartnerId(e.target.value)}
+                      >
+                        <option value="">Select a partner…</option>
+                        {directory.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.full_name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Name Last name"
+                        value={addPartnerName}
+                        onChange={(e) => setAddPartnerName(e.target.value)}
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="admin-btn approve"
+                    disabled={addBusy}
+                  >
+                    {addBusy ? "Adding…" : "Add pair"}
+                  </button>
+                </form>
+
+                {addMsg && <p className="admin-draw-publish-msg">{addMsg}</p>}
+
+                <div className="admin-addpair-list">
+                  <div className="admin-addpair-list-head">
+                    Current pairs ({confirmedPairs.length})
+                  </div>
+                  {confirmedPairs.length === 0 ? (
+                    <p className="admin-empty-state">No confirmed pairs yet.</p>
+                  ) : (
+                    <div className="admin-rescue-list">
+                      {confirmedPairs.map((reg) => {
+                        const deleting = deleteBusyId === reg.id;
+                        return (
+                          <div className="admin-rescue-row" key={reg.id}>
+                            <div className="admin-rescue-info">
+                              <strong>{pairLabel(reg)}</strong>
+                              {reg.category && (
+                                <span className="admin-rescue-tag">
+                                  {reg.category}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              className="admin-btn decline"
+                              disabled={deleting}
+                              onClick={() => handleDeleteReg(reg)}
+                            >
+                              {deleting ? "Deleting…" : "Delete pair"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 
-                <div className="admin-bracket admin-bracket-manual">
-                  {(buildManualBracket()?.rounds || []).map(
-                    (round, roundIdx) => (
+                {deleteMsg && (
+                  <p className="admin-draw-publish-msg">{deleteMsg}</p>
+                )}
+              </div>
+            )}
+
+            {selectedId && !loading && deadlinePassed && (
+              <div className="admin-rescue">
+                <div className="admin-rescue-head">
+                  <h3>Disqualified players</h3>
+                  <p>
+                    The deadline has passed. These players are hidden from the public
+                    list because they have no confirmed partner. Until the draw is
+                    published you can pair them up manually — confirm a pending
+                    request, pick a partner for a solo player, or delete an entry.
+                  </p>
+                </div>
+
+                {published ? (
+                  <p className="admin-empty-state">
+                    The draw is published. Remove it first (below) to rescue players,
+                    then re-publish.
+                  </p>
+                ) : disqualified.length === 0 ? (
+                  <p className="admin-empty-state">
+                    No disqualified players — everyone has a confirmed partner.
+                  </p>
+                ) : (
+                  <div className="admin-rescue-list">
+                    {disqualified.map((reg) => {
+                      const playerName = nameFor(
+                        reg.player_id,
+                        reg.player_name,
+                        "Player"
+                      );
+                      const catTag = reg.category ? ` · ${reg.category}` : "";
+                      const busy = rescueBusyId === reg.id;
+                      const deleting = deleteBusyId === reg.id;
+                      const hasPartner = reg.partner_id || reg.partner_name;
+                      // Pending pair: the invited partner never accepted.
+                      if (hasPartner) {
+                        const partnerName = nameFor(
+                          reg.partner_id,
+                          reg.partner_name,
+                          "Player"
+                        );
+                        return (
+                          <div className="admin-rescue-row" key={reg.id}>
+                            <div className="admin-rescue-info">
+                              <strong>
+                                {playerName} &amp; {partnerName}
+                              </strong>
+                              <span className="admin-rescue-tag">
+                                partner not accepted{catTag}
+                              </span>
+                            </div>
+                            <div className="admin-rescue-actions">
+                              {reg.partner_id && (
+                                <button
+                                  type="button"
+                                  className="admin-btn approve"
+                                  disabled={busy || deleting}
+                                  onClick={() => handleRescue(reg, reg.partner_id)}
+                                >
+                                  {busy ? "Confirming…" : "Confirm pair"}
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="admin-btn decline"
+                                disabled={busy || deleting}
+                                onClick={() => handleDeleteReg(reg)}
+                              >
+                                {deleting ? "Deleting…" : "Delete from list"}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
+                      // Solo: admin assigns a partner.
+                      const options = availablePartners(reg);
+                      const chosen = rescuePartner[reg.id] || "";
+                      return (
+                        <div className="admin-rescue-row" key={reg.id}>
+                          <div className="admin-rescue-info">
+                            <strong>{playerName}</strong>
+                            <span className="admin-rescue-tag">
+                              no partner{catTag}
+                            </span>
+                          </div>
+                          <div className="admin-rescue-actions">
+                            <select
+                              value={chosen}
+                              onChange={(e) =>
+                                setRescuePartner((m) => ({
+                                  ...m,
+                                  [reg.id]: e.target.value,
+                                }))
+                              }
+                            >
+                              <option value="">Select a partner…</option>
+                              {options.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.full_name}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              className="admin-btn approve"
+                              disabled={busy || deleting || !chosen}
+                              onClick={() => handleRescue(reg, chosen)}
+                            >
+                              {busy ? "Adding…" : "Add & confirm"}
+                            </button>
+                            <button
+                              type="button"
+                              className="admin-btn decline"
+                              disabled={busy || deleting}
+                              onClick={() => handleDeleteReg(reg)}
+                            >
+                              {deleting ? "Deleting…" : "Delete from list"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {rescueMsg && <p className="admin-draw-publish-msg">{rescueMsg}</p>}
+                {deleteMsg && (
+                  <p className="admin-draw-publish-msg">{deleteMsg}</p>
+                )}
+              </div>
+            )}
+
+            {selectedId && (
+              <div className="admin-draw-system">
+                <span className="admin-draw-system-label">Draw system</span>
+                <div className="admin-draw-modes">
+                  <button
+                    type="button"
+                    className={`admin-mode-btn${
+                      system === "elimination" ? " active" : ""
+                    }`}
+                    onClick={() => setSystem("elimination")}
+                  >
+                    Elimination
+                  </button>
+                  <button
+                    type="button"
+                    className={`admin-mode-btn${
+                      system === "group" ? " active" : ""
+                    }`}
+                    onClick={() => setSystem("group")}
+                  >
+                    Group
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {selectedId && !loading && system === "group" && (
+              <AdminGroupBuilder
+                key={`${selectedId}|${category}`}
+                pairs={pairs}
+                tournamentId={selectedId}
+                tournamentName={selectedTournament?.name}
+                category={drawCategory}
+                initialDraw={categoryEntry?.draw}
+                slot={categoryEntry ? categoryEntry.slot : null}
+                published={published}
+                onSave={saveGroupDraw}
+                onRemove={removeGroupDraw}
+              />
+            )}
+
+            {selectedId && system === "elimination" && (
+              <>
+                <div className="admin-draw-summary">
+                  <span className="admin-count-pill">
+                    {pairs.length} pairs
+                    {category !== "all" ? ` · ${category}` : ""}
+                  </span>
+                  {published && (
+                    <span className="admin-tournament-status admin-tournament-status-active">
+                      Published
+                    </span>
+                  )}
+
+                  <div className="admin-draw-modes">
+                    <button
+                      type="button"
+                      className={`admin-mode-btn${
+                        drawMode === "auto" ? " active" : ""
+                      }`}
+                      onClick={enterAuto}
+                    >
+                      Automatic
+                    </button>
+                    <button
+                      type="button"
+                      className={`admin-mode-btn${
+                        drawMode === "manual" ? " active" : ""
+                      }`}
+                      onClick={enterManual}
+                    >
+                      Manual
+                    </button>
+                  </div>
+
+                  {drawMode === "auto" && pairs.length >= 2 && (
+                    <button
+                      type="button"
+                      className="admin-btn approve"
+                      onClick={handleGenerate}
+                    >
+                      {bracket ? "Re-shuffle draw" : "Generate draw"}
+                    </button>
+                  )}
+
+                  {drawMode === "manual" && pairs.length >= 2 && (
+                    <>
+                      <button
+                        type="button"
+                        className="admin-btn admin-edit-btn"
+                        onClick={autoFillManual}
+                      >
+                        Auto-fill
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-btn admin-edit-btn"
+                        onClick={clearManual}
+                      >
+                        Clear
+                      </button>
+                    </>
+                  )}
+
+                  {canPublish && (
+                    <button
+                      type="button"
+                      className="admin-btn admin-edit-btn"
+                      onClick={handlePrint}
+                    >
+                      Export PDF
+                    </button>
+                  )}
+                  {canPublish && (
+                    <button
+                      type="button"
+                      className="admin-btn approve"
+                      onClick={handlePublish}
+                      disabled={publishing}
+                    >
+                      {publishing
+                        ? "Publishing…"
+                        : published
+                          ? "Re-publish draw"
+                          : "Publish draw"}
+                    </button>
+                  )}
+                  {published && (
+                    <button
+                      type="button"
+                      className="admin-btn decline"
+                      onClick={handleRemovePublished}
+                      disabled={publishing}
+                    >
+                      Remove published
+                    </button>
+                  )}
+                </div>
+
+                {publishMsg && (
+                  <p className="admin-draw-publish-msg">{publishMsg}</p>
+                )}
+
+                {loading ? (
+                  <p className="admin-empty-state">Loading registrations…</p>
+                ) : pairs.length < 2 ? (
+                  <p className="admin-empty-state">
+                    At least 2 confirmed pairs are needed to generate a draw.
+                  </p>
+                ) : drawMode === "manual" ? (
+                  <div className="admin-manual-draw">
+                    <div
+                      className="admin-manual-pool"
+                      onDragOver={allowDrop}
+                      onDrop={onPoolDrop}
+                    >
+                      <div className="admin-manual-pool-head">
+                        Unplaced pairs ({poolPairs.length})
+                      </div>
+                      {poolPairs.length === 0 ? (
+                        <span className="admin-manual-pool-empty">
+                          All pairs placed.
+                        </span>
+                      ) : (
+                        poolPairs.map((p) => (
+                          <div
+                            key={p.id}
+                            className="admin-manual-chip"
+                            draggable
+                            onDragStart={(e) => onChipDragStart(e, p.id)}
+                          >
+                            {p.label}
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="admin-bracket admin-bracket-manual">
+                      {(buildManualBracket()?.rounds || []).map(
+                        (round, roundIdx) => (
+                          <div className="admin-bracket-col" key={roundIdx}>
+                            <div className="admin-bracket-round">
+                              {roundName(round.length)}
+                            </div>
+                            {round.map((m, i) =>
+                              roundIdx === 0 ? (
+                                // Round of 32: editable drop slots.
+                                <div className="admin-bracket-match" key={i}>
+                                  {["a", "b"].map((slot) => {
+                                    const pair = manualMatches[i][slot];
+                                    return (
+                                      <div
+                                        key={slot}
+                                        className={`admin-bracket-slot admin-bracket-slot-drop${
+                                          pair ? " filled" : ""
+                                        }`}
+                                        onDragOver={allowDrop}
+                                        onDrop={(e) => onSlotDrop(e, i, slot)}
+                                      >
+                                        {pair ? (
+                                          <div
+                                            className="admin-manual-chip"
+                                            draggable
+                                            onDragStart={(e) =>
+                                              onChipDragStart(e, pair.id)
+                                            }
+                                          >
+                                            <span>{pair.label}</span>
+                                            <button
+                                              type="button"
+                                              className="admin-manual-remove"
+                                              onClick={() =>
+                                                removeFromSlots(pair.id)
+                                              }
+                                              aria-label="Remove"
+                                            >
+                                              ×
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <span className="admin-manual-empty">
+                                            /
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                // Later rounds: locked placeholders.
+                                <div className="admin-bracket-match" key={i}>
+                                  <span className="admin-bracket-slot">—</span>
+                                  <span className="admin-bracket-slot">—</span>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                ) : !bracket ? (
+                  <p className="admin-empty-state">
+                    Click “Generate draw” to create the bracket.
+                  </p>
+                ) : (
+                  <div className="admin-bracket">
+                    {bracket.rounds.map((round, roundIdx) => (
                       <div className="admin-bracket-col" key={roundIdx}>
                         <div className="admin-bracket-round">
                           {roundName(round.length)}
                         </div>
-                        {round.map((m, i) =>
-                          roundIdx === 0 ? (
-                            // Round of 32: editable drop slots.
-                            <div className="admin-bracket-match" key={i}>
-                              {["a", "b"].map((slot) => {
-                                const pair = manualMatches[i][slot];
-                                return (
-                                  <div
-                                    key={slot}
-                                    className={`admin-bracket-slot admin-bracket-slot-drop${
-                                      pair ? " filled" : ""
-                                    }`}
-                                    onDragOver={allowDrop}
-                                    onDrop={(e) => onSlotDrop(e, i, slot)}
-                                  >
-                                    {pair ? (
-                                      <div
-                                        className="admin-manual-chip"
-                                        draggable
-                                        onDragStart={(e) =>
-                                          onChipDragStart(e, pair.id)
-                                        }
-                                      >
-                                        <span>{pair.label}</span>
-                                        <button
-                                          type="button"
-                                          className="admin-manual-remove"
-                                          onClick={() =>
-                                            removeFromSlots(pair.id)
-                                          }
-                                          aria-label="Remove"
-                                        >
-                                          ×
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      <span className="admin-manual-empty">
-                                        /
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            // Later rounds: locked placeholders.
-                            <div className="admin-bracket-match" key={i}>
-                              <span className="admin-bracket-slot">—</span>
-                              <span className="admin-bracket-slot">—</span>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            ) : !bracket ? (
-              <p className="admin-empty-state">
-                Click “Generate draw” to create the bracket.
-              </p>
-            ) : (
-              <div className="admin-bracket">
-                {bracket.rounds.map((round, roundIdx) => (
-                  <div className="admin-bracket-col" key={roundIdx}>
-                    <div className="admin-bracket-round">
-                      {roundName(round.length)}
-                    </div>
-                    {round.map((m, i) => (
-                      <div className="admin-bracket-match" key={i}>
-                        <span className="admin-bracket-slot">
-                          {roundIdx === 0
-                            ? m.a
-                              ? m.a.label
-                              : emptyLabel
-                            : "—"}
-                        </span>
-                        <span className="admin-bracket-slot">
-                          {roundIdx === 0
-                            ? m.b
-                              ? m.b.label
-                              : emptyLabel
-                            : "—"}
-                        </span>
+                        {round.map((m, i) => (
+                          <div className="admin-bracket-match" key={i}>
+                            <span className="admin-bracket-slot">
+                              {roundIdx === 0
+                                ? m.a
+                                  ? m.a.label
+                                  : emptyLabel
+                                : "—"}
+                            </span>
+                            <span className="admin-bracket-slot">
+                              {roundIdx === 0
+                                ? m.b
+                                  ? m.b.label
+                                  : emptyLabel
+                                : "—"}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );

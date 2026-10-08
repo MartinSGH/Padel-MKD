@@ -1,0 +1,210 @@
+.email-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(3, 10, 28, 0.72);
+  backdrop-filter: blur(4px);
+  animation: email-modal-fade 0.2s ease;
+}
+
+.email-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: min(720px, calc(100vh - 32px));
+  border-radius: 24px;
+  background: #0f2149;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  overflow: hidden;
+  animation: email-modal-pop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.email-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px 24px 14px;
+}
+
+.email-modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.email-modal-header p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.9rem;
+}
+
+.email-modal-close {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.email-modal-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.email-modal-count {
+  align-self: flex-start;
+  margin: 0 24px 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(212, 166, 61, 0.15);
+  color: #f0c666;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.email-modal-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.email-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.email-modal-table th {
+  position: sticky;
+  top: 0;
+  padding: 12px 24px;
+  background: #0f2149;
+  text-align: left;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.email-modal-table td {
+  padding: 11px 24px;
+  font-size: 0.95rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  word-break: break-all;
+}
+
+.email-modal-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.email-modal-table .email-modal-num,
+.email-modal-table th:first-child {
+  width: 48px;
+  padding-right: 0;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.email-modal-empty {
+  margin: 0;
+  padding: 32px 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.email-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+}
+
+.email-modal-btn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.email-modal-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.email-modal-btn-ghost {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #fff;
+}
+
+.email-modal-btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.email-modal-btn-primary {
+  border: 1px solid #d4a63d;
+  background: #d4a63d;
+  color: #081738;
+}
+
+.email-modal-btn-primary:hover:not(:disabled) {
+  background: #e2b955;
+}
+
+@media (max-width: 520px) {
+  .email-modal-header,
+  .email-modal-actions {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .email-modal-count {
+    margin-left: 16px;
+  }
+
+  .email-modal-table th,
+  .email-modal-table td {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .email-modal-actions .email-modal-btn {
+    flex: 1;
+  }
+}
+
+@keyframes email-modal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes email-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .email-modal-overlay,
+  .email-modal {
+    animation: none;
+  }
+}

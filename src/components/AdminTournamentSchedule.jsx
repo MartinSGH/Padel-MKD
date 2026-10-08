@@ -1,5 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
+import AdminCardTitle from "./AdminCardTitle";
+import { useCollapsedSection } from "../hooks/useCollapsedSection";
 import {
   updateTournament,
   getTournamentById,
@@ -91,8 +93,8 @@ const MatchChip = ({
           {m.teamA}
           {!solo && (
             <>
-              {" "}
-              <span className="vs">{SCHEDULE_LABELS.vs}</span> {m.teamB}
+                {" "}
+                <span className="vs">{SCHEDULE_LABELS.vs}</span> {m.teamB}
             </>
           )}
         </div>
@@ -124,6 +126,7 @@ MatchChip.propTypes = {
 };
 
 const AdminTournamentSchedule = ({ tournaments }) => {
+  const scheduleSection = useCollapsedSection("schedule");
   const [selectedId, setSelectedId] = useState("");
   // The fresh tournament row (so a draw published a moment ago is picked up
   // without a page reload — the `tournaments` prop can be stale).
@@ -326,484 +329,496 @@ const AdminTournamentSchedule = ({ tournaments }) => {
     : [];
 
   return (
-    <div className="admin-card admin-draw-card">
+    <div
+      className={`admin-card admin-draw-card${scheduleSection.collapsed ? " is-collapsed" : ""}`}
+    >
       <div className="admin-card-header">
-        <div>
-          <h2>Playing schedule</h2>
-          <p>
-            The matches come straight from the published draw(s) — when a
-            tournament has several category draws (e.g. Men&apos;s and
-            Women&apos;s pairs), they share the two courts in one schedule, and a
-            pair is never put on both courts at the same time. Just set the start
-            time of the first two matches — the courts (Терен 1 / Терен 2) and all
-            the following times are calculated automatically. For a group
-            tournament you can set Day 1 (group stage) and Day 2 times
-            separately. A category with only one group (e.g. Women&apos;s pairs)
-            plays its matches first on Day 2, followed by the quarterfinals →
-            semifinals → 3rd place → final; the knockout matchups appear once the
-            quarterfinal draw is made.
-          </p>
-          <p>
-            <strong>Manual</strong> lets you set the order yourself: drag each
-            match onto a court and time slot (or click a match, then click a
-            slot). Quarterfinals, semifinals and the final can be placed before
-            their pairs are known — they show as “Квалификант” / “Победник 1/4”
-            and switch to the real pairs automatically once they qualify.
-          </p>
-        </div>
+        <AdminCardTitle
+          title="Playing schedule"
+          description={
+            <>
+              <p>
+                The matches come straight from the published draw(s) — when a
+                tournament has several category draws (e.g. Men&apos;s and
+                Women&apos;s pairs), they share the two courts in one schedule, and a
+                pair is never put on both courts at the same time. Just set the start
+                time of the first two matches — the courts (Терен 1 / Терен 2) and all
+                the following times are calculated automatically. For a group
+                tournament you can set Day 1 (group stage) and Day 2 times
+                separately. A category with only one group (e.g. Women&apos;s pairs)
+                plays its matches first on Day 2, followed by the quarterfinals →
+                semifinals → 3rd place → final; the knockout matchups appear once the
+                quarterfinal draw is made.
+              </p>
+              <p>
+                <strong>Manual</strong> lets you set the order yourself: drag each
+                match onto a court and time slot (or click a match, then click a
+                slot). Quarterfinals, semifinals and the final can be placed before
+                their pairs are known — they show as “Квалификант” / “Победник 1/4”
+                and switch to the real pairs automatically once they qualify.
+              </p>
+            </>
+          }
+          collapsed={scheduleSection.collapsed}
+          onToggle={scheduleSection.toggle}
+        />
       </div>
 
-      <div className="admin-draw-body">
-        <div className="admin-draw-controls">
-          <label className="admin-field">
-            <span>Tournament</span>
-            <select
-              value={selectedId}
-              onChange={(e) => handleSelect(e.target.value)}
-            >
-              <option value="">Select a tournament…</option>
-              {tournaments.map((tn) => (
-                <option key={tn.id} value={tn.id}>
-                  {tn.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          {selectedId && draw && (
-            <div className="admin-draw-modes">
-              <button
-                type="button"
-                className={`admin-mode-btn${!isManual ? " active" : ""}`}
-                onClick={enterAuto}
-              >
-                Automatic
-              </button>
-              <button
-                type="button"
-                className={`admin-mode-btn${isManual ? " active" : ""}`}
-                onClick={enterManual}
-              >
-                Manual
-              </button>
+      <div className="admin-card-collapse">
+        <div className="admin-card-collapse-inner">
+          <div className="admin-draw-body">
+            <div className="admin-draw-controls">
+              <label className="admin-field">
+                <span>Tournament</span>
+                <select
+                  value={selectedId}
+                  onChange={(e) => handleSelect(e.target.value)}
+                >
+                  <option value="">Select a tournament…</option>
+                  {tournaments.map((tn) => (
+                    <option key={tn.id} value={tn.id}>
+                      {tn.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {selectedId && draw && (
+                <div className="admin-draw-modes">
+                  <button
+                    type="button"
+                    className={`admin-mode-btn${!isManual ? " active" : ""}`}
+                    onClick={enterAuto}
+                  >
+                    Automatic
+                  </button>
+                  <button
+                    type="button"
+                    className={`admin-mode-btn${isManual ? " active" : ""}`}
+                    onClick={enterManual}
+                  >
+                    Manual
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {selectedId && !draw && (
-          <p className="admin-empty-state">
-            Publish the draw first — the schedule is built from the draw’s pairs.
-          </p>
-        )}
+            {selectedId && !draw && (
+              <p className="admin-empty-state">
+                Publish the draw first — the schedule is built from the draw’s pairs.
+              </p>
+            )}
 
-        {selectedId && draw && (
-          <>
-            <div className="admin-schedule-head">
-              <label className="admin-field">
-                <span>
-                  {isGroup
-                    ? "Day 1 · Group stage — start time"
-                    : "Start time (first two matches)"}
-                </span>
-                <input
-                  type="time"
-                  value={schedule.startTime}
-                  onChange={(e) => setField("startTime", e.target.value)}
-                />
-              </label>
-              <label className="admin-field">
-                <span>
-                  {isGroup
-                    ? "Day 1 · interval (minutes)"
-                    : "Interval between slots (minutes)"}
-                </span>
-                <input
-                  type="number"
-                  min="10"
-                  step="5"
-                  value={schedule.intervalMinutes}
-                  onChange={(e) =>
-                    setField(
-                      "intervalMinutes",
-                      parseInt(e.target.value, 10) || 60
-                    )
-                  }
-                />
-              </label>
-              {isGroup && (
-                <>
+            {selectedId && draw && (
+              <>
+                <div className="admin-schedule-head">
                   <label className="admin-field">
-                    <span>Day 2 · Knockout — start time</span>
+                    <span>
+                      {isGroup
+                        ? "Day 1 · Group stage — start time"
+                        : "Start time (first two matches)"}
+                    </span>
                     <input
                       type="time"
-                      value={schedule.day2StartTime}
-                      onChange={(e) =>
-                        setField("day2StartTime", e.target.value)
-                      }
+                      value={schedule.startTime}
+                      onChange={(e) => setField("startTime", e.target.value)}
                     />
                   </label>
                   <label className="admin-field">
-                    <span>Day 2 · interval (minutes)</span>
+                    <span>
+                      {isGroup
+                        ? "Day 1 · interval (minutes)"
+                        : "Interval between slots (minutes)"}
+                    </span>
                     <input
                       type="number"
                       min="10"
                       step="5"
-                      value={schedule.day2IntervalMinutes}
+                      value={schedule.intervalMinutes}
                       onChange={(e) =>
                         setField(
-                          "day2IntervalMinutes",
+                          "intervalMinutes",
                           parseInt(e.target.value, 10) || 60
                         )
                       }
                     />
                   </label>
-                </>
-              )}
-              <label className="admin-field">
-                <span>{SCHEDULE_LABELS.date} (range)</span>
-                <input
-                  type="text"
-                  placeholder="14-16.08.2026"
-                  value={schedule.dateRange}
-                  onChange={(e) => setField("dateRange", e.target.value)}
-                />
-              </label>
-              <label className="admin-field">
-                <span>{SCHEDULE_LABELS.club}</span>
-                <input
-                  type="text"
-                  placeholder="Тенис Клуб Поинтер / Скопје"
-                  value={schedule.club}
-                  onChange={(e) => setField("club", e.target.value)}
-                />
-              </label>
-              <label className="admin-field">
-                <span>{SCHEDULE_LABELS.referee}</span>
-                <input
-                  type="text"
-                  placeholder="Име Презиме 07x xxx xxx"
-                  value={schedule.referee}
-                  onChange={(e) => setField("referee", e.target.value)}
-                />
-              </label>
-            </div>
-
-            {isManual ? (
-              <div className="admin-manual-draw">
-                <div className="admin-draw-modes-actions">
-                  <button
-                    type="button"
-                    className="admin-btn admin-edit-btn"
-                    onClick={resetFromAuto}
-                  >
-                    Reset to automatic order
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-btn admin-edit-btn"
-                    onClick={clearManual}
-                  >
-                    Clear
-                  </button>
-                </div>
-
-                <div
-                  className={`admin-manual-pool admin-sched-pool${
-                    selectedKey && placedKeys.has(selectedKey)
-                      ? " droppable"
-                      : ""
-                  }`}
-                  onDragOver={allowDrop}
-                  onDrop={onPoolDrop}
-                  onClick={() =>
-                    selectedKey && placedKeys.has(selectedKey)
-                      ? unplaceMatch(selectedKey)
-                      : setSelectedKey(null)
-                  }
-                >
-                  <div className="admin-manual-pool-head">
-                    Unplaced matches ({unplacedRequired.length})
-                  </div>
-                  {unplacedRequired.length === 0 ? (
-                    <span className="admin-manual-pool-empty">
-                      All matches placed.
-                    </span>
-                  ) : (
-                    unplacedRequired.map((m) => (
-                      <MatchChip
-                        key={m.key}
-                        m={m}
-                        showCategory={multiDraw}
-                        selected={selectedKey === m.key}
-                        onSelect={toggleSelect}
-                        onDragStart={onChipDragStart}
-                      />
-                    ))
-                  )}
-                  {unplacedOptional.length > 0 && (
+                  {isGroup && (
                     <>
-                      <div className="admin-manual-pool-head admin-sched-pool-sub">
-                        Optional knockout — only if played (
-                        {unplacedOptional.length})
-                      </div>
-                      {unplacedOptional.map((m) => (
-                        <MatchChip
-                          key={m.key}
-                          m={m}
-                          showCategory={multiDraw}
-                          selected={selectedKey === m.key}
-                          onSelect={toggleSelect}
-                          onDragStart={onChipDragStart}
+                      <label className="admin-field">
+                        <span>Day 2 · Knockout — start time</span>
+                        <input
+                          type="time"
+                          value={schedule.day2StartTime}
+                          onChange={(e) =>
+                            setField("day2StartTime", e.target.value)
+                          }
                         />
-                      ))}
+                      </label>
+                      <label className="admin-field">
+                        <span>Day 2 · interval (minutes)</span>
+                        <input
+                          type="number"
+                          min="10"
+                          step="5"
+                          value={schedule.day2IntervalMinutes}
+                          onChange={(e) =>
+                            setField(
+                              "day2IntervalMinutes",
+                              parseInt(e.target.value, 10) || 60
+                            )
+                          }
+                        />
+                      </label>
                     </>
                   )}
+                  <label className="admin-field">
+                    <span>{SCHEDULE_LABELS.date} (range)</span>
+                    <input
+                      type="text"
+                      placeholder="14-16.08.2026"
+                      value={schedule.dateRange}
+                      onChange={(e) => setField("dateRange", e.target.value)}
+                    />
+                  </label>
+                  <label className="admin-field">
+                    <span>{SCHEDULE_LABELS.club}</span>
+                    <input
+                      type="text"
+                      placeholder="Тенис Клуб Поинтер / Скопје"
+                      value={schedule.club}
+                      onChange={(e) => setField("club", e.target.value)}
+                    />
+                  </label>
+                  <label className="admin-field">
+                    <span>{SCHEDULE_LABELS.referee}</span>
+                    <input
+                      type="text"
+                      placeholder="Име Презиме 07x xxx xxx"
+                      value={schedule.referee}
+                      onChange={(e) => setField("referee", e.target.value)}
+                    />
+                  </label>
                 </div>
 
-                {warnings.length > 0 && (
-                  <ul className="admin-sched-warnings">
-                    {warnings.map((w) => (
-                      <li key={w}>{w}</li>
-                    ))}
-                  </ul>
-                )}
+                {isManual ? (
+                  <div className="admin-manual-draw">
+                    <div className="admin-draw-modes-actions">
+                      <button
+                        type="button"
+                        className="admin-btn admin-edit-btn"
+                        onClick={resetFromAuto}
+                      >
+                        Reset to automatic order
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-btn admin-edit-btn"
+                        onClick={clearManual}
+                      >
+                        Clear
+                      </button>
+                    </div>
 
-                {pool.days.map((dayLabel, d) => (
-                  <div className="admin-schedule-grid-wrap" key={d}>
-                    <table className="admin-schedule-grid admin-sched-manual">
+                    <div
+                      className={`admin-manual-pool admin-sched-pool${
+                        selectedKey && placedKeys.has(selectedKey)
+                          ? " droppable"
+                          : ""
+                      }`}
+                      onDragOver={allowDrop}
+                      onDrop={onPoolDrop}
+                      onClick={() =>
+                        selectedKey && placedKeys.has(selectedKey)
+                          ? unplaceMatch(selectedKey)
+                          : setSelectedKey(null)
+                      }
+                    >
+                      <div className="admin-manual-pool-head">
+                        Unplaced matches ({unplacedRequired.length})
+                      </div>
+                      {unplacedRequired.length === 0 ? (
+                        <span className="admin-manual-pool-empty">
+                          All matches placed.
+                        </span>
+                      ) : (
+                        unplacedRequired.map((m) => (
+                          <MatchChip
+                            key={m.key}
+                            m={m}
+                            showCategory={multiDraw}
+                            selected={selectedKey === m.key}
+                            onSelect={toggleSelect}
+                            onDragStart={onChipDragStart}
+                          />
+                        ))
+                      )}
+                      {unplacedOptional.length > 0 && (
+                        <>
+                          <div className="admin-manual-pool-head admin-sched-pool-sub">
+                            Optional knockout — only if played (
+                            {unplacedOptional.length})
+                          </div>
+                          {unplacedOptional.map((m) => (
+                            <MatchChip
+                              key={m.key}
+                              m={m}
+                              showCategory={multiDraw}
+                              selected={selectedKey === m.key}
+                              onSelect={toggleSelect}
+                              onDragStart={onChipDragStart}
+                            />
+                          ))}
+                        </>
+                      )}
+                    </div>
+
+                    {warnings.length > 0 && (
+                      <ul className="admin-sched-warnings">
+                        {warnings.map((w) => (
+                          <li key={w}>{w}</li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {pool.days.map((dayLabel, d) => (
+                      <div className="admin-schedule-grid-wrap" key={d}>
+                        <table className="admin-schedule-grid admin-sched-manual">
+                          <thead>
+                            {dayLabel && (
+                              <tr className="admin-schedule-dayrow">
+                                <td colSpan={COURTS + 2}>{dayLabel}</td>
+                              </tr>
+                            )}
+                            <tr>
+                              <th className="corner" />
+                              {SCHEDULE_LABELS.courts.map((c) => (
+                                <th key={c}>{c}</th>
+                              ))}
+                              <th className="corner" />
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {layout[d].map((cells, r) => (
+                              <tr key={r}>
+                                <td className="rownum">
+                                  <div>
+                                    {SCHEDULE_LABELS.match} {r + 1}
+                                  </div>
+                                  <div className="admin-sched-time">
+                                    {slotTime(schedule, d, r)}
+                                  </div>
+                                </td>
+                                {cells.map((k, c) => {
+                                  const m = k != null ? byKey.get(k) : null;
+                                  return (
+                                    <td
+                                      key={c}
+                                      className={`admin-sched-cell${
+                                        m ? " filled" : ""
+                                      }${selectedKey ? " droppable" : ""}`}
+                                      onDragOver={allowDrop}
+                                      onDrop={(e) => onCellDrop(e, d, r, c)}
+                                      onClick={() =>
+                                        selectedKey &&
+                                        placeMatch(selectedKey, d, r, c)
+                                      }
+                                    >
+                                      {m ? (
+                                        <MatchChip
+                                          m={m}
+                                          showCategory={multiDraw}
+                                          selected={selectedKey === m.key}
+                                          onSelect={(key) =>
+                                            selectedKey && selectedKey !== key
+                                              ? placeMatch(selectedKey, d, r, c)
+                                              : toggleSelect(key)
+                                          }
+                                          onRemove={unplaceMatch}
+                                          onDragStart={onChipDragStart}
+                                        />
+                                      ) : (
+                                        <span className="admin-manual-empty">—</span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                                <td className="rowdel">
+                                  <button
+                                    type="button"
+                                    className="admin-schedule-x admin-sched-rowbtn"
+                                    onClick={() => insertSlot(d, r)}
+                                    title="Insert an empty slot above"
+                                    aria-label="Insert an empty slot above"
+                                  >
+                                    +
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="admin-schedule-x"
+                                    onClick={() => removeSlot(d, r)}
+                                    title="Remove this slot (its matches go back to unplaced)"
+                                    aria-label="Remove slot"
+                                  >
+                                    ×
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <button
+                          type="button"
+                          className="admin-btn admin-edit-btn admin-sched-addslot"
+                          onClick={() => insertSlot(d, layout[d].length)}
+                        >
+                          + Add slot{dayLabel ? ` (${dayLabel})` : ""}
+                        </button>
+                      </div>
+                    ))}
+                    <p className="admin-sched-hint">
+                      An empty slot is left out of the published schedule but keeps
+                      its time — use it for a break.
+                    </p>
+                  </div>
+                ) : rows.length === 0 ? (
+                  <p className="admin-empty-state">
+                    No matches to schedule yet — the draw has no playable pairs.
+                  </p>
+                ) : (
+                  <div className="admin-schedule-grid-wrap">
+                    <table className="admin-schedule-grid admin-schedule-preview">
                       <thead>
-                        {dayLabel && (
-                          <tr className="admin-schedule-dayrow">
-                            <td colSpan={COURTS + 2}>{dayLabel}</td>
-                          </tr>
-                        )}
                         <tr>
                           <th className="corner" />
                           {SCHEDULE_LABELS.courts.map((c) => (
                             <th key={c}>{c}</th>
                           ))}
-                          <th className="corner" />
                         </tr>
                       </thead>
                       <tbody>
-                        {layout[d].map((cells, r) => (
-                          <tr key={r}>
-                            <td className="rownum">
-                              <div>
-                                {SCHEDULE_LABELS.match} {r + 1}
-                              </div>
-                              <div className="admin-sched-time">
-                                {slotTime(schedule, d, r)}
-                              </div>
-                            </td>
-                            {cells.map((k, c) => {
-                              const m = k != null ? byKey.get(k) : null;
-                              return (
-                                <td
-                                  key={c}
-                                  className={`admin-sched-cell${
-                                    m ? " filled" : ""
-                                  }${selectedKey ? " droppable" : ""}`}
-                                  onDragOver={allowDrop}
-                                  onDrop={(e) => onCellDrop(e, d, r, c)}
-                                  onClick={() =>
-                                    selectedKey &&
-                                    placeMatch(selectedKey, d, r, c)
-                                  }
-                                >
-                                  {m ? (
-                                    <MatchChip
-                                      m={m}
-                                      showCategory={multiDraw}
-                                      selected={selectedKey === m.key}
-                                      onSelect={(key) =>
-                                        selectedKey && selectedKey !== key
-                                          ? placeMatch(selectedKey, d, r, c)
-                                          : toggleSelect(key)
-                                      }
-                                      onRemove={unplaceMatch}
-                                      onDragStart={onChipDragStart}
-                                    />
-                                  ) : (
-                                    <span className="admin-manual-empty">—</span>
-                                  )}
-                                </td>
+                        {(() => {
+                          const out = [];
+                          let curDay = null;
+                          let n = 0;
+                          rows.forEach((row, ri) => {
+                            if (row.day && row.day !== curDay) {
+                              curDay = row.day;
+                              n = 0;
+                              out.push(
+                                <tr key={`d-${ri}`} className="admin-schedule-dayrow">
+                                  <td colSpan={SCHEDULE_LABELS.courts.length + 1}>
+                                    {row.day}
+                                  </td>
+                                </tr>
                               );
-                            })}
-                            <td className="rowdel">
-                              <button
-                                type="button"
-                                className="admin-schedule-x admin-sched-rowbtn"
-                                onClick={() => insertSlot(d, r)}
-                                title="Insert an empty slot above"
-                                aria-label="Insert an empty slot above"
-                              >
-                                +
-                              </button>
-                              <button
-                                type="button"
-                                className="admin-schedule-x"
-                                onClick={() => removeSlot(d, r)}
-                                title="Remove this slot (its matches go back to unplaced)"
-                                aria-label="Remove slot"
-                              >
-                                ×
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                            }
+                            n += 1;
+                            out.push(
+                              <tr key={ri}>
+                                <td className="rownum">
+                                  {SCHEDULE_LABELS.match} {n}
+                                </td>
+                                {SCHEDULE_LABELS.courts.map((_, ci) => {
+                                  const mt = row.cells[ci];
+                                  const solo = mt && mt.teamA && !mt.teamB;
+                                  return (
+                                    <td key={ci} className="cell">
+                                      {mt ? (
+                                        <>
+                                          {multiDraw && mt.category && (
+                                            <div className="cat">{mt.category}</div>
+                                          )}
+                                          <div className="t">
+                                            {slotTimeLabel(row, SCHEDULE_LABELS)}
+                                          </div>
+                                          <div>{mt.teamA}</div>
+                                          {!solo && (
+                                            <>
+                                              <div className="vs">
+                                                {SCHEDULE_LABELS.vs}
+                                              </div>
+                                              <div>{mt.teamB}</div>
+                                            </>
+                                          )}
+                                        </>
+                                      ) : (
+                                        "—"
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          });
+                          return out;
+                        })()}
                       </tbody>
                     </table>
-                    <button
-                      type="button"
-                      className="admin-btn admin-edit-btn admin-sched-addslot"
-                      onClick={() => insertSlot(d, layout[d].length)}
-                    >
-                      + Add slot{dayLabel ? ` (${dayLabel})` : ""}
-                    </button>
                   </div>
-                ))}
-                <p className="admin-sched-hint">
-                  An empty slot is left out of the published schedule but keeps
-                  its time — use it for a break.
-                </p>
-              </div>
-            ) : rows.length === 0 ? (
-              <p className="admin-empty-state">
-                No matches to schedule yet — the draw has no playable pairs.
-              </p>
-            ) : (
-              <div className="admin-schedule-grid-wrap">
-                <table className="admin-schedule-grid admin-schedule-preview">
-                  <thead>
-                    <tr>
-                      <th className="corner" />
-                      {SCHEDULE_LABELS.courts.map((c) => (
-                        <th key={c}>{c}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const out = [];
-                      let curDay = null;
-                      let n = 0;
-                      rows.forEach((row, ri) => {
-                        if (row.day && row.day !== curDay) {
-                          curDay = row.day;
-                          n = 0;
-                          out.push(
-                            <tr key={`d-${ri}`} className="admin-schedule-dayrow">
-                              <td colSpan={SCHEDULE_LABELS.courts.length + 1}>
-                                {row.day}
-                              </td>
-                            </tr>
-                          );
-                        }
-                        n += 1;
-                        out.push(
-                          <tr key={ri}>
-                            <td className="rownum">
-                              {SCHEDULE_LABELS.match} {n}
-                            </td>
-                            {SCHEDULE_LABELS.courts.map((_, ci) => {
-                              const mt = row.cells[ci];
-                              const solo = mt && mt.teamA && !mt.teamB;
-                              return (
-                                <td key={ci} className="cell">
-                                  {mt ? (
-                                    <>
-                                      {multiDraw && mt.category && (
-                                        <div className="cat">{mt.category}</div>
-                                      )}
-                                      <div className="t">
-                                        {slotTimeLabel(row, SCHEDULE_LABELS)}
-                                      </div>
-                                      <div>{mt.teamA}</div>
-                                      {!solo && (
-                                        <>
-                                          <div className="vs">
-                                            {SCHEDULE_LABELS.vs}
-                                          </div>
-                                          <div>{mt.teamB}</div>
-                                        </>
-                                      )}
-                                    </>
-                                  ) : (
-                                    "—"
-                                  )}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      });
-                      return out;
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                )}
 
-            <div className="admin-schedule-actions">
-              {isGroup && dayLabels.length > 1 ? (
-                <>
-                  {dayLabels.map((d, di) => (
+                <div className="admin-schedule-actions">
+                  {isGroup && dayLabels.length > 1 ? (
+                    <>
+                      {dayLabels.map((d, di) => (
+                        <button
+                          key={d}
+                          type="button"
+                          className="admin-btn admin-edit-btn"
+                          onClick={() => handlePrint(d)}
+                          disabled={rows.length === 0}
+                        >
+                          Export Day {di + 1} PDF ({d})
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className="admin-btn admin-edit-btn"
+                        onClick={() => handlePrint()}
+                        disabled={rows.length === 0}
+                      >
+                        Export both days
+                      </button>
+                    </>
+                  ) : (
                     <button
-                      key={d}
                       type="button"
                       className="admin-btn admin-edit-btn"
-                      onClick={() => handlePrint(d)}
+                      onClick={() => handlePrint()}
                       disabled={rows.length === 0}
                     >
-                      Export Day {di + 1} PDF ({d})
+                      Export PDF
                     </button>
-                  ))}
+                  )}
                   <button
                     type="button"
-                    className="admin-btn admin-edit-btn"
-                    onClick={() => handlePrint()}
-                    disabled={rows.length === 0}
+                    className="admin-btn approve"
+                    onClick={handlePublish}
+                    disabled={saving}
                   >
-                    Export both days
+                    {saving
+                      ? "Saving…"
+                      : published
+                        ? "Update / re-publish"
+                        : "Publish schedule"}
                   </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  className="admin-btn admin-edit-btn"
-                  onClick={() => handlePrint()}
-                  disabled={rows.length === 0}
-                >
-                  Export PDF
-                </button>
-              )}
-              <button
-                type="button"
-                className="admin-btn approve"
-                onClick={handlePublish}
-                disabled={saving}
-              >
-                {saving
-                  ? "Saving…"
-                  : published
-                    ? "Update / re-publish"
-                    : "Publish schedule"}
-              </button>
-              {published && (
-                <button
-                  type="button"
-                  className="admin-btn decline"
-                  onClick={handleRemove}
-                  disabled={saving}
-                >
-                  Unpublish
-                </button>
-              )}
-            </div>
+                  {published && (
+                    <button
+                      type="button"
+                      className="admin-btn decline"
+                      onClick={handleRemove}
+                      disabled={saving}
+                    >
+                      Unpublish
+                    </button>
+                  )}
+                </div>
 
-            {msg && <p className="admin-draw-publish-msg">{msg}</p>}
-          </>
-        )}
+                {msg && <p className="admin-draw-publish-msg">{msg}</p>}
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

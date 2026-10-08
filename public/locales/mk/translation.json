@@ -1,4 +1,13 @@
 {
+  "emailList": {
+    "download": "Преземи Excel",
+    "copy": "Копирај ги сите",
+    "copied": "Копирано!",
+    "copyFailed": "Е-поштите не можеа да се копираат.",
+    "close": "Затвори",
+    "count": "е-пошти",
+    "empty": "Нема е-пошти за прикажување."
+  },
   "live": {
     "sectionTitle": "Во живо",
     "live": "ВО ЖИВО"
@@ -144,6 +153,8 @@
       "participantsTitle": "Пријавени парови",
       "participantsCount": "пријавени",
       "downloadPdf": "Преземи PDF",
+      "downloadExcel": "Преземи Excel",
+      "emailsTitle": "Е-пошти на пријавените играчи",
       "pairsPublish": "Објави листа на парови",
       "pairsHide": "Сокриј ја објавената листа",
       "pairsPublishedNote": "Видливо за сите",
