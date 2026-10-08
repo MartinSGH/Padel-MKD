@@ -22,7 +22,12 @@ export const getRanking = async (category) => {
     totals.set(row.player_id, cur);
   });
 
-  return [...totals.values()].sort((a, b) => b.points - a.points);
+  // Highest points first; tied players alphabetically so their order is stable.
+  return [...totals.values()].sort(
+    (a, b) =>
+      b.points - a.points ||
+      (a.player_name || "").localeCompare(b.player_name || "")
+  );
 };
 
 // A single player's total ranking points (for their profile).

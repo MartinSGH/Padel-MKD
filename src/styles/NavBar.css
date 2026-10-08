@@ -372,6 +372,26 @@ nav {
     margin: 0 auto;
   }
 
+  /* The Competitions link sits inside an antd Badge (notification count),
+     which shrinks to fit its content — stretch it like the other links and
+     show the count inside the row, on the right. */
+  .nav-link-badge.ant-badge {
+    display: block;
+    width: 100%;
+    line-height: normal;
+  }
+
+  .nav-link-badge > .nav-link {
+    display: block;
+  }
+
+  .nav-link-badge > .ant-badge-count {
+    top: 50% !important;
+    right: 16px !important;
+    margin-top: 0 !important;
+    transform: translateY(-50%) !important;
+  }
+
   .navbar-actions {
     display: none;
   }

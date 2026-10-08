@@ -213,6 +213,83 @@
   font-weight: 600;
 }
 
+.admin-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-search-field {
+  position: relative;
+  flex: 1;
+  max-width: 480px;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+.admin-search-field input {
+  width: 100%;
+  padding: 11px 40px 11px 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.admin-search-field input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.admin-search-field input:focus {
+  border-color: #d4a63d;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Hide the browser's own clear (×) — we render our own. */
+.admin-search-field input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.admin-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.admin-search-clear:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.admin-search-result {
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.9rem;
+}
+
 .admin-players-table-wrap {
   overflow-x: auto;
 }
@@ -1088,6 +1165,7 @@
   }
 
   .admin-card-header,
+  .admin-search-bar,
   .admin-submissions-list {
     padding-left: 16px;
     padding-right: 16px;

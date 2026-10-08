@@ -27,6 +27,7 @@ import {
   describePointsScheme,
 } from "../lib/points";
 import { recomputeTournamentPoints } from "../services/liveScores";
+import { getMyProfile } from "../services/profile";
 import EmailListModal from "../components/EmailListModal";
 import { uniqueEmails } from "../lib/emails";
 import AdminTournamentDraw from "../components/AdminTournamentDraw";
@@ -126,6 +127,10 @@ export default function Admin() {
   const clubsSection = useCollapsedSection("clubs");
   const tournamentsSection = useCollapsedSection("tournaments");
   const [showEmailList, setShowEmailList] = useState(false);
+  const [playerSearch, setPlayerSearch] = useState("");
+  // Some admins may not add / edit / remove clubs (profiles.can_manage_clubs,
+  // enforced by RLS in supabase/admin_club_permission.sql). Hidden until known.
+  const [canManageClubs, setCanManageClubs] = useState(false);
   const [players, setPlayers] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [clubs, setClubs] = useState([]);
@@ -480,6 +485,10 @@ export default function Admin() {
 
   useEffect(() => {
     loadData();
+    getMyProfile()
+      // Missing column (migration not run yet) → undefined → allowed.
+      .then((profile) => setCanManageClubs(profile.can_manage_clubs !== false))
+      .catch(() => setCanManageClubs(false));
   }, []);
 
   const handleApprove = async (item) => {
@@ -507,6 +516,23 @@ export default function Admin() {
   };
 
   const playerEmails = uniqueEmails(players.map((player) => player.email));
+
+  // Player List search: matches name, email, phone or club, ignoring case and
+  // accents (e.g. "stojkovic" finds "Stojković").
+  const normalizeSearch = (value) =>
+    String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  const playerQuery = normalizeSearch(playerSearch);
+  const filteredPlayers = playerQuery
+    ? players.filter((player) =>
+        [player.full_name, player.email, player.phone, player.club_name].some(
+          (field) => normalizeSearch(field).includes(playerQuery)
+        )
+      )
+    : players;
 
   if (loading) {
     return <div className="admin-page admin-loading">Loading admin panel...</div>;
@@ -561,6 +587,56 @@ export default function Admin() {
 
             <div className="admin-card-collapse">
               <div className="admin-card-collapse-inner">
+                <div className="admin-search-bar">
+                  <div className="admin-search-field">
+                    <svg
+                      className="admin-search-icon"
+                      viewBox="0 0 24 24"
+                      width="18"
+                      height="18"
+                      aria-hidden="true"
+                    >
+                      <circle
+                        cx="11"
+                        cy="11"
+                        r="7"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M20 20l-3.5-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <input
+                      type="search"
+                      value={playerSearch}
+                      onChange={(e) => setPlayerSearch(e.target.value)}
+                      placeholder="Search players by name, email, phone or club…"
+                      aria-label="Search players"
+                    />
+                    {playerSearch && (
+                      <button
+                        type="button"
+                        className="admin-search-clear"
+                        onClick={() => setPlayerSearch("")}
+                        aria-label="Clear search"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  {playerQuery && (
+                    <span className="admin-search-result">
+                      {filteredPlayers.length} of {players.length}
+                    </span>
+                  )}
+                </div>
+
                 <div className="admin-players-table-wrap">
                   <table className="admin-players-table">
                     <thead>
@@ -573,14 +649,16 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {players.length === 0 ? (
+                      {filteredPlayers.length === 0 ? (
                         <tr>
                           <td colSpan="5" className="admin-empty-cell">
-                            No players found.
+                            {playerQuery
+                              ? `No players match "${playerSearch.trim()}".`
+                              : "No players found."}
                           </td>
                         </tr>
                       ) : (
-                        players.map((player) => (
+                        filteredPlayers.map((player) => (
                           <tr key={player.id}>
                             <td>
                               <div className="admin-player-meta">
@@ -830,34 +908,40 @@ export default function Admin() {
           <div className="admin-card-header">
             <AdminCardTitle
               title="Clubs"
-              description="Manage the clubs shown in the landing page carousel and on the Clubs page."
+              description={
+                canManageClubs
+                  ? "Manage the clubs shown in the landing page carousel and on the Clubs page."
+                  : "The clubs shown on the website. View only — you don't have permission to add, edit or remove clubs."
+              }
               collapsed={clubsSection.collapsed}
               onToggle={clubsSection.toggle}
             />
             <div className="admin-clubs-header-actions">
               <div className="admin-count-pill">{clubs.length} Clubs</div>
-              <button
-                type="button"
-                className="admin-btn approve admin-add-club-btn"
-                onClick={() => {
-                  if (showAddClub) {
-                    setShowAddClub(false);
-                    resetClubForm();
-                  } else {
-                    resetClubForm();
-                    setShowAddClub(true);
-                    if (clubsSection.collapsed) clubsSection.toggle();
-                  }
-                }}
-              >
-                {showAddClub ? "Close" : "+ Add Club"}
-              </button>
+              {canManageClubs && (
+                <button
+                  type="button"
+                  className="admin-btn approve admin-add-club-btn"
+                  onClick={() => {
+                    if (showAddClub) {
+                      setShowAddClub(false);
+                      resetClubForm();
+                    } else {
+                      resetClubForm();
+                      setShowAddClub(true);
+                      if (clubsSection.collapsed) clubsSection.toggle();
+                    }
+                  }}
+                >
+                  {showAddClub ? "Close" : "+ Add Club"}
+                </button>
+              )}
             </div>
           </div>
 
           <div className="admin-card-collapse">
             <div className="admin-card-collapse-inner">
-              {showAddClub && (
+              {canManageClubs && showAddClub && (
                 <form className="admin-club-form" onSubmit={handleSubmitClub}>
                   {editingClubId && (
                     <p className="admin-edit-note">
@@ -985,23 +1069,25 @@ export default function Admin() {
                           <p className="admin-club-email">{club.email}</p>
                         )}
                       </div>
-                      <div className="admin-tournament-actions">
-                        <button
-                          type="button"
-                          className="admin-btn admin-edit-btn"
-                          onClick={() => startEditClub(club)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-btn decline admin-club-delete"
-                          disabled={clubActionId === club.id}
-                          onClick={() => handleDeleteClub(club)}
-                        >
-                          {clubActionId === club.id ? "Deleting…" : "Delete"}
-                        </button>
-                      </div>
+                      {canManageClubs && (
+                        <div className="admin-tournament-actions">
+                          <button
+                            type="button"
+                            className="admin-btn admin-edit-btn"
+                            onClick={() => startEditClub(club)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-btn decline admin-club-delete"
+                            disabled={clubActionId === club.id}
+                            onClick={() => handleDeleteClub(club)}
+                          >
+                            {clubActionId === club.id ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))
                 )}

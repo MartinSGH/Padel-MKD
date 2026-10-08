@@ -29,6 +29,9 @@ const Ranking = () => {
   }, []);
 
   const rows = rowsByCategory[category] || [];
+  // Players with equal points share a position, and the next player skips
+  // ahead accordingly (70, 70, 60 → 5, 5, 7).
+  const positions = rows.map((r) => 1 + rows.filter((o) => o.points > r.points).length);
 
   return (
     <div className="rk-page">
@@ -68,10 +71,12 @@ const Ranking = () => {
               </div>
               {rows.map((r, i) => (
                 <div
-                  className={`rk-row${i < 3 ? ` rk-top rk-top-${i + 1}` : ""}`}
+                  className={`rk-row${
+                    positions[i] <= 3 ? ` rk-top rk-top-${positions[i]}` : ""
+                  }`}
                   key={r.player_id}
                 >
-                  <span className="rk-rank">{i + 1}</span>
+                  <span className="rk-rank">{positions[i]}</span>
                   <span className="rk-name">{r.player_name || "Player"}</span>
                   <span className="rk-points">{r.points}</span>
                 </div>

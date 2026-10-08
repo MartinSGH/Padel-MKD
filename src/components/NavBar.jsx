@@ -266,6 +266,7 @@ function Navbar() {
             </NavLink>
 
             <Badge
+              className="nav-link-badge"
               count={user ? unreadCount : 0}
               size="small"
               offset={[8, 2]}
