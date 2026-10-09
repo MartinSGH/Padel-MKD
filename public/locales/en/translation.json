@@ -129,6 +129,7 @@
       "postponed": "Postponed"
     },
     "registration": {
+      "points": "pts",
       "title": "Registration",
       "loginPrompt": "Log in or create an account to register for this tournament.",
       "login": "Log in",

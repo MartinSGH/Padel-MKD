@@ -30,6 +30,32 @@ export const getRanking = async (category) => {
   );
 };
 
+// Every player's ranking points, for seeding the draw / ordering pair lists.
+// Returns Map player_id → { total, byCategory: { [category]: points } }.
+export const getPointsByPlayer = async () => {
+  const PAGE = 1000; // Supabase caps a single select at 1000 rows
+  const rows = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from("tournament_points")
+      .select("player_id, category, points")
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < PAGE) break;
+  }
+
+  const map = new Map();
+  rows.forEach((row) => {
+    const cur = map.get(row.player_id) || { total: 0, byCategory: {} };
+    const pts = row.points || 0;
+    cur.total += pts;
+    cur.byCategory[row.category] = (cur.byCategory[row.category] || 0) + pts;
+    map.set(row.player_id, cur);
+  });
+  return map;
+};
+
 // A single player's total ranking points (for their profile).
 export const getPlayerPoints = async (playerId) => {
   const { data, error } = await supabase

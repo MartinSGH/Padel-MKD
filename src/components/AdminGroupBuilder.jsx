@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { getTournamentMatches } from "../services/liveScores";
 import { rowsForSlot } from "../lib/drawSet";
+import PairSeedTag from "./PairSeedTag";
 import {
   autoAssignGroups,
   buildGroupDraw,
@@ -996,6 +997,7 @@ const AdminGroupBuilder = ({
               }
             >
               {p.label}
+              <PairSeedTag pair={p} />
             </div>
           ))
         )}
@@ -1037,6 +1039,8 @@ const AdminGroupBuilder = ({
                   }
                 >
                   <span>{p.label}</span>
+
+                  <PairSeedTag pair={p} />
 
                   <button
                     type="button"

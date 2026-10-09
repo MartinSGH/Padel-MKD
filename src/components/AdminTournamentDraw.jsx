@@ -17,7 +17,10 @@ import {
 } from "../services/tournaments";
 import { listDraws, findDraw } from "../lib/drawSet";
 import { buildBracket, roundName } from "../lib/draw";
+import { getPointsByPlayer } from "../services/ranking";
+import { pairPoints, withCarriers } from "../lib/seeding";
 import AdminGroupBuilder from "./AdminGroupBuilder";
+import PairSeedTag from "./PairSeedTag";
 import {
   formatDateRange,
   isRegistrationDeadlinePassed,
@@ -61,6 +64,8 @@ const AdminTournamentDraw = ({ tournaments }) => {
   const [selectedId, setSelectedId] = useState("");
   const [directory, setDirectory] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+  // Ranking points per player — seeds the draw (carriers) and orders the pairs.
+  const [pointsByPlayer, setPointsByPlayer] = useState(new Map());
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState("all");
   const [bracket, setBracket] = useState(null);
@@ -102,12 +107,14 @@ const AdminTournamentDraw = ({ tournaments }) => {
   const uncategorizedEntry = findDraw(tournamentDraw, null);
 
   const loadRegs = async (id) => {
-    const [dir, regs] = await Promise.all([
+    const [dir, regs, pts] = await Promise.all([
       getPlayerDirectory().catch(() => []),
       getTournamentRegistrations(id).catch(() => []),
+      getPointsByPlayer().catch(() => new Map()),
     ]);
     setDirectory(dir);
     setRegistrations(regs);
+    setPointsByPlayer(pts);
   };
 
   const handleSelect = async (id) => {
@@ -180,8 +187,10 @@ const AdminTournamentDraw = ({ tournaments }) => {
   // Competing pairs for the draw: ONLY confirmed pairs (solo / unpaired /
   // pending players are left out entirely). Guard against listing a player twice
   // (guests have no id, so we only dedupe on the ids that exist).
+  // Ordered by combined ranking points; the top pairs are the carriers
+  // (`seed` 1..4) the auto draw places first — see lib/seeding.js.
   const usedPlayers = new Set();
-  const pairs = filteredRegs
+  const pairs = withCarriers(filteredRegs
     .filter(isConfirmed)
     .filter((reg) => {
       if (reg.player_id && usedPlayers.has(reg.player_id)) return false;
@@ -190,7 +199,11 @@ const AdminTournamentDraw = ({ tournaments }) => {
       if (reg.partner_id) usedPlayers.add(reg.partner_id);
       return true;
     })
-    .map((reg) => ({ id: reg.id, label: pairLabel(reg) }));
+    .map((reg) => ({
+      id: reg.id,
+      label: pairLabel(reg),
+      points: pairPoints(reg, pointsByPlayer),
+    })));
 
   const handleGenerate = () => {
     setBracket(buildBracket(pairs));
@@ -1178,6 +1191,7 @@ const AdminTournamentDraw = ({ tournaments }) => {
                             onDragStart={(e) => onChipDragStart(e, p.id)}
                           >
                             {p.label}
+                            <PairSeedTag pair={p} />
                           </div>
                         ))
                       )}
@@ -1214,6 +1228,7 @@ const AdminTournamentDraw = ({ tournaments }) => {
                                             }
                                           >
                                             <span>{pair.label}</span>
+                                            <PairSeedTag pair={pair} />
                                             <button
                                               type="button"
                                               className="admin-manual-remove"

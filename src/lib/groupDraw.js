@@ -27,6 +27,8 @@
 //   3rd place       → round THIRD_PLACE_ROUND, match_index 0
 
 import { SEMI_ROUND, QUARTER_ROUND } from "./points.js";
+import { shuffle } from "./draw.js";
+import { carriersOf } from "./seeding.js";
 
 export const QUARTER_COUNT = 4; // 4 QF matches = 8 qualifiers (top 2 × 4 groups)
 
@@ -44,15 +46,16 @@ const roundRobinPairs = (n) => {
   return pairs;
 };
 
-// Distribute labels across `count` groups as evenly as possible (random deal).
-export const autoAssignGroups = (labels, count = GROUP_COUNT) => {
-  const shuffled = [...labels];
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
+// Distribute pairs across `count` groups as evenly as possible. The carriers
+// (pairs with a `seed`, see lib/seeding.js) head the groups in order — carrier
+// 1 → Group 1, carrier 2 → Group 2, … — and every other pair is dealt at random.
+export const autoAssignGroups = (pairs, count = GROUP_COUNT) => {
   const groups = Array.from({ length: count }, () => []);
-  shuffled.forEach((l, i) => groups[i % count].push(l));
+  const carriers = carriersOf(pairs, count);
+  carriers.forEach((p, i) => groups[i].push(p));
+  shuffle(pairs.filter((p) => !carriers.includes(p))).forEach((p, i) =>
+    groups[(carriers.length + i) % count].push(p)
+  );
   return groups;
 };
 

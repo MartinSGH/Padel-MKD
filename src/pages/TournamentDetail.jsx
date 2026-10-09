@@ -22,6 +22,8 @@ import { getAllPlayers } from "../services/admin";
 import EmailListModal from "../components/EmailListModal";
 import { uniqueEmails } from "../lib/emails";
 import { getMyProfile } from "../services/profile";
+import { getPointsByPlayer } from "../services/ranking";
+import { pairPoints, sortByPoints } from "../lib/seeding";
 import { printSchedule, SCHEDULE_LABELS } from "../lib/schedulePrint";
 import { printDraw, printDrawDay } from "../lib/drawPrint";
 import {
@@ -342,6 +344,8 @@ const TournamentDetail = () => {
   const [regError, setRegError] = useState("");
   // Public "list of pairs" publishing (admin toggles it; everyone can then see).
   const [publishedPairs, setPublishedPairs] = useState([]);
+  // Ranking points per player (admin list) — pairs are listed by combined points.
+  const [pointsByPlayer, setPointsByPlayer] = useState(new Map());
   const [pairsBusy, setPairsBusy] = useState(false);
   const [pairsMsg, setPairsMsg] = useState("");
   // Live match scoreboard (open match + per-match statuses for badges).
@@ -414,6 +418,16 @@ const TournamentDetail = () => {
       setPublishedPairs([]);
     }
   }, [useInApp, tournament?.id, tournament?.pairs_published, isAdmin]);
+
+  // The admin sees the full list from the registrations, so it needs the
+  // ranking points to order it the same way as the published list.
+  useEffect(() => {
+    if (useInApp && isAdmin) {
+      getPointsByPlayer()
+        .then(setPointsByPlayer)
+        .catch(() => setPointsByPlayer(new Map()));
+    }
+  }, [useInApp, isAdmin, tournament?.id]);
 
   // Load + live-subscribe the per-match statuses so the bracket can badge live /
   // finished matches and refresh as results come in.
@@ -568,6 +582,8 @@ const TournamentDetail = () => {
   // Group a list of pair-like rows by category (Men's / Women's / Mixed, in that
   // order, then any others, then uncategorised) so each category gets one clean
   // list.
+  // Within a category, pairs are ordered by combined ranking points (highest
+  // first); ties keep registration order.
   const groupByCategory = (list) => {
     const byCat = new Map();
     list.forEach((reg) => {
@@ -580,10 +596,18 @@ const TournamentDetail = () => {
       ...[...byCat.keys()].filter((c) => c && !CANON_CATEGORIES.includes(c)),
       ...(byCat.has("") ? [""] : []),
     ];
-    return orderedKeys.map((key) => ({ key, regs: byCat.get(key) }));
+    return orderedKeys.map((key) => ({
+      key,
+      regs: sortByPoints(byCat.get(key), (reg) => reg.points),
+    }));
   };
 
-  const participantGroups = groupByCategory(participantList);
+  const participantGroups = groupByCategory(
+    participantList.map((reg) => ({
+      ...reg,
+      points: pairPoints(reg, pointsByPlayer),
+    }))
+  );
 
   // Public (published) view: names-only rows normalised to the same shape.
   const publishedRows = publishedPairs.map((p, i) => ({
@@ -592,6 +616,7 @@ const TournamentDetail = () => {
     partner_name: p.partner_name,
     partner_id: null,
     category: p.category,
+    points: p.pair_points ?? 0,
   }));
   const publishedGroups = groupByCategory(publishedRows);
 
@@ -1274,6 +1299,11 @@ const TournamentDetail = () => {
                                       <span className="td-pair-amp">&amp;</span>
                                       <strong>{partnerName}</strong>
                                     </div>
+                                    {reg.points > 0 && (
+                                      <span className="td-pair-points">
+                                        {reg.points} {r("points")}
+                                      </span>
+                                    )}
                                   </div>
                                 );
                               })}
