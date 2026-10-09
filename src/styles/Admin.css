@@ -1946,3 +1946,121 @@
   font-size: 0.75rem;
   white-space: nowrap;
 }
+
+/* ---- Mobile admin layout ----
+   Kept at the end of the file so it wins over the base rules above. */
+@media (max-width: 768px) {
+  /* Header: title on its own row, pills / buttons below it (side by side the
+     title got squeezed to nothing and ran into the actions). */
+  .admin-card-header,
+  .admin-card.is-collapsed .admin-card-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-card-title {
+    flex: 1 1 100%;
+    gap: 12px;
+  }
+
+  .admin-card-header > :not(.admin-card-title) {
+    margin-left: 44px;
+  }
+
+  .admin-card-header h2 {
+    font-size: 1.2rem;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-card {
+    border-radius: 20px;
+  }
+
+  /* Tournament / club rows: buttons go below the details instead of
+     squeezing them into a narrow column. */
+  .admin-tournament-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .admin-tournament-item .admin-tournament-actions {
+    flex-wrap: wrap;
+  }
+
+  .admin-club-item {
+    flex-wrap: wrap;
+  }
+
+  .admin-club-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .admin-club-item .admin-tournament-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  /* Less nested padding so the draw / schedule content gets the width. */
+  .admin-tournaments-list,
+  .admin-draw-body {
+    padding: 16px;
+  }
+
+  .admin-rescue {
+    padding: 14px;
+  }
+
+  /* Pair rows (add pair / disqualified): name and a compact button side by
+     side, wrapping only when the name is long. */
+  .admin-rescue-row {
+    padding: 10px 12px;
+    gap: 8px 10px;
+  }
+
+  .admin-rescue-info {
+    flex: 1 1 120px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-rescue-actions select {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .admin-rescue-row > .admin-btn,
+  .admin-rescue-actions .admin-btn {
+    padding: 7px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* Schedule grid: slimmer slot column and court columns, so less of the
+     table is hidden behind the horizontal scroll. */
+  .admin-sched-manual td.rownum {
+    width: 64px;
+    font-size: 0.75rem;
+    white-space: normal;
+  }
+
+  .admin-sched-cell {
+    min-width: 165px;
+  }
+
+  .admin-schedule-grid th,
+  .admin-schedule-grid td {
+    padding: 4px;
+  }
+
+  .admin-sched-chip {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .admin-manual-remove {
+    flex-shrink: 0;
+  }
+}
