@@ -1929,7 +1929,7 @@
   outline: 1px dashed rgba(255, 255, 255, 0.12);
   outline-offset: -5px;
 }
-/* ---- Draw seeding: carrier badge + pair ranking points ---- */
+/* ---- Draw seeding: carrier badge ---- */
 .admin-seed-badge {
   flex-shrink: 0;
   padding: 1px 6px;
@@ -1938,13 +1938,6 @@
   color: #111;
   font-size: 0.72rem;
   font-weight: 800;
-}
-
-.admin-pair-points {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.75rem;
-  white-space: nowrap;
 }
 
 /* ---- Mobile admin layout ----

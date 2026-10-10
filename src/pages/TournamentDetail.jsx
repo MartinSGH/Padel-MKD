@@ -1299,11 +1299,6 @@ const TournamentDetail = () => {
                                       <span className="td-pair-amp">&amp;</span>
                                       <strong>{partnerName}</strong>
                                     </div>
-                                    {reg.points > 0 && (
-                                      <span className="td-pair-points">
-                                        {reg.points} {r("points")}
-                                      </span>
-                                    )}
                                   </div>
                                 );
                               })}

@@ -1181,15 +1181,6 @@
   color: #8e9bc0;
 }
 
-.td-pair-points {
-  flex-shrink: 0;
-  color: #ffd700;
-  font-family: Montserrat, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 /* ---- Responsive ---- */
 @media only screen and (max-width: 1024px) {
   .td-hero {
