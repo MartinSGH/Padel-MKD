@@ -28,7 +28,14 @@
     "player": "Player",
     "points": "Points",
     "loading": "Loading…",
-    "empty": "No ranking points yet."
+    "empty": "No ranking points yet.",
+    "edit": "Edit",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saved": "Points updated.",
+    "invalid": "Points must be a whole number, 0 or more.",
+    "saveError": "Could not save the points."
   },
   "jumbo": {
     "slide1": {

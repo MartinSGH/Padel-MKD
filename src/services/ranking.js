@@ -86,3 +86,45 @@ export const writeTournamentPoints = async (tournamentId, rows) => {
   );
   if (insErr) throw insErr;
 };
+
+// Admin: correct a player's Rank List total in one category. The total is the
+// sum of the player's per-tournament rows, so the difference goes onto those
+// rows: an increase is added to the most recent one, a decrease is taken off
+// them newest-first (never below 0). profiles.total_points follows through the
+// sync trigger.
+export const setPlayerRankingPoints = async (playerId, category, newTotal) => {
+  const { data, error } = await supabase
+    .from("tournament_points")
+    .select("tournament_id, points, updated_at")
+    .eq("player_id", playerId)
+    .eq("category", category)
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  if (!data?.length) throw new Error("No ranking points found for this player.");
+
+  let delta = newTotal - data.reduce((sum, r) => sum + (r.points || 0), 0);
+  const changes = [];
+  if (delta > 0) {
+    changes.push({ row: data[0], points: (data[0].points || 0) + delta });
+  } else {
+    for (const row of data) {
+      if (delta === 0) break;
+      const take = Math.min(row.points || 0, -delta);
+      if (take > 0) changes.push({ row, points: row.points - take });
+      delta += take;
+    }
+  }
+
+  for (const { row, points } of changes) {
+    const { data: updated, error: upErr } = await supabase
+      .from("tournament_points")
+      .update({ points, updated_at: new Date().toISOString() })
+      .eq("tournament_id", row.tournament_id)
+      .eq("player_id", playerId)
+      .eq("category", category)
+      .select("player_id");
+    if (upErr) throw upErr;
+    // RLS blocks a non-admin silently (no error, no rows).
+    if (!updated?.length) throw new Error("Not allowed to edit ranking points.");
+  }
+};

@@ -56,6 +56,63 @@
   border-color: #ffd700;
 }
 
+.rk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 640px;
+  margin-bottom: 1.25rem;
+}
+.rk-bar .rk-tabs {
+  margin-bottom: 0;
+}
+.rk-actions {
+  display: flex;
+  gap: 8px;
+}
+.rk-btn {
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #16204a;
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+.rk-btn:hover {
+  border-color: #ffd700;
+}
+.rk-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.rk-btn-primary {
+  color: #111c38;
+  background: #ffd700;
+  border-color: #ffd700;
+}
+.rk-points-input {
+  width: 84px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  background: #0f1736;
+  color: #ffd700;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-align: right;
+}
+.rk-points-input:focus {
+  outline: none;
+  border-color: #ffd700;
+}
+
 .rk-empty {
   color: #8e9bc0;
   padding: 2rem 0;
