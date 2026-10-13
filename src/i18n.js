@@ -15,6 +15,7 @@ i18n
     },
     backend: {
       loadPath: "/locales/{{lng}}/translation.json", // Match your file name
+      queryStringParams: { v: import.meta.env.VITE_BUILD_ID },
     },
   });
 
