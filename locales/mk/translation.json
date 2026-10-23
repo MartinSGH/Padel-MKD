@@ -395,7 +395,18 @@
   },
   "news": {
     "newsTitle": "Новости",
-    "galleryTitle": "Галерија"
+    "galleryTitle": "Галерија",
+    "seeMore": "Види повеќе",
+    "allNewsTitle": "Сите новости",
+    "backToNews": "Назад кон Новости",
+    "backToAllNews": "Сите новости",
+    "readMore": "Прочитај повеќе",
+    "openLink": "Отвори ја веста",
+    "externalBadge": "Линк",
+    "empty": "Сè уште нема вести.",
+    "notFound": "Веста не е пронајдена.",
+    "draft": "Нацрт",
+    "editInAdmin": "Уреди во Админ панел"
   },
   "history": {
     "desktopImage": "/images.WIP.History-mk.png",
