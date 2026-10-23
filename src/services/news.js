@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
-import { compressImage } from "../lib/imageCompress";
+import { uploadPublicFile } from "../lib/storageUpload";
 
 const NEWS_BUCKET = "news-files";
 
@@ -139,22 +139,6 @@ export const deleteNews = async (id) => {
 // Uploads a cover / inline image (compressed) or any attachment to the
 // news-files bucket. Returns the public URL.
 export const uploadNewsFile = async (file, folder = "files") => {
-  const upload = file.type.startsWith("image/")
-    ? await compressImage(file)
-    : file;
-  const ext = (upload.name.split(".").pop() || "bin").toLowerCase();
-  const filePath = `${folder}/${crypto.randomUUID()}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from(NEWS_BUCKET)
-    .upload(filePath, upload, {
-      cacheControl: "31536000", // 1 year — files are content-addressed by UUID
-      upsert: false,
-      contentType: upload.type || undefined,
-    });
-
-  if (error) throw error;
-
-  const { data } = supabase.storage.from(NEWS_BUCKET).getPublicUrl(filePath);
-  return data.publicUrl;
+  const { publicUrl } = await uploadPublicFile(NEWS_BUCKET, folder, file);
+  return publicUrl;
 };

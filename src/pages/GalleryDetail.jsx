@@ -392,9 +392,16 @@ const GalleryDetail = () => {
                       key={img.id}
                     >
                       <img
-                        src={thumbUrl(img.image_url, 500)}
+                        src={thumbUrl(img.image_url)}
                         alt={img.caption || titleOf(gallery)}
                         loading="lazy"
+                        decoding="async"
+                        // No thumbnail yet (older photo): show the full one.
+                        onError={(e) => {
+                          if (e.currentTarget.src !== img.image_url) {
+                            e.currentTarget.src = img.image_url;
+                          }
+                        }}
                         className="gd-img"
                         onClick={() =>
                           editMode ? toggleSelect(img.id) : setLightbox(idx)

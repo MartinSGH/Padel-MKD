@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
-import { compressImage } from "../lib/imageCompress";
+import { uploadPublicFile } from "../lib/storageUpload";
 
 const GALLERY_BUCKET = "gallery-photos";
 
@@ -106,26 +106,21 @@ export const updateGallery = async (id, fields) => {
 
 // -------------------------------------------------------------- STORAGE -----
 
-// Compress in the browser, then upload to Storage. Returns { publicUrl, path }.
+// Every photo also gets a small thumbnail at thumbs/<same path>, used by the
+// grids and tiles so they don't download the full photo (see thumbUrl).
+const THUMB_PREFIX = "thumbs/";
+
+// Compress in the browser, then upload the photo and its thumbnail to
+// Storage. Returns { publicUrl, path }.
 export const uploadGalleryPhoto = async (file, slug = "misc") => {
-  const compressed = await compressImage(file);
-  const ext = (compressed.name.split(".").pop() || "webp").toLowerCase();
-  const filePath = `${slug}/${crypto.randomUUID()}.${ext}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from(GALLERY_BUCKET)
-    .upload(filePath, compressed, {
-      cacheControl: "31536000", // 1 year — files are content-addressed by UUID
-      upsert: false,
-    });
-
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage
-    .from(GALLERY_BUCKET)
-    .getPublicUrl(filePath);
-
-  return { publicUrl: data.publicUrl, path: filePath };
+  const photo = await uploadPublicFile(GALLERY_BUCKET, slug, file, {
+    preset: "photo",
+  });
+  await uploadPublicFile(GALLERY_BUCKET, slug, file, {
+    preset: "thumb",
+    path: `${THUMB_PREFIX}${photo.path}`,
+  }).catch(() => {}); // thumbUrl's <img> fallback covers a missing thumb
+  return photo;
 };
 
 // Delete the underlying storage object for a public URL in our bucket.
@@ -136,7 +131,9 @@ const removeStorageObject = async (publicUrl) => {
   const idx = publicUrl.indexOf(marker);
   if (idx === -1) return;
   const path = decodeURIComponent(publicUrl.slice(idx + marker.length));
-  await supabase.storage.from(GALLERY_BUCKET).remove([path]);
+  await supabase.storage
+    .from(GALLERY_BUCKET)
+    .remove([path, `${THUMB_PREFIX}${path}`]);
 };
 
 // -------------------------------------------------------------- IMAGE CRUD ---
@@ -194,24 +191,26 @@ export const deleteGalleryImages = async (images) => {
 
 // ---------------------------------------------------------------- THUMBS -----
 
-// Thumbnail URL for grid/tile display.
-//
-// Supabase can serve on-the-fly resized images via its `/render/image/`
-// endpoint, but that transformation is a PAID feature — on the free plan it
-// returns nothing and the <img> breaks. Because we already compress every
-// upload to ~1600px WebP client-side (see imageCompress.js), the originals are
-// small enough to serve directly, so we just return the original URL.
-//
-// If this project later moves to a paid Supabase plan, set USE_TRANSFORM = true
-// to get smaller CDN-resized thumbnails.
-const USE_TRANSFORM = false;
-
-export const thumbUrl = (url, width = 480) => {
+// Thumbnail URL for grid/tile display: the ~800px copy stored next to each
+// photo at thumbs/<path> (Supabase's on-the-fly image resizing is a paid
+// feature). URLs outside the bucket (e.g. seeded /images/...) are returned as-is.
+export const thumbUrl = (url) => {
   if (!url) return url;
-  if (!USE_TRANSFORM) return url;
-  const idx = url.indexOf("/object/public/");
-  if (idx === -1) return url; // not a Supabase Storage public URL
-  const rendered = url.replace("/object/public/", "/render/image/public/");
-  const sep = rendered.includes("?") ? "&" : "?";
-  return `${rendered}${sep}width=${width}&quality=75&resize=cover`;
+  const marker = `/object/public/${GALLERY_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1 || url.includes(`${marker}${THUMB_PREFIX}`)) return url;
+  const at = idx + marker.length;
+  return `${url.slice(0, at)}${THUMB_PREFIX}${url.slice(at)}`;
 };
+
+// Resolves to the thumbnail if it exists, else the original URL. For CSS
+// backgrounds, which (unlike <img onError>) can't fall back on their own.
+export const loadThumbOrOriginal = (url) =>
+  new Promise((resolve) => {
+    const thumb = thumbUrl(url);
+    if (!thumb || thumb === url) return resolve(url);
+    const img = new Image();
+    img.onload = () => resolve(thumb);
+    img.onerror = () => resolve(url);
+    img.src = thumb;
+  });

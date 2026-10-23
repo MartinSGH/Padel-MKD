@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 import { Row, Col, Carousel, Modal, Input, Button, message } from "antd";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { getGalleries, createGallery, thumbUrl } from "../../services/galleries";
+import {
+  getGalleries,
+  createGallery,
+  loadThumbOrOriginal,
+} from "../../services/galleries";
 import { useIsAdmin } from "../../hooks/useIsAdmin";
 
 // Grid placement for the 5 dynamic tiles, in display_order. Training (the first
@@ -30,6 +34,15 @@ const Gallery = () => {
 
   useEffect(() => {
     getGalleries()
+      .then((list) =>
+        // Tiles use the small thumbnail of each cover when there is one.
+        Promise.all(
+          list.map(async (g) => ({
+            ...g,
+            tile_url: g.cover_url && (await loadThumbOrOriginal(g.cover_url)),
+          }))
+        )
+      )
       .then(setGalleries)
       .catch(() => setGalleries([]));
   }, []);
@@ -56,12 +69,9 @@ const Gallery = () => {
 
   const titleOf = (g) => (lang === "mk" ? g.title_mk : g.title_en) || g.title_en;
   const coverStyle = (g) =>
-    g.cover_url
+    g.tile_url
       ? {
-          backgroundImage: `linear-gradient(349deg, rgba(255,255,255,0.3) 70.88%, rgba(0,0,0,0.3) 87.54%), url("${thumbUrl(
-            g.cover_url,
-            900
-          )}")`,
+          backgroundImage: `linear-gradient(349deg, rgba(255,255,255,0.3) 70.88%, rgba(0,0,0,0.3) 87.54%), url("${g.tile_url}")`,
         }
       : undefined;
 

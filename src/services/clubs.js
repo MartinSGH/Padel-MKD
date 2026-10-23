@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { uploadPublicFile } from "../lib/storageUpload";
 
 const CLUB_LOGO_BUCKET = "club-logos";
 
@@ -17,21 +18,10 @@ export const getAllClubs = async () => {
 // Upload a logo image to Supabase Storage and return its public URL.
 // Admin-only at the RLS level (see supabase/clubs_setup.sql).
 export const uploadClubLogo = async (file) => {
-  const ext = file.name.split(".").pop();
-  const fileName = `${crypto.randomUUID()}.${ext}`;
-  const filePath = `logos/${fileName}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from(CLUB_LOGO_BUCKET)
-    .upload(filePath, file);
-
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage
-    .from(CLUB_LOGO_BUCKET)
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
+  const { publicUrl } = await uploadPublicFile(CLUB_LOGO_BUCKET, "logos", file, {
+    preset: "logo",
+  });
+  return publicUrl;
 };
 
 // Insert a new club. `club` = { name, address, hours, phone, email, logo_url, display_order }

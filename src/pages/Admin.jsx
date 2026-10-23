@@ -665,7 +665,11 @@ export default function Admin() {
                               <div className="admin-player-meta">
                                 <div className="admin-player-avatar">
                                   {player.avatar_url ? (
-                                    <img src={player.avatar_url} alt={player.full_name} />
+                                    <img
+                                      src={player.avatar_url}
+                                      alt={player.full_name}
+                                      loading="lazy"
+                                    />
                                   ) : (
                                     <span>
                                       {(player.full_name || "P").charAt(0).toUpperCase()}

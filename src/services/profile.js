@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { uploadPublicFile } from "../lib/storageUpload";
 
 export const getMyProfile = async () => {
   const {
@@ -40,20 +41,13 @@ export const updateMyProfile = async (fields) => {
   return data;
 };
 
-// Upload a new profile picture to Storage and return its public URL.
-export const uploadProfileAvatar = async (file) => {
-  const ext = file.name.split(".").pop();
-  const fileName = `${crypto.randomUUID()}.${ext}`;
-  const filePath = `profile-avatars/${fileName}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("avatars")
-    .upload(filePath, file);
-
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-  return data.publicUrl;
+// Upload a profile picture (resized to a small avatar) to Storage and return
+// its public URL. `folder` is "profile-avatars" or "register-avatars".
+export const uploadProfileAvatar = async (file, folder = "profile-avatars") => {
+  const { publicUrl } = await uploadPublicFile("avatars", folder, file, {
+    preset: "avatar",
+  });
+  return publicUrl;
 };
 
 // Change the account email (Supabase sends a confirmation to the new address).

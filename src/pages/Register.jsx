@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signUp } from "../services/auth";
 import { getAllClubs } from "../services/clubs";
-import { supabase } from "../lib/supabaseClient";
+import { uploadProfileAvatar } from "../services/profile";
 
 const defaultAvatars = [
   "/Avatars/Avatar1.webp",
@@ -64,20 +64,7 @@ export default function Register() {
     }
   };
 
-  const uploadAvatar = async (file) => {
-    const ext = file.name.split(".").pop();
-    const fileName = `${crypto.randomUUID()}.${ext}`;
-    const filePath = `register-avatars/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    return data.publicUrl;
-  };
+  const uploadAvatar = (file) => uploadProfileAvatar(file, "register-avatars");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
