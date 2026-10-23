@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import AdminCardTitle from "./AdminCardTitle";
+import EmailAudiencePicker from "./EmailAudiencePicker";
+import EmailListModal from "./EmailListModal";
 import { useCollapsedSection } from "../hooks/useCollapsedSection";
 import {
   getAllNews,
@@ -9,6 +11,12 @@ import {
   deleteNews,
   uploadNewsFile,
 } from "../services/news";
+import {
+  describeEmailResult,
+  emailTargetFor,
+  getNewsletterSubscribers,
+  sendAnnouncementEmail,
+} from "../services/newsletter";
 import { formatNewsDate, isEmptyHtml, newsHref } from "../lib/news";
 
 // The editor (TipTap) is large and admin-only: load it on demand so public
@@ -48,6 +56,10 @@ export default function AdminNews() {
   const [coverUploading, setCoverUploading] = useState(false);
   const [formError, setFormError] = useState("");
   const [actionId, setActionId] = useState(null);
+  const [emailTarget, setEmailTarget] = useState(() => emailTargetFor(true));
+  const [emailResult, setEmailResult] = useState(null); // { error, text }
+  const [subscribers, setSubscribers] = useState([]);
+  const [showSubscribers, setShowSubscribers] = useState(false);
   const formRef = useRef(null);
 
   const loadNews = async () => {
@@ -65,6 +77,9 @@ export default function AdminNews() {
 
   useEffect(() => {
     loadNews();
+    getNewsletterSubscribers()
+      .then(setSubscribers)
+      .catch(() => setSubscribers([])); // newsletter_setup.sql not run yet
   }, []);
 
   const setField = (key) => (e) =>
@@ -79,6 +94,7 @@ export default function AdminNews() {
     setForm(emptyNewsForm());
     setFormError("");
     setLang("en");
+    setEmailTarget(emailTargetFor(true));
   };
 
   const openNew = () => {
@@ -101,6 +117,7 @@ export default function AdminNews() {
     });
     setFormError("");
     setLang("en");
+    setEmailTarget(emailTargetFor(false));
     setShowForm(true);
     requestAnimationFrame(() =>
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
@@ -147,18 +164,53 @@ export default function AdminNews() {
       published_at: new Date(form.published_at || Date.now()).toISOString(),
     };
 
+    const sendEmail = fields.published && emailTarget.audience !== "none";
+    if (
+      sendEmail &&
+      emailTarget.audience === "manual" &&
+      !emailTarget.userIds.length
+    ) {
+      setFormError(
+        "Choose at least one user to email, or don't send an email.",
+      );
+      return;
+    }
+
     setSaving(true);
     setFormError("");
+    setEmailResult(null);
+    let saved;
     try {
-      if (editingId) await updateNews(editingId, fields);
-      else await addNews(fields);
-      closeForm();
-      await loadNews();
+      saved = editingId
+        ? await updateNews(editingId, fields)
+        : await addNews(fields);
     } catch (err) {
       setFormError(err.message || "Failed to save the news.");
-    } finally {
       setSaving(false);
+      return;
     }
+
+    // The news is saved either way; an email failure is reported separately.
+    if (sendEmail) {
+      try {
+        const result = await sendAnnouncementEmail({
+          kind: "news",
+          id: saved.id,
+          audience: emailTarget.audience,
+          userIds: emailTarget.userIds,
+        });
+        setEmailResult({ error: false, text: describeEmailResult(result) });
+      } catch (err) {
+        setEmailResult({
+          error: true,
+          text: `The news was saved, but the email wasn't sent: ${err.message}`,
+        });
+      }
+    }
+
+    closeForm();
+    await loadNews();
+    setSaving(false);
   };
 
   const handleDelete = async (item) => {
@@ -201,6 +253,15 @@ export default function AdminNews() {
               ? ` · ${news.length - publishedCount} Draft`
               : ""}
           </div>
+          <button
+            type="button"
+            className="admin-btn admin-edit-btn admin-add-club-btn"
+            onClick={() => setShowSubscribers(true)}
+            disabled={!subscribers.length}
+            title="Newsletter subscribers from the website footer"
+          >
+            {subscribers.length} Subscribers
+          </button>
           <button
             type="button"
             className="admin-btn approve admin-add-club-btn"
@@ -364,6 +425,18 @@ export default function AdminNews() {
                 </span>
               </label>
 
+              <EmailAudiencePicker
+                value={emailTarget}
+                onChange={setEmailTarget}
+                note={
+                  form.published
+                    ? editingId
+                      ? "Choose an audience only if you want to email this news again."
+                      : "Sent automatically when you publish."
+                    : "Drafts aren't emailed — choose who gets it when you publish."
+                }
+              />
+
               {formError && <p className="admin-club-error">{formError}</p>}
 
               <div className="admin-actions">
@@ -376,7 +449,9 @@ export default function AdminNews() {
                     ? "Saving…"
                     : editingId
                       ? "Save changes"
-                      : "Publish news"}
+                      : form.published && emailTarget.audience !== "none"
+                        ? "Publish & send email"
+                        : "Publish news"}
                 </button>
                 <button
                   type="button"
@@ -388,6 +463,15 @@ export default function AdminNews() {
                 </button>
               </div>
             </form>
+          )}
+
+          {emailResult && (
+            <p
+              className={`admin-email-result${emailResult.error ? " error" : ""}`}
+              role="status"
+            >
+              {emailResult.text}
+            </p>
           )}
 
           <div className="admin-tournaments-list">
@@ -477,6 +561,16 @@ export default function AdminNews() {
           </div>
         </div>
       </div>
+
+      {showSubscribers && (
+        <EmailListModal
+          title="Newsletter subscribers"
+          subtitle="Everyone who subscribed in the website footer (unsubscribed addresses excluded)."
+          emails={subscribers.map((x) => x.email)}
+          filename={`newsletter-subscribers-${new Date().toISOString().slice(0, 10)}.xlsx`}
+          onClose={() => setShowSubscribers(false)}
+        />
+      )}
     </div>
   );
 }

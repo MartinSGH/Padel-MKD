@@ -7,6 +7,7 @@ import Landing from "./pages/Landing";
 import News from "./pages/News";
 import AllNews from "./pages/AllNews";
 import NewsArticle from "./pages/NewsArticle";
+import Unsubscribe from "./pages/Unsubscribe";
 import Federation from "./pages/Federation";
 import Wip from "./pages/Wip";
 import Layout from "./layout/Layout";
@@ -44,6 +45,10 @@ const routes = createBrowserRouter([
       {
         path: "/all-news/:slug",
         element: <NewsArticle />,
+      },
+      {
+        path: "/unsubscribe",
+        element: <Unsubscribe />,
       },
       {
         path: "/news/training",

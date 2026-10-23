@@ -5,6 +5,82 @@ import { SiFacebook, SiLinkedin, SiTiktok, SiYoutube } from "react-icons/si";
 import { AiFillInstagram } from "react-icons/ai";
 import { FaTwitter } from "react-icons/fa6";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { subscribeToNewsletter } from "../services/newsletter";
+
+const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+// Footer newsletter sign-up: subscribers get an email for every new news
+// article / tournament the admins choose to announce.
+const NewsletterForm = () => {
+  const { t } = useTranslation();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | success | invalid | error
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const value = email.trim();
+    if (!EMAIL_PATTERN.test(value)) {
+      setStatus("invalid");
+      return;
+    }
+    setStatus("sending");
+    try {
+      await subscribeToNewsletter(value);
+      setStatus("success");
+      setEmail("");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  const message = {
+    success: t("footer.newsletter.success"),
+    invalid: t("footer.newsletter.invalid"),
+    error: t("footer.newsletter.error"),
+  }[status];
+
+  return (
+    <div className="footer-newsletter">
+      <h3 className="footer-title">{t("footer.newsletter.title")}</h3>
+      <p className="footer-newsletter-text">{t("footer.newsletter.text")}</p>
+      <form
+        className="footer-newsletter-form"
+        onSubmit={handleSubmit}
+        noValidate
+      >
+        <input
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (status !== "sending") setStatus("idle");
+          }}
+          placeholder={t("footer.newsletter.placeholder")}
+          aria-label={t("footer.newsletter.placeholder")}
+          aria-invalid={status === "invalid"}
+          disabled={status === "sending"}
+        />
+        <button type="submit" disabled={status === "sending"}>
+          {status === "sending"
+            ? t("footer.newsletter.sending")
+            : t("footer.newsletter.button")}
+        </button>
+      </form>
+      {message && (
+        <p
+          className={`footer-newsletter-status ${status}`}
+          role={status === "success" ? "status" : "alert"}
+        >
+          {message}
+        </p>
+      )}
+    </div>
+  );
+};
+
 const Footer = () => {
   const { t } = useTranslation();
   const scrollToTop = () => {
@@ -18,7 +94,7 @@ const Footer = () => {
       <Row justify={"center"} className="footer-row">
         <Col className="h-full footer-col" span={20}>
           <Row className="padding-footer" justify={"center"}>
-            <Col xs={20} lg={8} className="footer-columns">
+            <Col xs={24} md={12} xl={6} className="footer-columns">
               <ul className="footer-list">
                 <li>
                   <img src="/images/FooterLogo.svg" alt="" />
@@ -31,7 +107,7 @@ const Footer = () => {
                 <li className="footer-link">padelmkd@gmail.com</li>
               </ul>
             </Col>
-            <Col xs={20} lg={8} className="footer-columns">
+            <Col xs={24} md={12} xl={4} className="footer-columns">
               <ul className="footer-list">
                 <li className="footer-title">{t("footer.links.title")}</li>
                 <li>
@@ -96,7 +172,7 @@ const Footer = () => {
                 </li>
               </ul>
             </Col>
-            <Col xs={20} lg={8} className="footer-columns">
+            <Col xs={24} md={12} xl={6} className="footer-columns">
               <ul className="footer-list">
                 <li className="footer-title">{t("footer.docs.title")}</li>
                 <li className="footer-link">
@@ -147,48 +223,54 @@ const Footer = () => {
                 </li>
               </ul>
             </Col>
-          </Row>
-          <Row justify={"center"}>
-            <Col span={10}>
-              <div className="footer-socials">
-                <span>
-                  <Link
-                    to={
-                      "https://www.facebook.com/profile.php?id=61562298045963"
-                    }
-                    target="_blank"
-                  >
-                    <SiFacebook />
-                  </Link>
-                </span>
+            <Col xs={24} md={12} xl={8} className="footer-columns">
+              <div className="footer-newsletter-col">
+                <NewsletterForm />
+                <div className="footer-follow">
+                  <h3 className="footer-title footer-follow-title">
+                    {t("footer.newsletter.follow")}
+                  </h3>
+                  <div className="footer-socials">
+                    <span>
+                      <Link
+                        to={
+                          "https://www.facebook.com/profile.php?id=61562298045963"
+                        }
+                        target="_blank"
+                      >
+                        <SiFacebook />
+                      </Link>
+                    </span>
 
-                <span>
-                  <Link
-                    to={"https://www.instagram.com/padelfederation.mk/"}
-                    target="_blank"
-                  >
-                    <AiFillInstagram />
-                  </Link>
-                </span>
-                <span>
-                  <Link
-                    to={
-                      "https://www.linkedin.com/company/padel-macedonia/?viewAsMember=true"
-                    }
-                    target="_blank"
-                  >
-                    <SiLinkedin />
-                  </Link>
-                </span>
-                <span>
-                  <SiTiktok />
-                </span>
-                <span>
-                  <FaTwitter />
-                </span>
-                <span>
-                  <SiYoutube />
-                </span>
+                    <span>
+                      <Link
+                        to={"https://www.instagram.com/padelfederation.mk/"}
+                        target="_blank"
+                      >
+                        <AiFillInstagram />
+                      </Link>
+                    </span>
+                    <span>
+                      <Link
+                        to={
+                          "https://www.linkedin.com/company/padel-macedonia/?viewAsMember=true"
+                        }
+                        target="_blank"
+                      >
+                        <SiLinkedin />
+                      </Link>
+                    </span>
+                    <span>
+                      <SiTiktok />
+                    </span>
+                    <span>
+                      <FaTwitter />
+                    </span>
+                    <span>
+                      <SiYoutube />
+                    </span>
+                  </div>
+                </div>
               </div>
             </Col>
           </Row>

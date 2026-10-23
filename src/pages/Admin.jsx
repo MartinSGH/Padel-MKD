@@ -33,6 +33,12 @@ import { uniqueEmails } from "../lib/emails";
 import AdminTournamentDraw from "../components/AdminTournamentDraw";
 import AdminTournamentSchedule from "../components/AdminTournamentSchedule";
 import AdminNews from "../components/AdminNews";
+import EmailAudiencePicker from "../components/EmailAudiencePicker";
+import {
+  describeEmailResult,
+  emailTargetFor,
+  sendAnnouncementEmail,
+} from "../services/newsletter";
 import AdminCardTitle from "../components/AdminCardTitle";
 import { useCollapsedSection } from "../hooks/useCollapsedSection";
 import "../styles/Admin.css";
@@ -155,6 +161,10 @@ export default function Admin() {
   const [tournamentForm, setTournamentForm] = useState(emptyTournamentForm);
   const [tournamentSubmitting, setTournamentSubmitting] = useState(false);
   const [tournamentError, setTournamentError] = useState("");
+  const [tournamentEmailTarget, setTournamentEmailTarget] = useState(() =>
+    emailTargetFor(true)
+  );
+  const [tournamentEmailResult, setTournamentEmailResult] = useState(null);
   const [tournamentActionId, setTournamentActionId] = useState(null);
   const [editingTournamentId, setEditingTournamentId] = useState(null);
   const [tournamentImageFile, setTournamentImageFile] = useState(null);
@@ -327,10 +337,12 @@ export default function Admin() {
     setTournamentImageFile(null);
     setTournamentPdfFile(null);
     setTournamentError("");
+    setTournamentEmailTarget(emailTargetFor(true));
   };
 
   const startEditTournament = (tournament) => {
     setEditingTournamentId(tournament.id);
+    setTournamentEmailTarget(emailTargetFor(false));
     setTournamentForm({
       name: tournament.name || "",
       code: tournament.code || "",
@@ -380,6 +392,14 @@ export default function Admin() {
       formToScheme(tournamentForm);
     if (schemeError) {
       setTournamentError(schemeError);
+      return;
+    }
+
+    const emailTarget = tournamentEmailTarget;
+    if (emailTarget.audience === "manual" && !emailTarget.userIds.length) {
+      setTournamentError(
+        "Choose at least one user to email, or don't send an email."
+      );
       return;
     }
 
@@ -433,6 +453,8 @@ export default function Admin() {
         points_scheme: pointsScheme,
       };
 
+      setTournamentEmailResult(null);
+      let savedId = editingTournamentId;
       if (editingTournamentId) {
         const before = tournaments.find((x) => x.id === editingTournamentId);
         await updateTournament(editingTournamentId, payload);
@@ -451,7 +473,33 @@ export default function Admin() {
             (max, x) => Math.max(max, x.display_order || 0),
             0
           ) + 1;
-        await addTournament({ ...payload, display_order: nextOrder });
+        const created = await addTournament({
+          ...payload,
+          display_order: nextOrder,
+        });
+        savedId = created.id;
+      }
+
+      // The tournament is saved either way; an email failure is reported
+      // separately.
+      if (emailTarget.audience !== "none") {
+        try {
+          const result = await sendAnnouncementEmail({
+            kind: "tournament",
+            id: savedId,
+            audience: emailTarget.audience,
+            userIds: emailTarget.userIds,
+          });
+          setTournamentEmailResult({
+            error: false,
+            text: describeEmailResult(result),
+          });
+        } catch (err) {
+          setTournamentEmailResult({
+            error: true,
+            text: `The tournament was saved, but the email wasn't sent: ${err.message}`,
+          });
+        }
       }
 
       resetTournamentForm();
@@ -1412,6 +1460,16 @@ export default function Admin() {
                     />
                   </label>
 
+                  <EmailAudiencePicker
+                    value={tournamentEmailTarget}
+                    onChange={setTournamentEmailTarget}
+                    note={
+                      editingTournamentId
+                        ? "Choose an audience only if you want to email this tournament again."
+                        : "Sent automatically when you add the tournament."
+                    }
+                  />
+
                   {tournamentError && (
                     <p className="admin-club-error">{tournamentError}</p>
                   )}
@@ -1441,6 +1499,17 @@ export default function Admin() {
                     </button>
                   </div>
                 </form>
+              )}
+
+              {tournamentEmailResult && (
+                <p
+                  className={`admin-email-result${
+                    tournamentEmailResult.error ? " error" : ""
+                  }`}
+                  role="status"
+                >
+                  {tournamentEmailResult.text}
+                </p>
               )}
 
               <div className="admin-tournaments-list">

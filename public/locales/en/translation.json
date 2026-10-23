@@ -386,6 +386,17 @@
       "status": "Statute of Federation",
       "license": "License of Federation",
       "rulebook": "Rulebook"
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "text": "Subscribe and be the first to hear about our latest news, tournaments and events.",
+      "placeholder": "Enter your email",
+      "button": "Subscribe",
+      "sending": "Sending…",
+      "success": "Thank you! You're subscribed.",
+      "invalid": "Please enter a valid email address.",
+      "error": "Something went wrong. Please try again.",
+      "follow": "Follow us"
     }
   },
   "wip": {
@@ -1008,5 +1019,13 @@
     "newGallery": "New gallery",
     "create": "Create",
     "created": "Gallery created."
+  },
+  "unsubscribe": {
+    "title": "Unsubscribe",
+    "working": "Unsubscribing…",
+    "done": "{{email}} won't receive any more emails from us.",
+    "invalid": "This unsubscribe link is invalid or has expired.",
+    "resubscribe": "Changed your mind? You can subscribe again in the footer.",
+    "back": "Back to the home page"
   }
 }

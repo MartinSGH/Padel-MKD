@@ -103,7 +103,155 @@
   font-weight: 400;
   line-height: normal;
 }
+/* ---- Newsletter column ---- */
+.padding-footer {
+  row-gap: 44px;
+}
+
+.footer-newsletter-col {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.footer-newsletter {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.footer-newsletter .footer-title,
+.footer-follow-title {
+  margin: 0;
+}
+
+.footer-newsletter-text {
+  margin: 0;
+  color: var(--Ink-600, #5c5c5e);
+  font-family: Montserrat, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.footer-newsletter-form {
+  display: flex;
+  width: 100%;
+  border: 2px solid #1d3163;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.footer-newsletter-form:focus-within {
+  border-color: #f82428;
+  box-shadow: 0 0 0 4px rgba(248, 36, 40, 0.12);
+}
+
+.footer-newsletter-form input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  padding: 13px 14px;
+  background: transparent;
+  color: #343435;
+  font-family: Montserrat, sans-serif;
+  font-size: 15px;
+}
+.footer-newsletter-form input::placeholder {
+  color: #9a9a9d;
+}
+.footer-newsletter-form input[aria-invalid="true"] {
+  color: #c92a2a;
+}
+
+.footer-newsletter-form button {
+  flex-shrink: 0;
+  border: none;
+  padding: 0 18px;
+  background: #1d3163;
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.footer-newsletter-form button:hover:not(:disabled) {
+  background: #f82428;
+}
+.footer-newsletter-form button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.footer-newsletter-status {
+  margin: 0;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+.footer-newsletter-status.success {
+  color: #2f9e44;
+}
+.footer-newsletter-status.invalid,
+.footer-newsletter-status.error {
+  color: #c92a2a;
+}
+
+.footer-follow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.footer-follow .footer-socials {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 0;
+  font-size: 24px;
+}
+.footer-follow .footer-socials a {
+  color: inherit;
+}
+.footer-follow .footer-socials span:hover {
+  color: #f82428;
+}
+
+/* Laptop: 4 columns get narrow — tighter type. */
+@media (min-width: 1200px) and (max-width: 1440px) {
+  .footer-title {
+    font-size: 20px;
+  }
+  .footer ul {
+    font-size: 15px;
+  }
+}
+
+/* Tablet: 2 × 2 grid, columns start at the left. */
+@media (min-width: 769px) and (max-width: 1199px) {
+  .footer-columns {
+    justify-content: flex-start;
+    padding-left: 6%;
+  }
+}
+
+/* Very narrow phones: button below the field. */
+@media (max-width: 360px) {
+  .footer-newsletter-form {
+    flex-direction: column;
+  }
+  .footer-newsletter-form button {
+    padding: 12px;
+  }
+}
+
 @media (max-width: 768px) {
+  .footer-newsletter-col {
+    max-width: none;
+  }
   .footer {
     padding: unset !important;
   }
