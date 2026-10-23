@@ -1,0 +1,242 @@
+/* /all-news list and /all-news/:slug article page. Reuses .gallery-h1 and
+   .gd-back from the gallery styles. */
+@import "./Gallery.css";
+@import "./GalleryDetail.css";
+
+/* Top padding clears the fixed navbar. */
+.an-page {
+  min-height: 70vh;
+  padding: 120px 0 72px;
+  color: #fff;
+}
+
+.an-back {
+  margin-bottom: 18px;
+}
+
+.an-title {
+  margin: 0 0 32px;
+}
+
+.an-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: Montserrat, sans-serif;
+}
+
+/* ---- cards ---- */
+.an-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.an-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.25s ease, border-color 0.25s ease,
+    background 0.25s ease;
+}
+.an-card:hover {
+  color: #fff;
+  transform: translateY(-4px);
+  border-color: rgba(253, 232, 52, 0.55);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.an-card-cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(90deg, #1d3163 0%, #274696 100%) center / cover
+    no-repeat;
+  /* The court lines, so cover-less cards still look intentional. */
+  box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.85);
+}
+
+.an-card-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(8, 23, 56, 0.85);
+  color: #fde834;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.an-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px 22px;
+  flex: 1;
+  font-family: Montserrat, sans-serif;
+}
+
+.an-card-date {
+  color: #fde834;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.an-card-title {
+  margin: 0;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.an-card-excerpt {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.an-card-more {
+  margin-top: auto;
+  padding-top: 6px;
+  color: #fde834;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Newest news: wide card with the image beside the text. */
+.an-card-featured {
+  flex-direction: row;
+}
+.an-card-featured .an-card-cover {
+  flex: 0 0 58%;
+  aspect-ratio: auto;
+  min-height: 340px;
+}
+.an-card-featured .an-card-body {
+  padding: 32px;
+  justify-content: center;
+}
+.an-card-featured .an-card-title {
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+}
+.an-card-featured .an-card-excerpt {
+  font-size: 1rem;
+}
+.an-card-featured .an-card-more {
+  margin-top: 8px;
+}
+
+/* ---- article page ---- */
+.an-page.na-page {
+  padding-top: 0;
+}
+
+.na-hero {
+  background: linear-gradient(90deg, #1d3163 0%, #274696 100%) center / cover
+    no-repeat;
+  padding: 130px 0 56px;
+  margin-bottom: 40px;
+}
+
+.na-hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 220px;
+  justify-content: flex-end;
+}
+
+.na-title {
+  margin: 0;
+  max-width: 980px;
+  color: #fff;
+  font-family: Montserrat, sans-serif;
+  font-size: clamp(1.8rem, 1.3rem + 2vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
+  padding-left: 18px;
+  border-left: 10px solid #fde834;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.na-admin-link {
+  color: rgba(255, 255, 255, 0.8);
+  font-family: Montserrat, sans-serif;
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+.na-admin-link:hover {
+  color: #fde834;
+}
+
+.na-paper {
+  background: #fff;
+  border-radius: 18px;
+  padding: clamp(24px, 4vw, 56px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.na-external {
+  margin-top: 24px;
+}
+.na-external a {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #fde834;
+  color: #081738;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  text-decoration: none;
+}
+.na-external a:hover {
+  filter: brightness(1.05);
+  color: #081738;
+}
+
+@media (max-width: 992px) {
+  .an-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .an-card-featured {
+    flex-direction: column;
+  }
+  .an-card-featured .an-card-cover {
+    flex: none;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+  .an-card-featured .an-card-body {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .an-grid {
+    grid-template-columns: 1fr;
+  }
+  .an-page {
+    padding-top: 104px;
+  }
+  .na-hero {
+    padding: 104px 0 32px;
+  }
+  .na-hero-inner {
+    min-height: 160px;
+  }
+}

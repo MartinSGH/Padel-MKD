@@ -5,6 +5,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Landing from "./pages/Landing";
 import News from "./pages/News";
+import AllNews from "./pages/AllNews";
+import NewsArticle from "./pages/NewsArticle";
 import Federation from "./pages/Federation";
 import Wip from "./pages/Wip";
 import Layout from "./layout/Layout";
@@ -34,6 +36,14 @@ const routes = createBrowserRouter([
       {
         path: "/news",
         element: <News />,
+      },
+      {
+        path: "/all-news",
+        element: <AllNews />,
+      },
+      {
+        path: "/all-news/:slug",
+        element: <NewsArticle />,
       },
       {
         path: "/news/training",

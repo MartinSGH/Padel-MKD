@@ -32,6 +32,7 @@ import EmailListModal from "../components/EmailListModal";
 import { uniqueEmails } from "../lib/emails";
 import AdminTournamentDraw from "../components/AdminTournamentDraw";
 import AdminTournamentSchedule from "../components/AdminTournamentSchedule";
+import AdminNews from "../components/AdminNews";
 import AdminCardTitle from "../components/AdminCardTitle";
 import { useCollapsedSection } from "../hooks/useCollapsedSection";
 import "../styles/Admin.css";
@@ -1502,6 +1503,8 @@ export default function Admin() {
         <AdminTournamentDraw tournaments={tournaments} />
 
         <AdminTournamentSchedule tournaments={tournaments} />
+
+        <AdminNews />
       </div>
 
       {showEmailList && (

@@ -2057,3 +2057,123 @@
     flex-shrink: 0;
   }
 }
+
+/* ---- News ---- */
+.admin-news-card {
+  margin-top: 24px;
+}
+
+.admin-news-form .admin-edit-note {
+  margin-bottom: 16px;
+}
+
+.admin-news-cover-preview {
+  width: 128px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+}
+
+.admin-news-cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-news-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 22px 0 10px;
+}
+
+.admin-news-tabs {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-news-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.admin-news-tab.active {
+  background: #d4a63d;
+  color: #081738;
+}
+
+.admin-news-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7bf2c5;
+}
+
+.admin-news-tab.active .admin-news-tab-dot {
+  background: #081738;
+}
+
+.admin-news-publish {
+  margin-top: 16px;
+}
+
+.admin-news-item {
+  justify-content: flex-start;
+}
+
+.admin-news-item .admin-tournament-info {
+  flex: 1;
+}
+
+.admin-news-thumb {
+  width: 84px;
+  height: 56px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #1d3163 0%, #274696 100%) center / cover
+    no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-news-item a.admin-btn {
+  text-decoration: none;
+}
+
+.admin-news-status-link {
+  background: rgba(96, 165, 250, 0.18);
+  color: #a5c8ff;
+}
+
+@media (max-width: 768px) {
+  .admin-news-item {
+    flex-wrap: wrap;
+  }
+  .admin-news-thumb {
+    width: 64px;
+    height: 44px;
+  }
+  .admin-news-item .admin-tournament-actions {
+    width: 100%;
+  }
+}

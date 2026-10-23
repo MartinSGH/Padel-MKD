@@ -395,7 +395,18 @@
   },
   "news": {
     "newsTitle": "News",
-    "galleryTitle": "Gallery"
+    "galleryTitle": "Gallery",
+    "seeMore": "See more",
+    "allNewsTitle": "All News",
+    "backToNews": "Back to News",
+    "backToAllNews": "All News",
+    "readMore": "Read more",
+    "openLink": "Open article",
+    "externalBadge": "Link",
+    "empty": "No news yet.",
+    "notFound": "This news could not be found.",
+    "draft": "Draft",
+    "editInAdmin": "Edit in Admin panel"
   },
   "history": {
     "desktopImage": "/images.WIP.History.png",

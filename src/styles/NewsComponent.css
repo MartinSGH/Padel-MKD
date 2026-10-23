@@ -17,32 +17,61 @@
   background: linear-gradient(90deg, #1d3163 0%, #274696 100%);
 }
 
+/* Court squares: the cover image of each news is set inline; the court-blue
+   surface shows through when a news has no cover or a square is empty. */
+.news-first-card,
+.news-second-card,
+.news-third-card,
+.news-fourth-card {
+  background: linear-gradient(90deg, #1d3163 0%, #274696 100%) 50% / cover
+    no-repeat;
+  transition: filter 0.25s ease;
+}
+.news-first-card:not(.news-card-empty):hover,
+.news-second-card:not(.news-card-empty):hover,
+.news-third-card:not(.news-card-empty):hover,
+.news-fourth-card:not(.news-card-empty):hover {
+  filter: brightness(1.12);
+}
+
 .news-first-card {
   border-right: 6px solid #fff;
   border-bottom: 6px solid #fff;
-  background: linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0.3) 0%,
-      rgba(0, 0, 0, 0.3) 100%
-    ),
-    url("/images/NewsComponentImages/Image-1.png") lightgray 50% / cover
-      no-repeat;
 }
-
 .news-second-card {
   border-bottom: 6px solid #fff;
-  background: url("/images/NewsComponentImages/Image-2.jpg") lightgray 50% /
-    cover no-repeat;
 }
 .news-third-card {
   border-right: 6px solid #fff;
-  background: url("/images/NewsComponentImages/Image-3.jpg") lightgray 50% /
-    cover no-repeat;
 }
-.news-fourth-card {
-  background: url("/images/NewsComponentImages/image-4.jpg") lightgray 50% /
-    cover no-repeat;
+
+.news-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
+.news-see-more {
+  flex-shrink: 0;
+  color: #fde834;
+  font-family: Montserrat, sans-serif;
+  font-size: clamp(0.875rem, 0.825rem + 0.25vw, 1.125rem);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.news-see-more:hover {
+  color: #fde834;
+  text-decoration: underline;
+}
+.news-see-more span {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.news-see-more:hover span {
+  transform: translateX(4px);
+}
+
 .full-size-link{
   display: block;
   width: 100%;

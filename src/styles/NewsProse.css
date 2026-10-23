@@ -1,0 +1,178 @@
+/* Article typography — shared by the admin editor page and the public article
+   page, so what the admin sees while writing is what readers get. Rendered on
+   a white "paper" background in both places. */
+.news-prose {
+  color: #1f2937;
+  font-family: Montserrat, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+
+.news-prose > * + * {
+  margin-top: 0.85em;
+}
+
+.news-prose p {
+  margin: 0;
+}
+.news-prose p + p {
+  margin-top: 0.85em;
+}
+
+.news-prose h1,
+.news-prose h2,
+.news-prose h3,
+.news-prose h4 {
+  color: #081738;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 1.2em 0 0.5em;
+}
+.news-prose h1 { font-size: 2.1em; }
+.news-prose h2 { font-size: 1.65em; }
+.news-prose h3 { font-size: 1.3em; }
+.news-prose h4 { font-size: 1.1em; }
+.news-prose > :first-child {
+  margin-top: 0;
+}
+
+.news-prose a {
+  color: #274696;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.news-prose a:hover {
+  color: #f82428;
+}
+
+.news-prose ul,
+.news-prose ol {
+  padding-left: 1.6em;
+  margin: 0.6em 0;
+}
+.news-prose ul { list-style: disc; }
+.news-prose ol { list-style: decimal; }
+.news-prose ul ul { list-style: circle; }
+.news-prose li > p {
+  margin: 0;
+}
+
+.news-prose ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.2em;
+}
+.news-prose ul[data-type="taskList"] li {
+  display: flex;
+  gap: 0.5em;
+  align-items: flex-start;
+}
+.news-prose ul[data-type="taskList"] li > label {
+  margin-top: 0.3em;
+  flex-shrink: 0;
+}
+.news-prose ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.news-prose blockquote {
+  border-left: 6px solid #fde834;
+  background: #f6f7fb;
+  padding: 0.8em 1.2em;
+  margin: 1em 0;
+  color: #374151;
+  font-style: italic;
+  border-radius: 0 10px 10px 0;
+}
+
+.news-prose code {
+  background: #eef1f7;
+  border-radius: 5px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+  font-family: "Courier New", Courier, monospace;
+}
+.news-prose pre {
+  background: #0f1b3a;
+  color: #e5e7eb;
+  padding: 1em 1.2em;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.news-prose pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.news-prose hr {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 1.6em 0;
+}
+
+.news-prose mark {
+  border-radius: 3px;
+  padding: 0 0.1em;
+  color: inherit;
+}
+
+/* Images: width/height attributes come from resizing in the editor. */
+.news-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+  margin: 1em auto;
+}
+.news-prose img[data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
+.news-prose img[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* YouTube embeds scale with the page. */
+.news-prose div[data-youtube-video] {
+  margin: 1em 0;
+}
+.news-prose iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 12px;
+}
+
+/* Tables */
+.news-prose .tableWrapper {
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.news-prose table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0;
+}
+.news-prose th,
+.news-prose td {
+  border: 1px solid #d1d5db;
+  padding: 0.5em 0.75em;
+  vertical-align: top;
+  min-width: 2em;
+  position: relative;
+}
+.news-prose th {
+  background: #eef1f7;
+  font-weight: 700;
+  text-align: left;
+}
+.news-prose th > p,
+.news-prose td > p {
+  margin: 0;
+}
