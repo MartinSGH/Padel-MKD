@@ -57,6 +57,13 @@ export const sendAnnouncementEmail = async ({
     body: { kind, id, audience, userIds },
   });
   if (error) {
+    // No response at all: the function isn't deployed (its 404 has no CORS
+    // headers, so the browser blocks it) or the network is down.
+    if (error.name === "FunctionsFetchError") {
+      throw new Error(
+        "couldn't reach the send-email Edge Function. Check that it's deployed in Supabase → Edge Functions under the name send-email."
+      );
+    }
     // The function's own error message is in the response body.
     let message = error.message;
     try {
