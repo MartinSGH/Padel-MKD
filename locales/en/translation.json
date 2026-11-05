@@ -99,7 +99,8 @@
     },
     "schedule": {
       "tab": "Schedule",
-      "empty": "The schedule will appear once the draw has matches to play."
+      "empty": "The schedule will appear once the draw has matches to play.",
+      "resultsPdf": "Results"
     },
     "live": {
       "live": "LIVE",
