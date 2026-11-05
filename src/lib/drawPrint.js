@@ -9,7 +9,7 @@
 //                       (taken from the schedule) alongside their draw phase and
 //                       result. Used for upcoming / ongoing tournaments.
 
-import { scheduleGrid, slotTimeLabel } from "./scheduleBuild";
+import { scheduleGrid, slotTimeLabel, courtName } from "./scheduleBuild";
 import { groupStandings } from "./groupDraw";
 import { listDraws, statusesForSlot, categoryLabelMk } from "./drawSet";
 import {
@@ -40,7 +40,6 @@ export const DRAW_LABELS = {
   played: "И",
   wins: "П",
   losses: "З",
-  courts: ["Терен 1", "Терен 2"],
   vs: "vs",
   hour: "часот",
   startAt: "Почеток",
@@ -249,7 +248,7 @@ const bodyForDay = (labels, tournamentDraw, schedule, statuses, dayFilter) => {
             )}</span>`;
           return `<tr>
             <td class="d-time">${escapeHtml(slotTimeLabel(row, labels))}</td>
-            <td class="d-court">${escapeHtml(labels.courts[ci] || "")}</td>
+            <td class="d-court">${escapeHtml(courtName(ci))}</td>
             <td class="d-phase">${escapeHtml(
               phaseLabelFor(labels, entries, cellMatch)
             )}</td>

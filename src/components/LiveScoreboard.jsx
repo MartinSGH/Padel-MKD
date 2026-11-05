@@ -21,7 +21,11 @@ import {
   subscribeToMatch,
 } from "../services/liveScores";
 import { formatDateRange } from "../lib/tournamentUtils";
-import { matchScheduleInfo, slotTimeLabel } from "../lib/scheduleBuild";
+import {
+  matchScheduleInfo,
+  slotTimeLabel,
+  courtName,
+} from "../lib/scheduleBuild";
 import { SCHEDULE_LABELS } from "../lib/schedulePrint";
 
 const clockText = (start, end) => {
@@ -224,7 +228,7 @@ const LiveScoreboard = ({
     ? matchScheduleInfo(tournament.draw, tournament.schedule, round, matchIndex)
     : null;
   const schedText = sched
-    ? `${SCHEDULE_LABELS.courts[sched.court]} · ${slotTimeLabel(
+    ? `${courtName(sched.court)} · ${slotTimeLabel(
         sched,
         SCHEDULE_LABELS
       )}`
@@ -377,7 +381,7 @@ const LiveScoreboard = ({
             <div className="ls-meta">
               {sched && (
                 <span className="ls-court">
-                  {SCHEDULE_LABELS.courts[sched.court]}
+                  {courtName(sched.court)}
                 </span>
               )}
               {golden && (

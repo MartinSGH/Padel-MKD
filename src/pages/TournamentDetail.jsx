@@ -29,6 +29,7 @@ import { printDraw, printDrawDay } from "../lib/drawPrint";
 import {
   scheduleGrid,
   slotTimeLabel,
+  courtNames,
   GROUP_SCHEDULE_DAYS,
 } from "../lib/scheduleBuild";
 import { gameLabel } from "../lib/padelScore";
@@ -1637,6 +1638,7 @@ const TournamentDetail = () => {
                       tournament.draw,
                       tournament.schedule
                     );
+                    const courts = courtNames(tournament.schedule);
                     if (rows.length === 0) {
                       return (
                         <p className="td-reg-closed">
@@ -1650,7 +1652,7 @@ const TournamentDetail = () => {
                           <thead>
                             <tr>
                               <th className="corner" />
-                              {SCHEDULE_LABELS.courts.map((c) => (
+                              {courts.map((c) => (
                                 <th key={c}>{c}</th>
                               ))}
                             </tr>
@@ -1670,9 +1672,7 @@ const TournamentDetail = () => {
                                       className="td-schedule-dayrow"
                                     >
                                       <td
-                                        colSpan={
-                                          SCHEDULE_LABELS.courts.length + 1
-                                        }
+                                        colSpan={courts.length + 1}
                                       >
                                         {row.day}
                                       </td>
@@ -1685,7 +1685,7 @@ const TournamentDetail = () => {
                                     <td className="rownum">
                                       {SCHEDULE_LABELS.match} {n}
                                     </td>
-                                    {SCHEDULE_LABELS.courts.map((_, ci) => {
+                                    {courts.map((_, ci) => {
                                       const mt = row.cells[ci];
                                       const solo = mt && mt.teamA && !mt.teamB;
                                       return (

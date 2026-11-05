@@ -1,15 +1,16 @@
 // Build the playing schedule automatically FROM the draw(s). The admin only sets
-// the start time (and interval); everything else is derived. Two matches per
-// time slot — one on each court (Терен 1 / Терен 2). slot 0 → "Почеток 12:00
-// часот", later slots → "Не пред 13:00 часот".
+// the start time (and interval) and how many courts are available (config.courts,
+// 2 by default); everything else is derived. One match per court per time slot
+// (Терен 1 / Терен 2 / …). slot 0 → "Почеток 12:00 часот", later slots →
+// "Не пред 13:00 часот".
 //
 // A tournament can have one draw per category (Men's / Women's / Mixed pairs,
-// see drawSet.js); all of them share the same two courts, so they are scheduled
+// see drawSet.js); all of them share the same courts, so they are scheduled
 // together into ONE grid.
 //
 // Every match becomes a queue item, then slots are filled greedily in queue
 // order under these rules:
-//   • a player is never on both courts in the same slot (hard rule — checked on
+//   • a player is never on two courts in the same slot (hard rule — checked on
 //     the individual player names, so it also holds across categories);
 //   • a knockout round only starts after the previous round of its category is
 //     fully scheduled in earlier slots (a QF winner can't play the SF at the
@@ -44,8 +45,26 @@ import {
 import { listDraws, encodeRound } from "./drawSet.js";
 import { roundName } from "./draw.js";
 
-export const DEFAULT_SCHEDULE = { startTime: "12:00", intervalMinutes: 60 };
-const COURTS = 2;
+export const DEFAULT_SCHEDULE = {
+  startTime: "12:00",
+  intervalMinutes: 60,
+  courts: 2,
+};
+export const MIN_COURTS = 2;
+export const MAX_COURTS = 12;
+
+// Number of playable courts. Schedules saved before this setting existed have
+// no `courts` and keep the original two.
+export const courtCount = (config) => {
+  const n = parseInt(config?.courts, 10);
+  if (!Number.isFinite(n)) return DEFAULT_SCHEDULE.courts;
+  return Math.min(MAX_COURTS, Math.max(MIN_COURTS, n));
+};
+
+// "Терен 1", "Терен 2", … (the schedule is a Macedonian federation document).
+export const courtName = (i) => `Терен ${i + 1}`;
+export const courtNames = (config) =>
+  Array.from({ length: courtCount(config) }, (_, i) => courtName(i));
 export const GROUP_SCHEDULE_DAYS = ["Сабота", "Недела"];
 
 // Per-day start time + interval. Day 2 (the knockout day) can have its own start
@@ -376,8 +395,8 @@ const eliminationItems = (entries, dayOf) => {
 
 const overlaps = (players, busy) => players.some((p) => busy.has(p));
 
-// Pack one day's queue into slots of up to COURTS matches.
-const packSlots = (queue) => {
+// Pack one day's queue into slots of up to `courts` matches.
+const packSlots = (queue, courts) => {
   const pending = [...queue];
   const slots = [];
   // Per category+stage: how many are still unscheduled / last slot used.
@@ -418,7 +437,7 @@ const packSlots = (queue) => {
     // Pass 1 prefers pairs that just rested; pass 2 fills any free court.
     [true, false].forEach((wantRest) => {
       pending.forEach((it) => {
-        if (picked.length >= COURTS || picked.includes(it)) return;
+        if (picked.length >= courts || picked.includes(it)) return;
         if (!ready(it, slotIdx)) return;
         if (overlaps(it.players, busy)) return;
         if (wantRest && overlaps(it.players, prevPlayers)) return;
@@ -497,24 +516,27 @@ const dayIndexOf = (it) => it.day || 0;
 
 // Automatic: pack each day's queue into slots → per day, a list of slots of
 // items (null = free court).
-const autoDays = (queue, multiDay) =>
+const autoDays = (queue, multiDay, courts) =>
   (multiDay ? [0, 1] : [0]).map((d) =>
     packSlots(
-      queue.filter((it) => !it.manualOnly && dayIndexOf(it) === d)
+      queue.filter((it) => !it.manualOnly && dayIndexOf(it) === d),
+      courts
     ).map((picked) =>
-      Array.from({ length: COURTS }, (_, c) => picked[c] || null)
+      Array.from({ length: courts }, (_, c) => picked[c] || null)
     )
   );
 
 // Manual: resolve the admin's layout (match keys) against the current draw.
 // Unknown / duplicate keys are dropped. A real match that isn't placed anywhere
-// is appended (auto-packed) after its day's slots, flagged `appended`.
-const manualDays = (queue, multiDay, layout) => {
+// is appended (auto-packed) after its day's slots, flagged `appended`. A match
+// left on a court beyond `courts` (the court count was lowered) counts as not
+// placed.
+const manualDays = (queue, multiDay, layout, courts) => {
   const byKey = new Map(queue.map((it) => [it.key, it]));
   const used = new Set();
   const days = (multiDay ? [0, 1] : [0]).map((d) =>
     (Array.isArray(layout[d]) ? layout[d] : []).map((slot) =>
-      Array.from({ length: COURTS }, (_, c) => {
+      Array.from({ length: courts }, (_, c) => {
         const k = Array.isArray(slot) ? slot[c] : null;
         const it = k != null && !used.has(k) ? byKey.get(k) : null;
         if (!it) return null;
@@ -527,9 +549,9 @@ const manualDays = (queue, multiDay, layout) => {
     const rest = queue.filter(
       (it) => !used.has(it.key) && !it.manualOnly && dayIndexOf(it) === d
     );
-    packSlots(rest).forEach((picked) =>
+    packSlots(rest, courts).forEach((picked) =>
       slots.push(
-        Array.from({ length: COURTS }, (_, c) =>
+        Array.from({ length: courts }, (_, c) =>
           picked[c] ? { ...picked[c], appended: true } : null
         )
       )
@@ -541,13 +563,14 @@ const manualDays = (queue, multiDay, layout) => {
 const placedDays = (tournamentDraw, config) => {
   const { queue, multiDay } = buildQueue(tournamentDraw);
   if (!queue.length) return { days: [], multiDay, queue };
+  const courts = courtCount(config);
   const days = isManualSchedule(config)
-    ? manualDays(queue, multiDay, config.manual)
-    : autoDays(queue, multiDay);
+    ? manualDays(queue, multiDay, config.manual, courts)
+    : autoDays(queue, multiDay, courts);
   return { days, multiDay, queue };
 };
 
-// Slot rows for the 2-court grid (display + PDF). Rows carry an optional `day`.
+// Slot rows for the court grid (display + PDF), one cell per court. Rows carry an optional `day`.
 // `tournamentDraw` is the stored `tournaments.draw` value (see drawSet.js).
 // Times restart each day, each day using its own start time + interval. A slot
 // the admin left empty in a manual schedule isn't shown, but still takes its
@@ -586,15 +609,15 @@ export const schedulePool = (tournamentDraw) => {
 
 // The automatic schedule as a manual layout (per day, slots of match keys) —
 // the starting point when the admin switches to manual.
-export const autoLayout = (tournamentDraw) => {
+export const autoLayout = (tournamentDraw, config) => {
   const { queue, multiDay } = buildQueue(tournamentDraw);
-  return autoDays(queue, multiDay).map((slots) =>
+  return autoDays(queue, multiDay, courtCount(config)).map((slots) =>
     slots.map((cells) => cells.map((c) => (c ? c.key : null)))
   );
 };
 
 // Problems in a manual schedule, as readable strings:
-//   • the same player on both courts in one slot;
+//   • the same player on two courts in one slot;
 //   • a knockout round placed before (or alongside) an earlier round of its
 //     category — e.g. a semifinal before every quarterfinal is played;
 //   • real matches not placed (they get appended at the end of their day);
@@ -624,7 +647,7 @@ export const scheduleWarnings = (tournamentDraw, config) => {
         const clash = it.players.find((p) => seen.has(p));
         if (clash) {
           out.push(
-            `${dayName(d)}${slotTime(config, d, idx)}: ${nameOf(it, clash)} is on both courts.`
+            `${dayName(d)}${slotTime(config, d, idx)}: ${nameOf(it, clash)} is on two courts at the same time.`
           );
         }
         it.players.forEach((p) => seen.add(p));

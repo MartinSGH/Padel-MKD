@@ -14,7 +14,11 @@ import {
   schedulePool,
   autoLayout,
   scheduleWarnings,
+  courtCount,
+  courtNames,
   DEFAULT_SCHEDULE,
+  MIN_COURTS,
+  MAX_COURTS,
   GROUP_SCHEDULE_DAYS,
 } from "../lib/scheduleBuild";
 import { listDraws } from "../lib/drawSet";
@@ -29,20 +33,20 @@ const emptySchedule = () => ({
   // time + interval; empty start time means "same as day 1".
   day2StartTime: "",
   day2IntervalMinutes: DEFAULT_SCHEDULE.intervalMinutes,
+  // Playable courts — one match per court per time slot.
+  courts: DEFAULT_SCHEDULE.courts,
   // "auto": order derived from the draw. "manual": the admin's own order, kept
   // in `manual` (per day, slots of match keys — see scheduleBuild.js).
   mode: "auto",
   manual: null,
 });
 
-const COURTS = SCHEDULE_LABELS.courts.length;
-
 // A clean, mutable copy of the manual layout with exactly `dayCount` days and
-// COURTS cells per slot.
-const cloneLayout = (manual, dayCount) =>
+// `courts` cells per slot.
+const cloneLayout = (manual, dayCount, courts) =>
   Array.from({ length: dayCount }, (_, d) =>
     (Array.isArray(manual?.[d]) ? manual[d] : []).map((slot) =>
-      Array.from({ length: COURTS }, (_, c) =>
+      Array.from({ length: courts }, (_, c) =>
         Array.isArray(slot) && slot[c] != null ? slot[c] : null
       )
     )
@@ -57,6 +61,7 @@ const normalize = (s) => ({
   day2StartTime: s?.day2StartTime || "",
   day2IntervalMinutes:
     s?.day2IntervalMinutes || DEFAULT_SCHEDULE.intervalMinutes,
+  courts: courtCount(s),
   mode: s?.mode === "manual" ? "manual" : "auto",
   manual: Array.isArray(s?.manual) ? s.manual : null,
 });
@@ -139,19 +144,20 @@ const AdminTournamentSchedule = ({ tournaments }) => {
   const [selectedKey, setSelectedKey] = useState(null);
 
   // The stored draw column: one draw per category (Men's / Women's …), all
-  // scheduled together on the same two courts.
+  // scheduled together on the same courts.
   const draw = selectedTournament?.draw || null;
   const drawEntries = listDraws(draw);
   const isGroup = drawEntries.some((e) => e.draw?.system === "group");
   const multiDraw = drawEntries.length > 1;
   const rows = draw ? scheduleGrid(draw, schedule) : [];
+  const courts = courtNames(schedule);
 
   // ---- Manual mode ---------------------------------------------------------
   const isManual = schedule.mode === "manual";
   const pool = draw ? schedulePool(draw) : { matches: [], days: [null] };
   const dayCount = pool.days.length;
   const byKey = new Map(pool.matches.map((m) => [m.key, m]));
-  const layout = cloneLayout(schedule.manual, dayCount);
+  const layout = cloneLayout(schedule.manual, dayCount, courts.length);
   const placedKeys = new Set(
     layout.flat(2).filter((k) => k != null && byKey.has(k))
   );
@@ -162,7 +168,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
 
   const setLayout = (fn) =>
     setSchedule((s) => {
-      const next = cloneLayout(s.manual, dayCount);
+      const next = cloneLayout(s.manual, dayCount, courtCount(s));
       fn(next);
       return { ...s, manual: next };
     });
@@ -176,7 +182,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
       return {
         ...s,
         mode: "manual",
-        manual: hasAny ? s.manual : autoLayout(draw),
+        manual: hasAny ? s.manual : autoLayout(draw, s),
       };
     });
   };
@@ -195,7 +201,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
       return;
     }
     setSelectedKey(null);
-    setField("manual", autoLayout(draw));
+    setField("manual", autoLayout(draw, schedule));
   };
 
   const clearManual = () => {
@@ -242,7 +248,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
   };
 
   const insertSlot = (d, at) =>
-    setLayout((L) => L[d].splice(at, 0, Array(COURTS).fill(null)));
+    setLayout((L) => L[d].splice(at, 0, Array(courts.length).fill(null)));
   const removeSlot = (d, r) => setLayout((L) => L[d].splice(r, 1));
 
   const onChipDragStart = (e, key) => {
@@ -283,6 +289,38 @@ const AdminTournamentSchedule = ({ tournaments }) => {
 
   const setField = (field, value) =>
     setSchedule((s) => ({ ...s, [field]: value }));
+
+  // Change the number of playable courts. In manual mode, matches placed on a
+  // court that is removed go back to the unplaced matches.
+  const setCourts = (value) => {
+    if (!Number.isFinite(parseInt(value, 10))) return; // field cleared mid-edit
+    const n = courtCount({ courts: value });
+    if (n === courts.length) return;
+    if (isManual && n < courts.length) {
+      const dropped = layout
+        .flat()
+        .flatMap((cells) => cells.slice(n))
+        .filter((k) => k != null && byKey.has(k)).length;
+      if (
+        dropped &&
+        !window.confirm(
+          `${dropped} match${dropped > 1 ? "es" : ""} on the removed court${
+            courts.length - n > 1 ? "s" : ""
+          } will go back to the unplaced matches. Continue?`
+        )
+      ) {
+        return;
+      }
+    }
+    setSelectedKey(null);
+    setSchedule((s) => ({
+      ...s,
+      courts: n,
+      manual: Array.isArray(s.manual)
+        ? cloneLayout(s.manual, dayCount, n)
+        : s.manual,
+    }));
+  };
 
   const handlePublish = async () => {
     if (!selectedId) return;
@@ -340,10 +378,12 @@ const AdminTournamentSchedule = ({ tournaments }) => {
               <p>
                 The matches come straight from the published draw(s) — when a
                 tournament has several category draws (e.g. Men&apos;s and
-                Women&apos;s pairs), they share the two courts in one schedule, and a
-                pair is never put on both courts at the same time. Just set the start
-                time of the first two matches — the courts (Терен 1 / Терен 2) and all
-                the following times are calculated automatically. For a group
+                Women&apos;s pairs), they share the same courts in one schedule, and a
+                pair is never put on two courts at the same time. Set how many
+                courts are playable (2 by default — add more if the venue has them)
+                and the start time of the first slot — one match goes on each court
+                per slot, and the courts (Терен 1, Терен 2, …) and all the following
+                times are calculated automatically. For a group
                 tournament you can set Day 1 (group stage) and Day 2 times
                 separately. A category with only one group (e.g. Women&apos;s pairs)
                 plays its matches first on Day 2, followed by the quarterfinals →
@@ -411,11 +451,44 @@ const AdminTournamentSchedule = ({ tournaments }) => {
             {selectedId && draw && (
               <>
                 <div className="admin-schedule-head">
+                  <div className="admin-field">
+                    <span>Playable courts</span>
+                    <div className="admin-courts-stepper">
+                      <button
+                        type="button"
+                        className="admin-btn admin-edit-btn"
+                        onClick={() => setCourts(courts.length - 1)}
+                        disabled={courts.length <= MIN_COURTS}
+                        aria-label="Remove a court"
+                        title="Remove a court"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min={MIN_COURTS}
+                        max={MAX_COURTS}
+                        value={courts.length}
+                        onChange={(e) => setCourts(e.target.value)}
+                        aria-label="Playable courts"
+                      />
+                      <button
+                        type="button"
+                        className="admin-btn admin-edit-btn"
+                        onClick={() => setCourts(courts.length + 1)}
+                        disabled={courts.length >= MAX_COURTS}
+                        aria-label="Add a court"
+                        title="Add a court"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                   <label className="admin-field">
                     <span>
                       {isGroup
                         ? "Day 1 · Group stage — start time"
-                        : "Start time (first two matches)"}
+                        : "Start time (first slot)"}
                     </span>
                     <input
                       type="time"
@@ -586,12 +659,12 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                           <thead>
                             {dayLabel && (
                               <tr className="admin-schedule-dayrow">
-                                <td colSpan={COURTS + 2}>{dayLabel}</td>
+                                <td colSpan={courts.length + 2}>{dayLabel}</td>
                               </tr>
                             )}
                             <tr>
                               <th className="corner" />
-                              {SCHEDULE_LABELS.courts.map((c) => (
+                              {courts.map((c) => (
                                 <th key={c}>{c}</th>
                               ))}
                               <th className="corner" />
@@ -690,7 +763,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                       <thead>
                         <tr>
                           <th className="corner" />
-                          {SCHEDULE_LABELS.courts.map((c) => (
+                          {courts.map((c) => (
                             <th key={c}>{c}</th>
                           ))}
                         </tr>
@@ -706,7 +779,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                               n = 0;
                               out.push(
                                 <tr key={`d-${ri}`} className="admin-schedule-dayrow">
-                                  <td colSpan={SCHEDULE_LABELS.courts.length + 1}>
+                                  <td colSpan={courts.length + 1}>
                                     {row.day}
                                   </td>
                                 </tr>
@@ -718,7 +791,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                                 <td className="rownum">
                                   {SCHEDULE_LABELS.match} {n}
                                 </td>
-                                {SCHEDULE_LABELS.courts.map((_, ci) => {
+                                {courts.map((_, ci) => {
                                   const mt = row.cells[ci];
                                   const solo = mt && mt.teamA && !mt.teamB;
                                   return (

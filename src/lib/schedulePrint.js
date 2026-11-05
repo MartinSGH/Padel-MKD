@@ -1,19 +1,19 @@
 // Printable "playing schedule" (План за играње) in the classic tennis-federation
-// layout. The matches are derived from the draw (two courts, hourly slots); the
-// admin only sets the start time.
+// layout. The matches are derived from the draw (one column per court, hourly
+// slots); the admin only sets the start time and the number of courts.
 
-import { scheduleGrid, slotTimeLabel } from "./scheduleBuild";
+import { scheduleGrid, slotTimeLabel, courtNames } from "./scheduleBuild";
 import { listDraws, categoryLabelMk } from "./drawSet";
 
 // The sheet is an official Macedonian federation document, so its frame labels
-// stay in Macedonian regardless of the site's UI language. Two fixed courts.
+// stay in Macedonian regardless of the site's UI language. Court names come from
+// courtNames(schedule) — the count is set per tournament.
 export const SCHEDULE_LABELS = {
   title: "План за играње",
   date: "Дата",
   club: "Клуб / Град",
   referee: "Судија / Делегат",
   match: "Натпревар",
-  courts: ["Терен 1", "Терен 2"],
   startAt: "Почеток",
   notBefore: "Не пред",
   hour: "часот",
@@ -49,10 +49,11 @@ export const printSchedule = (tournamentName, schedule, draw, dayFilter = null) 
   const allRows = scheduleGrid(draw, schedule);
   const rows =
     dayFilter != null ? allRows.filter((r) => r.day === dayFilter) : allRows;
-  const colSpan = labels.courts.length + 1;
+  const courts = courtNames(schedule);
+  const colSpan = courts.length + 1;
   const showCategory = listDraws(draw).length > 1;
 
-  const headCourts = labels.courts
+  const headCourts = courts
     .map((c) => `<td class="court">${escapeHtml(c)}</td>`)
     .join("");
 
@@ -69,7 +70,7 @@ export const printSchedule = (tournamentName, schedule, draw, dayFilter = null) 
         )}</td></tr>`;
       }
       n += 1;
-      const cells = labels.courts
+      const cells = courts
         .map((_, ci) => `<td class="cell">${cellHtml(row, row.cells[ci], labels, showCategory)}</td>`)
         .join("");
       return `${dayRow}<tr><td class="rownum">${escapeHtml(
