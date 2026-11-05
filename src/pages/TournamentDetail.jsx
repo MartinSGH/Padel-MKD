@@ -781,15 +781,16 @@ const TournamentDetail = () => {
     referee: tournament.schedule?.referee || "",
   });
 
-  // Finished tournaments → one full-draw PDF with every result.
+  // Draw tab → one full-draw PDF with every result so far.
   const handleDownloadDraw = () => {
     if (tournament.draw) {
       printDraw(tournament.name, tournament.draw, matchStatuses, drawMeta());
     }
   };
 
-  // Upcoming / ongoing tournaments → one PDF per playing day (that day's matches
-  // from the schedule, with their draw phase + any result so far).
+  // Schedule tab (admins / referees) → one PDF per playing day: that day's
+  // matches from the published schedule, with their draw phase + any result.
+  // Only offered once a schedule is published, never from the Draw tab.
   const handleDownloadDrawDay = (dayFilter = null) => {
     if (tournament.draw) {
       printDrawDay(
@@ -1325,7 +1326,7 @@ const TournamentDetail = () => {
                     <h2 className="td-section-title">
                       {t("tournamentsPage.draw.title")}
                     </h2>
-                    {!canScore ? null : timing === "finished" ? (
+                    {canScore && (
                       <button
                         type="button"
                         className="td-btn td-btn-outline td-pairs-btn"
@@ -1333,44 +1334,6 @@ const TournamentDetail = () => {
                       >
                         {t("tournamentsPage.downloadPdf")}
                       </button>
-                    ) : (
-                      (() => {
-                        const drawRows = scheduleGrid(
-                          tournament.draw,
-                          tournament.schedule
-                        );
-                        const days =
-                          anyGroupDraw
-                            ? GROUP_SCHEDULE_DAYS.filter((d) =>
-                                drawRows.some((r) => r.day === d)
-                              )
-                            : [];
-                        if (days.length > 1) {
-                          return (
-                            <div className="td-schedule-dl-btns">
-                              {days.map((d) => (
-                                <button
-                                  key={d}
-                                  type="button"
-                                  className="td-btn td-btn-outline td-pairs-btn"
-                                  onClick={() => handleDownloadDrawDay(d)}
-                                >
-                                  {t("tournamentsPage.downloadPdf")} — {d}
-                                </button>
-                              ))}
-                            </div>
-                          );
-                        }
-                        return (
-                          <button
-                            type="button"
-                            className="td-btn td-btn-outline td-pairs-btn"
-                            onClick={() => handleDownloadDrawDay()}
-                          >
-                            {t("tournamentsPage.downloadPdf")}
-                          </button>
-                        );
-                      })()
                     )}
                   </div>
 
@@ -1577,10 +1540,11 @@ const TournamentDetail = () => {
                               schedRows.some((r) => r.day === d)
                             )
                           : [];
-                      if (days.length > 1) {
-                        return (
-                          <div className="td-schedule-dl-btns">
-                            {days.map((d) => (
+                      const resultsLabel = t("tournamentsPage.schedule.resultsPdf");
+                      return (
+                        <div className="td-schedule-dl-btns">
+                          {days.length > 1 &&
+                            days.map((d) => (
                               <button
                                 key={d}
                                 type="button"
@@ -1590,24 +1554,35 @@ const TournamentDetail = () => {
                                 {t("tournamentsPage.downloadPdf")} — {d}
                               </button>
                             ))}
-                            <button
-                              type="button"
-                              className="td-btn td-btn-outline td-pairs-btn"
-                              onClick={() => handleDownloadSchedule()}
-                            >
-                              {t("tournamentsPage.downloadPdf")}
-                            </button>
-                          </div>
-                        );
-                      }
-                      return (
-                        <button
-                          type="button"
-                          className="td-btn td-btn-outline td-pairs-btn"
-                          onClick={() => handleDownloadSchedule()}
-                        >
-                          {t("tournamentsPage.downloadPdf")}
-                        </button>
+                          <button
+                            type="button"
+                            className="td-btn td-btn-outline td-pairs-btn"
+                            onClick={() => handleDownloadSchedule()}
+                          >
+                            {t("tournamentsPage.downloadPdf")}
+                          </button>
+                          {canScore &&
+                            (days.length > 1 ? (
+                              days.map((d) => (
+                                <button
+                                  key={`r-${d}`}
+                                  type="button"
+                                  className="td-btn td-btn-outline td-pairs-btn"
+                                  onClick={() => handleDownloadDrawDay(d)}
+                                >
+                                  {resultsLabel} — {d}
+                                </button>
+                              ))
+                            ) : (
+                              <button
+                                type="button"
+                                className="td-btn td-btn-outline td-pairs-btn"
+                                onClick={() => handleDownloadDrawDay()}
+                              >
+                                {resultsLabel}
+                              </button>
+                            ))}
+                        </div>
                       );
                     })()}
                   </div>
