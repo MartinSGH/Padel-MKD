@@ -112,7 +112,7 @@ const MatchChip = ({
             e.stopPropagation();
             onRemove(m.key);
           }}
-          aria-label="Back to unplaced matches"
+          aria-label="Remove from the schedule"
         >
           ×
         </button>
@@ -306,7 +306,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
         !window.confirm(
           `${dropped} match${dropped > 1 ? "es" : ""} on the removed court${
             courts.length - n > 1 ? "s" : ""
-          } will go back to the unplaced matches. Continue?`
+          } will be removed from the schedule. Continue?`
         )
       ) {
         return;
@@ -396,6 +396,13 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                 slot). Quarterfinals, semifinals and the final can be placed before
                 their pairs are known — they show as “Квалификант” / “Победник 1/4”
                 and switch to the real pairs automatically once they qualify.
+              </p>
+              <p>
+                The schedule is published exactly as you arrange it. Remove (×) any
+                match that won&apos;t be played — e.g. if Women&apos;s pairs skip the
+                quarterfinals and go straight to the semifinals, leave their
+                quarterfinals out. Matches in “Not in the schedule” are not
+                published.
               </p>
             </>
           }
@@ -607,11 +614,12 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                       }
                     >
                       <div className="admin-manual-pool-head">
-                        Unplaced matches ({unplacedRequired.length})
+                        Not in the schedule ({unplacedRequired.length}) — drop a
+                        match here to remove it
                       </div>
                       {unplacedRequired.length === 0 ? (
                         <span className="admin-manual-pool-empty">
-                          All matches placed.
+                          Every match is in the schedule.
                         </span>
                       ) : (
                         unplacedRequired.map((m) => (
@@ -729,7 +737,7 @@ const AdminTournamentSchedule = ({ tournaments }) => {
                                     type="button"
                                     className="admin-schedule-x"
                                     onClick={() => removeSlot(d, r)}
-                                    title="Remove this slot (its matches go back to unplaced)"
+                                    title="Remove this slot (its matches are removed from the schedule)"
                                     aria-label="Remove slot"
                                   >
                                     ×

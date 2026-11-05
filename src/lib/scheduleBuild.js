@@ -25,8 +25,9 @@
 // match key per court ("round:matchIndex", see matchKey). Keys point at draw
 // POSITIONS, not pair names, so a knockout match placed before its pairs are
 // known (Квалификант / Победник 1/4 …) shows the real pairs as soon as the draw
-// fills them. A real match the admin hasn't placed is still appended at the end
-// of its day, so nothing silently drops out of the public schedule.
+// fills them. The published schedule is exactly what the admin arranged: a match
+// left out (e.g. quarterfinals a category doesn't play — Women's pairs going
+// straight to the semifinals) is simply not in it.
 //
 // Elimination: matches taken in bracket order, round by round.
 // Group system: round-robin round by round, group by group. Day 1 (Сабота)
@@ -527,10 +528,9 @@ const autoDays = (queue, multiDay, courts) =>
   );
 
 // Manual: resolve the admin's layout (match keys) against the current draw.
-// Unknown / duplicate keys are dropped. A real match that isn't placed anywhere
-// is appended (auto-packed) after its day's slots, flagged `appended`. A match
-// left on a court beyond `courts` (the court count was lowered) counts as not
-// placed.
+// Unknown / duplicate keys are dropped. Only what the admin placed is scheduled
+// — a match left out stays out. A match left on a court beyond `courts` (the
+// court count was lowered) counts as not placed.
 const manualDays = (queue, multiDay, layout, courts) => {
   const byKey = new Map(queue.map((it) => [it.key, it]));
   const used = new Set();
@@ -545,19 +545,31 @@ const manualDays = (queue, multiDay, layout, courts) => {
       })
     )
   );
-  days.forEach((slots, d) => {
-    const rest = queue.filter(
-      (it) => !used.has(it.key) && !it.manualOnly && dayIndexOf(it) === d
-    );
-    packSlots(rest, courts).forEach((picked) =>
-      slots.push(
-        Array.from({ length: courts }, (_, c) =>
-          picked[c] ? { ...picked[c], appended: true } : null
-        )
-      )
-    );
-  });
-  return days;
+  // A category whose quarterfinals aren't scheduled goes straight to the
+  // semifinals, so its semifinal placeholders read "Квалификант", not
+  // "Победник 1/4".
+  const qfPlaced = new Set(
+    queue
+      .filter((it) => it.localRound === QUARTER_ROUND && used.has(it.key))
+      .map((it) => it.slot)
+  );
+  return days.map((slots) =>
+    slots.map((cells) =>
+      cells.map((it) => {
+        if (
+          !it ||
+          !it.placeholder ||
+          it.localRound !== SEMI_ROUND ||
+          it.phase !== 1 ||
+          qfPlaced.has(it.slot)
+        ) {
+          return it;
+        }
+        const fix = (t) => (t === SF_PH.side ? QF_PH.side : t);
+        return { ...it, teamA: fix(it.teamA), teamB: fix(it.teamB) };
+      })
+    )
+  );
 };
 
 const placedDays = (tournamentDraw, config) => {
@@ -620,8 +632,8 @@ export const autoLayout = (tournamentDraw, config) => {
 //   • the same player on two courts in one slot;
 //   • a knockout round placed before (or alongside) an earlier round of its
 //     category — e.g. a semifinal before every quarterfinal is played;
-//   • real matches not placed (they get appended at the end of their day);
-//   • knockout matches with no pairs yet that aren't placed.
+// Matches left out are NOT warned about: leaving them out is how the admin
+// drops what isn't played (they're listed in the editor's unplaced pool).
 export const scheduleWarnings = (tournamentDraw, config) => {
   if (!isManualSchedule(config)) return [];
   const { days, multiDay, queue } = placedDays(tournamentDraw, config);
@@ -633,14 +645,11 @@ export const scheduleWarnings = (tournamentDraw, config) => {
       .flatMap((t) => String(t || "").split("&"))
       .map((x) => x.trim())
       .find((x) => x.toLowerCase() === p) || p;
-  // key → global position (day, slot) of every match the ADMIN placed (not the
-  // appended ones — those are reported as "not placed" below).
+  // key → global position (day, slot) of every match the admin placed.
   const pos = new Map();
   days.forEach((slots, d) =>
     slots.forEach((cells, idx) => {
-      cells.forEach(
-        (it) => it && !it.appended && pos.set(it.key, d * 10000 + idx)
-      );
+      cells.forEach((it) => it && pos.set(it.key, d * 10000 + idx));
       const seen = new Set();
       cells.forEach((it) => {
         if (!it) return;
@@ -675,22 +684,6 @@ export const scheduleWarnings = (tournamentDraw, config) => {
     }
   });
 
-  const appended = days
-    .flat(2)
-    .filter((it) => it && it.appended).length;
-  if (appended) {
-    out.push(
-      `${appended} match${appended > 1 ? "es are" : " is"} not placed — the public schedule adds ${appended > 1 ? "them" : "it"} at the end of the day.`
-    );
-  }
-  const pendingKo = queue.filter(
-    (it) => it.manualOnly && !it.optional && !pos.has(it.key)
-  ).length;
-  if (pendingKo) {
-    out.push(
-      `${pendingKo} upcoming knockout match${pendingKo > 1 ? "es" : ""} (pairs not known yet) ${pendingKo > 1 ? "are" : "is"} not placed.`
-    );
-  }
   return out;
 };
 
